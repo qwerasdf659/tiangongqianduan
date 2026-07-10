@@ -1581,7 +1581,8 @@ Page({
     if (this.data.localMode) {
       wx.showModal({
         title: '本地演示模式',
-        content: '当前展示的是本地演示数据（未接入后端），暂不能提交订单。重新进入页面即可重试连接后端。',
+        content:
+          '当前展示的是本地演示数据（未接入后端），暂不能提交订单。重新进入页面即可重试连接后端。',
         showCancel: false,
         confirmColor: '#8b7355'
       })

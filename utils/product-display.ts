@@ -26,6 +26,43 @@ const { DEFAULT_PRODUCT_IMAGE, RARITY_STYLES, getAssetDisplayName, MATERIAL_ICON
 const HOLO_RARITIES = ['legendary', 'epic']
 
 /**
+ * 拼装商品等级门槛的展示文案（兑换商城等级区间门槛，拍板⑪橱窗效应）
+ *
+ * 后端字段 level_requirement（列表/详情接口下发，无门槛为 null，对接文档 §十一-M4）:
+ *   min_level_name  最低等级展示名（如 黑金卡），null=不限下限
+ *   max_level_name  最高等级展示名（如 银卡），null=不限上限
+ *   satisfied       当前用户是否满足（后端实时计算，未登录恒 false）
+ *
+ * 组合语义（与后端 §2.5 一致）:
+ *   仅 min          → "{min}及以上专享"（高价值商品门槛）
+ *   仅 max          → "{max}及以下专享"（新人专享等场景）
+ *   min = max       → "{min}专属"（仅某等级）
+ *   min + max       → "{min}至{max}专享"（区间）
+ *
+ * @param levelRequirement - 后端 level_requirement 对象（可为 null）
+ * @returns 展示文案；无门槛返回空字符串
+ */
+function formatLevelRequirementLabel(levelRequirement: any): string {
+  if (!levelRequirement || typeof levelRequirement !== 'object') {
+    return ''
+  }
+  const minLevelName = levelRequirement.min_level_name || ''
+  const maxLevelName = levelRequirement.max_level_name || ''
+  if (minLevelName && maxLevelName) {
+    return minLevelName === maxLevelName
+      ? `${minLevelName}专属`
+      : `${minLevelName}至${maxLevelName}专享`
+  }
+  if (minLevelName) {
+    return `${minLevelName}及以上专享`
+  }
+  if (maxLevelName) {
+    return `${maxLevelName}及以下专享`
+  }
+  return ''
+}
+
+/**
  * 将 asset_code 转换为中文显示名
  * 统一走 getAssetDisplayName 链路（后端 display_name 优先 → 本地映射兜底 → 原样返回）
  *
@@ -77,7 +114,13 @@ function enrichProductDisplayFields(productList: any[]): any[] {
       _isLimited: productItem.is_limited === true,
       _hasImage: validImage,
       /** 铸造开关标识（后端 mint_instance 字段，true=兑换后自动铸造物品实例） */
-      _mintInstance: productItem.mint_instance === true
+      _mintInstance: productItem.mint_instance === true,
+      /** 等级门槛角标文案（后端 level_requirement，无门槛为空串不渲染，对接文档 §十一-M4） */
+      _levelBadgeText: formatLevelRequirementLabel(productItem.level_requirement),
+      /** 等级门槛未满足（satisfied=false 时专享角标 + 置灰兑换按钮，橱窗效应：锁住但可见） */
+      _levelLocked: !!(
+        productItem.level_requirement && productItem.level_requirement.satisfied === false
+      )
     })
   })
 }
@@ -196,6 +239,7 @@ function resolveQuickExchangeSkuId(productItem: any): {
 module.exports = {
   enrichProductDisplayFields,
   formatAssetLabel,
+  formatLevelRequirementLabel,
   HOLO_RARITIES,
   isEmptySkuSpecValues,
   resolveQuickExchangeSkuId,

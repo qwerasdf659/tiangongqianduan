@@ -2,11 +2,7 @@
   XR-Frame 3D 珠子手串渲染组件
   动态渲染珠子圆环 + 弹力绳 + PBR 材质
 -->
-<xr-scene
-  id="xr-scene"
-  bind:ready="onSceneReady"
-  bind:tick="onTick"
->
+<xr-scene id="xr-scene" bind:ready="onSceneReady" bind:tick="onTick">
   <!-- 材质资源定义（动态生成） -->
   <xr-assets>
     <!-- 绳子材质 -->

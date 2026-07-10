@@ -512,8 +512,12 @@ Page({
       lottery_consume: '回馈消耗',
       lottery_reward: '回馈奖励',
       lottery_budget_deduct: '回馈预算扣减',
-      // 消费奖励
+      // 消费奖励（发放组合器多笔流水：基础笔 + 加成笔，对接文档 §十一-M3）
       consumption_reward: '消费奖励',
+      /** 会员等级加成笔（拍板②发放线阶梯，可花不计等级，展示"会员等级加成 +X"） */
+      level_bonus_reward: '会员等级加成',
+      /** 限时活动加成笔（拍板⑮-(b)，运营配置活动加成率后产生，展示"活动加成 +X"） */
+      activity_bonus_reward: '活动加成',
       consumption_budget_allocation: '消费预算分配',
       // 兑换系统
       exchange_debit: '兑换扣减',

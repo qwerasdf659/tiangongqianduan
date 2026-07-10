@@ -46,10 +46,14 @@ const ORDER_STATUS_MAP: Record<string, { label: string; color: string; icon: str
   completed: { label: '已完成', color: '#4CAF50', icon: '✓' }
 }
 
-/** 订单来源标签映射（source 字段区分普通兑换和竞价中标） */
+/**
+ * 订单来源标签映射（source 字段区分普通兑换/竞价中标/以物易物）
+ * barter 单不可取消/退款（后端能力位 refundable 恒 false，_canCancel 自然隐藏，对接文档 §十一-M1）
+ */
 const SOURCE_LABELS: Record<string, string> = {
   exchange: '普通兑换',
-  bid: '竞价中标'
+  bid: '竞价中标',
+  barter: '以物易物'
 }
 
 /** 筛选Tab配置 */

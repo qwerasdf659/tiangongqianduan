@@ -739,7 +739,14 @@ Component({
     },
 
     /** 占位吊坠: 挂环 + 外层金托 + 内层凹槽（包边深度）+ 弧形高光 */
-    _drawFallbackPendant(ctx: any, cxBg: number, drawW: number, drawH: number, ox: number, oy: number) {
+    _drawFallbackPendant(
+      ctx: any,
+      cxBg: number,
+      drawW: number,
+      drawH: number,
+      ox: number,
+      oy: number
+    ) {
       /** 水滴路径（scale 控制内外层，1 = 外层原始大小） */
       const teardrop = (scale: number) => {
         const topY = oy + drawH * (0.05 + 0.435 * (1 - scale))
@@ -767,7 +774,12 @@ Component({
       ctx.beginPath()
       ctx.arc(cxBg, bailCy, bailR, 0, Math.PI * 2)
       ctx.arc(cxBg, bailCy, bailR * 0.55, 0, Math.PI * 2)
-      const bailG = ctx.createLinearGradient(cxBg - bailR, bailCy - bailR, cxBg + bailR, bailCy + bailR)
+      const bailG = ctx.createLinearGradient(
+        cxBg - bailR,
+        bailCy - bailR,
+        cxBg + bailR,
+        bailCy + bailR
+      )
       bailG.addColorStop(0, '#F5E6CC')
       bailG.addColorStop(0.5, '#D4AF37')
       bailG.addColorStop(1, '#A67C1B')

@@ -38,6 +38,13 @@ const NOTIFICATION_TYPE_MAP: Record<string, { text: string; tagClass: string }> 
   exchange_approved: { text: '兑换', tagClass: 'tag-purchase' },
   exchange_rejected: { text: '兑换', tagClass: 'tag-rejected' },
   points_change: { text: '积分', tagClass: 'tag-points' },
+  /*
+   * 会员等级升级通知（对接文档 §十一-M5，后端 NotificationService 审核发分后跨档触发，文案后端已生成）
+   * ⚠️ 业务载荷字段名是 metadata（不是 data，B-4 后端勘误）：
+   *   { from_level_key, to_level_key, to_level_name, to_earn_multiplier, consumption_record_id }
+   * 当前页面只渲染 title/content（后端已生成完整文案），后续如需读载荷请取 notification.metadata
+   */
+  growth_level_upgrade: { text: '等级', tagClass: 'tag-points' },
   announcement: { text: '系统', tagClass: 'tag-system' },
   security_event: { text: '安全', tagClass: 'tag-rejected' },
   /* 审核链通知（后端 ApprovalChainService / ApprovalChainTimeoutService 写入 user_notifications） */
@@ -60,6 +67,8 @@ const NOTIFICATION_LINK_MAP: Record<string, string> = {
   exchange_approved: '/pages/exchange/exchange',
   exchange_rejected: '/pages/exchange/exchange',
   points_change: '/packageUser/points-detail/points-detail',
+  /* 会员等级升级通知 → 成长等级页（查看新等级与阶梯进度） */
+  growth_level_upgrade: '/packageUser/growth-level/growth-level',
   /* 审核链通知 → 审批管理页面 */
   approval_step_pending: '/packageAdmin/audit-list/audit-list',
   approval_step_assigned: '/packageAdmin/audit-list/audit-list',

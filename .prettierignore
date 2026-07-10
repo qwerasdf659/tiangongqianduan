@@ -1,2 +1,13 @@
 node_modules/
 miniprogram_npm/
+
+# 数据库导出快照（后端数据备份，数据文件非代码，不参与代码格式化）
+docs/
+
+# 工具生成产物（fantasticon 图标生成输出，重新生成会覆盖格式）
+src-icons/output/
+
+# 微信开发者工具 / 云开发自动维护的配置（工具会反复重写，避免与 Prettier 互相打架）
+.cloudbase/
+project.config.json
+project.private.config.json

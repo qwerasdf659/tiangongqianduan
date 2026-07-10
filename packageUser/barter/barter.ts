@@ -4,17 +4,24 @@
  * 业务语义: 用户用自己持有的旧物，按官方配方合成产出新物（用户↔官方单向，非 C2C 交易）。
  * 操作起点是用户已持有的旧物实例（old_item_ids），与游戏"合成/熔炼"同构。
  *
- * 后端API:
- * - GET  /api/v4/exchange/barter/recipes — 配方列表（仅 is_enabled 配方）
- * - POST /api/v4/exchange/barter         — 提交合成（Header 幂等键，body: recipe_code + old_item_ids）
+ * 后端API（对接文档 §十一-M1 + B-1 后端答复）:
+ * - GET  /api/v4/exchange/barter/recipes — 配方列表（仅 is_enabled 配方，含限量字段与产出展示字段）
+ * - POST /api/v4/exchange/barter         — 提交合成（Header 幂等键，body: recipe_code + old_item_ids + address_id?）
  * - GET  /api/v4/backpack/               — 用户背包（用于按 required_item_template_id 匹配可用旧物）
+ * - GET  /api/v4/user/addresses          — 收货地址（实物产出快递履约，默认地址预选）
+ *
+ * 履约分流（拍板⑩，后端权威，判定源同源）:
+ * - 配方 output_fulfillment_type='physical'（实物产出）→ 必传 address_id，订单 pending 走快递发货链，不 mint 进背包
+ * - 券/道具产出（voucher/virtual）→ 无需地址，订单 completed 即时到账背包
  *
  * 字段以后端为准（直接使用后端 snake_case 字段，不做映射）:
- *   配方: recipe_code / name / required_item_template_id / required_quantity / output_exchange_item_id
+ *   配方: recipe_code / name / required_item_template_id / required_quantity /
+ *         output_exchange_item_id / output_item_name / output_fulfillment_type /
+ *         per_user_limit / total_limit
  *   背包物品: item_id / item_template_id / item_name / item_type / status
  *
  * @file packageUser/barter/barter.ts
- * @version 5.2.0
+ * @version 5.4.0
  * @since 2026-06-10
  */
 
@@ -27,11 +34,9 @@ const { userStore } = require('../../store/user')
 
 Page({
   data: {
-    /** 功能后续开放蒙版（暂屏蔽以物易物功能，后续开放时置 false 即可恢复） */
-    comingSoonVisible: true,
     /** 页面加载状态机 */
     loadStatus: 'loading' as 'loading' | 'success' | 'empty' | 'error',
-    /** 配方列表（当前页，附加前端展示字段 _ownedCount / _canMake） */
+    /** 配方列表（当前页，附加前端展示字段 _ownedCount / _canMake / _limitText） */
     recipes: [] as any[],
     /** 当前页码（前端分页，1 基，供页码翻页栏展示） */
     currentPage: 1,
@@ -48,6 +53,13 @@ Page({
     candidateItems: [] as any[],
     /** 已选旧物 item_id 列表 */
     selectedItemIds: [] as number[],
+    /**
+     * 产出是否为实物（后端产出商品 fulfillment_type='physical'）：
+     * true 时提交必带 address_id，订单走快递发货链（拍板⑩）
+     */
+    needAddress: false,
+    /** 已选收货地址（实物产出快递履约用，来自地址页选择回传或默认地址） */
+    selectedAddress: null as API.UserAddress | null,
     /** 提交中 */
     submitting: false,
 
@@ -62,18 +74,6 @@ Page({
   _allRecipes: [] as any[],
   /** 配方每页条数（前端分页，UI 常量） */
   _recipePageSize: 10,
-
-  /** 蒙版拦截所有点击/滑动（功能未开放期间阻止穿透到下层页面） */
-  onComingSoonMaskTap() {},
-
-  /** 蒙版「返回上一页」：功能未开放期间提供退出入口 */
-  onComingSoonBack() {
-    wx.navigateBack({
-      fail: () => {
-        wx.switchTab({ url: '/pages/user/user' })
-      }
-    })
-  },
 
   onLoad() {
     barterLog.info('以物易物页面加载')
@@ -159,7 +159,7 @@ Page({
   },
 
   /**
-   * 丰富配方展示字段（统计用户持有的可用旧物数量，判断是否够合成）
+   * 丰富配方展示字段（统计用户持有的可用旧物数量，判断是否够合成；拼装限量说明）
    * 以 _ 前缀标记前端展示辅助字段，与后端业务字段区分
    */
   enrichRecipe(recipe: any, availableItems: any[]) {
@@ -169,15 +169,39 @@ Page({
       (it: any) => it.item_template_id === requiredTemplateId
     ).length
 
+    /** 限量说明（拍板⑬-(c)：per_user_limit 每人限换次数 / total_limit 配方总量，0 或缺省 = 不限） */
+    const limitParts: string[] = []
+    if (recipe.per_user_limit > 0) {
+      limitParts.push(`每人限 ${recipe.per_user_limit} 次`)
+    }
+    if (recipe.total_limit > 0) {
+      limitParts.push(`限量 ${recipe.total_limit} 份`)
+    }
+
+    /**
+     * 产出展示文案（后端 output_item_name 直发；实物产出标注快递到家，拍板⑩履约方式）
+     * output_item_name 为 null 表示产出商品已不存在（异常态），不展示产出行
+     */
+    const outputText = recipe.output_item_name
+      ? `${recipe.output_item_name}${recipe.output_fulfillment_type === 'physical' ? '（快递到家）' : ''}`
+      : ''
+
     return {
       ...recipe,
       _requiredQuantity: requiredQuantity,
       _ownedCount: ownedCount,
-      _canMake: ownedCount >= requiredQuantity
+      _canMake: ownedCount >= requiredQuantity,
+      _limitText: limitParts.join(' · '),
+      _outputText: outputText
     }
   },
 
-  /** 点击配方"去合成" → 打开旧物选择弹窗 */
+  /**
+   * 点击配方"去合成" → 打开旧物选择弹窗
+   * 实物产出（配方 output_fulfillment_type='physical'，与后端履约分流同源）需在提交前
+   * 选收货地址（拍板⑩），直接读配方字段判定，展示地址行并预选默认地址；
+   * 后端 BARTER_ADDRESS_REQUIRED 错误码仍作为兜底拦截（见 onSubmitBarter catch）
+   */
   onMakeRecipe(e: any) {
     const recipeCode = e.currentTarget.dataset.code
     const recipe = this.data.recipes.find((r: any) => r.recipe_code === recipeCode)
@@ -195,11 +219,52 @@ Page({
       .filter((it: any) => it.item_template_id === recipe.required_item_template_id)
       .map((it: any) => ({ ...it, _selected: false }))
 
+    /** 实物产出判定：配方直发字段，与后端"必传 address_id"判定完全同源（B-1 后端答复） */
+    const needAddress = recipe.output_fulfillment_type === 'physical'
+
     this.setData({
       showSelectPanel: true,
       activeRecipe: recipe,
       candidateItems,
-      selectedItemIds: []
+      selectedItemIds: [],
+      needAddress,
+      selectedAddress: null
+    })
+
+    if (needAddress) {
+      this.loadDefaultAddress()
+    }
+  },
+
+  /**
+   * 加载默认收货地址（实物产出初始选择）
+   * GET /api/v4/user/addresses → 取 is_default 的地址；无默认则取第一条
+   */
+  async loadDefaultAddress() {
+    try {
+      const result = await API.getUserAddresses()
+      /** 该接口 data 本身即地址数组（无 addresses/list 包裹），直接判定数组 */
+      const addresses = Array.isArray(result.data) ? result.data : []
+      if (result && result.success && addresses.length > 0) {
+        const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0]
+        this.setData({ selectedAddress: defaultAddr })
+      }
+    } catch (error) {
+      barterLog.warn('加载默认地址失败（不阻断，用户可手动选）:', error)
+    }
+  },
+
+  /** 点击收货地址行 → 跳转地址页选择模式，通过 eventChannel 回传所选地址 */
+  onChooseAddress() {
+    wx.navigateTo({
+      url: '/packageUser/addresses/addresses?select=1',
+      events: {
+        selectAddress: (payload: { address: API.UserAddress }) => {
+          if (payload && payload.address) {
+            this.setData({ selectedAddress: payload.address })
+          }
+        }
+      }
     })
   },
 
@@ -238,16 +303,22 @@ Page({
       showSelectPanel: false,
       activeRecipe: null,
       candidateItems: [],
-      selectedItemIds: []
+      selectedItemIds: [],
+      needAddress: false,
+      selectedAddress: null
     })
   },
 
   /**
    * 提交合成
-   * POST /api/v4/exchange/barter（body: recipe_code + old_item_ids，幂等键由 API 层放入 Header）
+   * POST /api/v4/exchange/barter（body: recipe_code + old_item_ids + address_id?，幂等键由 API 层放入 Header）
+   *
+   * 履约分流（以后端返回 order_status 为准）:
+   *   pending   → 实物产出，走快递发货链，引导查看我的订单
+   *   completed → 券/道具产出，即时到账背包，引导查看我的仓库
    */
   async onSubmitBarter() {
-    const { activeRecipe, selectedItemIds, submitting } = this.data
+    const { activeRecipe, selectedItemIds, submitting, needAddress, selectedAddress } = this.data
     if (submitting || !activeRecipe) {
       return
     }
@@ -258,32 +329,58 @@ Page({
       return
     }
 
+    /** 实物产出必选收货地址（拍板⑩），前置拦截避免无效请求往返 */
+    if (needAddress && !selectedAddress) {
+      showToast('请先选择收货地址')
+      return
+    }
+
     this.setData({ submitting: true })
 
     try {
-      const result = await API.submitBarter(activeRecipe.recipe_code, selectedItemIds)
+      const result = await API.submitBarter(
+        activeRecipe.recipe_code,
+        selectedItemIds,
+        needAddress && selectedAddress ? selectedAddress.address_id : undefined
+      )
 
-      if (result && result.success) {
-        const mintedItem = result.data && result.data.minted_item
-        const mintedName = mintedItem ? mintedItem.item_name : '新物品'
-        barterLog.info('以物易物成功:', activeRecipe.recipe_code)
+      if (result && result.success && result.data) {
+        barterLog.info('以物易物成功:', activeRecipe.recipe_code, result.data.order_status)
         this.setData({
           submitting: false,
           showSelectPanel: false,
           activeRecipe: null,
           candidateItems: [],
-          selectedItemIds: []
+          selectedItemIds: [],
+          needAddress: false,
+          selectedAddress: null
         })
 
-        wx.showModal({
-          title: '合成成功',
-          content: `已合成「${mintedName}」并收入我的仓库`,
-          showCancel: false,
-          confirmText: '查看仓库',
-          success: () => {
-            wx.navigateTo({ url: '/packageUser/backpack/inventory/inventory' })
-          }
-        })
+        if (result.data.order_status === 'pending') {
+          /** 实物产出：订单 pending 走快递发货链（不 mint 进背包），引导到我的订单跟踪物流 */
+          wx.showModal({
+            title: '合成成功',
+            content: '实物将通过快递寄送到您的收货地址，可在「我的订单」查看发货进度',
+            showCancel: false,
+            confirmText: '查看订单',
+            success: () => {
+              wx.navigateTo({ url: '/packageExchange/exchange-orders/exchange-orders' })
+            }
+          })
+        } else {
+          /** 券/道具产出：completed 即时到账背包 */
+          const mintedItem = result.data.minted_item
+          const mintedName = mintedItem ? mintedItem.item_name : '新物品'
+          wx.showModal({
+            title: '合成成功',
+            content: `已合成「${mintedName}」并收入我的仓库`,
+            showCancel: false,
+            confirmText: '查看仓库',
+            success: () => {
+              wx.navigateTo({ url: '/packageUser/backpack/inventory/inventory' })
+            }
+          })
+        }
 
         /** 刷新配方与背包（旧物已消耗） */
         this.loadData()
@@ -293,7 +390,44 @@ Page({
     } catch (error: any) {
       barterLog.error('以物易物提交失败:', error)
       this.setData({ submitting: false })
+
+      /**
+       * 后端兜底拦截（前置履约类型查询失败时触发）：实物产出缺收货地址，
+       * 展示地址选择行并引导用户补选后重新提交
+       */
+      if (error.code === 'BARTER_ADDRESS_REQUIRED') {
+        this.setData({ needAddress: true })
+        wx.showModal({
+          title: '需要收货地址',
+          content: '该配方产出为实物商品，将通过快递寄送，请先选择收货地址',
+          showCancel: false,
+          confirmText: '去选择',
+          success: () => this.onChooseAddress()
+        })
+        return
+      }
+
+      /** 运营配置缺陷兜底（产出商品未挂模板，正常不会出现）：按对接文档提示稍后再试 */
+      if (error.code === 'BARTER_OUTPUT_TEMPLATE_MISSING') {
+        showToast('该配方暂时无法合成，请稍后再试')
+        return
+      }
+
+      /**
+       * 其余错误码（BARTER_RECIPE_NOT_FOUND / BARTER_ITEM_NOT_AVAILABLE /
+       * BARTER_DIRECTION_UPWARD_FORBIDDEN / BARTER_PER_USER_LIMIT_EXCEEDED /
+       * BARTER_TOTAL_LIMIT_EXCEEDED 等）透传后端中文 message 原样提示
+       */
       showToast(error.message || '合成失败，请重试')
+
+      /** 限量超限/旧物不可用等属数据已变化，刷新配方与背包纠正展示 */
+      if (
+        error.code === 'BARTER_PER_USER_LIMIT_EXCEEDED' ||
+        error.code === 'BARTER_TOTAL_LIMIT_EXCEEDED' ||
+        error.code === 'BARTER_ITEM_NOT_AVAILABLE'
+      ) {
+        this.loadData()
+      }
     }
   },
 

@@ -649,7 +649,11 @@
 .submit-main-btn {
   width: 100%;
   height: 96rpx;
-  background: linear-gradient(135deg, var(--tg-gradient-primary-start), var(--tg-gradient-primary-end));
+  background: linear-gradient(
+    135deg,
+    var(--tg-gradient-primary-start),
+    var(--tg-gradient-primary-end)
+  );
   color: var(--tg-color-white);
   border-radius: 48rpx;
   border: none;

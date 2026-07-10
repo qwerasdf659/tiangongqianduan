@@ -24,12 +24,7 @@
       bind:tap="onSelectLocalDemoEntry"
       data-local="{{item.local}}"
     >
-      <image
-        wx:if="{{item.thumb}}"
-        class="template-thumb"
-        src="{{item.thumb}}"
-        mode="aspectFill"
-      />
+      <image wx:if="{{item.thumb}}" class="template-thumb" src="{{item.thumb}}" mode="aspectFill" />
       <view wx:else class="template-thumb local-demo-thumb">
         <text class="local-demo-thumb-text">{{item.emoji}}</text>
       </view>

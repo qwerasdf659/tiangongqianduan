@@ -1,16 +1,8 @@
 <!-- XR-Frame 3D珠子查看器组件 -->
-<xr-scene
-  id="xr-bead-scene"
-  bind:ready="onSceneReady"
-  bind:tick="onTick"
->
+<xr-scene id="xr-bead-scene" bind:ready="onSceneReady" bind:tick="onTick">
   <!-- 环境与光照 -->
   <xr-assets>
-    <xr-asset-material
-      asset-id="bead-mat"
-      effect="standard"
-      uniforms="{{materialUniforms}}"
-    />
+    <xr-asset-material asset-id="bead-mat" effect="standard" uniforms="{{materialUniforms}}" />
   </xr-assets>
 
   <xr-env env-data="xr-frame-team-workspace-day" />

@@ -34,7 +34,7 @@ const {
   ExchangeConfig: DetailPageExchangeConfig,
   ProductDisplay: detailProductDisplay
 } = require('../../utils/index')
-const { formatAssetLabel, resolveSkuUnitCost } = detailProductDisplay
+const { formatAssetLabel, formatLevelRequirementLabel, resolveSkuUnitCost } = detailProductDisplay
 
 const edLog = DetailPageLogger.createLogger('exchange-detail')
 
@@ -163,6 +163,15 @@ Page({
      * 仅做"解锁条件清单"展示，不下发任何商业敏感数值
      */
     redeemRequirementList: [] as string[],
+
+    /**
+     * 等级门槛脱敏摘要（后端 level_requirement 字段，无门槛为 null，对接文档 §十一-M4）:
+     *   { min_level_name, max_level_name, satisfied }
+     * 仅下发等级展示名 + 是否满足（satisfied 后端按当前用户实时计算，未登录恒 false）
+     */
+    levelBadgeText: '',
+    /** 等级门槛未满足（satisfied=false）：专享角标 + 置灰兑换按钮（橱窗效应：锁住但可见） */
+    levelLocked: false,
 
     /** 页面状态 */
     loading: true,
@@ -516,8 +525,18 @@ Page({
        *   redeem_requirement: 无门槛时后端返回 null
        */
       const isHighValue: boolean = (productData.value_tier || 'low') === 'high'
+
+      /**
+       * 等级门槛脱敏摘要（后端 level_requirement，拍板⑪区间门槛的 C 端权威字段）:
+       * 门槛文案 + 是否满足；satisfied=false 时置灰兑换按钮（onExchange 同步拦截）
+       */
+      const levelRequirement = productData.level_requirement || null
+      const levelBadgeText: string = formatLevelRequirementLabel(levelRequirement)
+      const levelLocked: boolean = !!(levelRequirement && levelRequirement.satisfied === false)
+
       const redeemRequirementList: string[] = this._buildRequirementList(
-        productData.redeem_requirement || null
+        productData.redeem_requirement || null,
+        levelBadgeText
       )
 
       /**
@@ -685,6 +704,8 @@ Page({
         tagStyleType: itemTagStyle,
         showSoldCount,
         isHighValue,
+        levelBadgeText,
+        levelLocked,
         redeemRequirementList,
         skuList: activeSkus,
         selectedSkuId,
@@ -762,25 +783,25 @@ Page({
   },
 
   /**
-   * 构建"解锁条件清单"可读数组（后端 redeem_requirement → 前端展示文案）
+   * 构建"解锁条件清单"可读数组（后端字段 → 前端展示文案）
    *
-   * 后端字段（snake_case 原名，前端不做映射层）:
-   *   min_growth_level_key      最低成长等级 key（如 silver），null=不限
+   * 等级门槛统一读 level_requirement 脱敏摘要（拍板⑪区间门槛的 C 端权威字段，
+   * 含 min/max 组合语义，此处传入已拼装好的 levelBadgeText）；
+   * redeem_requirement 仅保留资产/道具类条件（snake_case 原名，前端不做映射层）:
    *   extra_cost_assets[]       额外消耗资产 [{asset_code, amount}]
    *   required_consume_items[]  需消耗指定道具 [{item_template_id, quantity}]
    *
-   * 成长等级名优先用后端可能下发的 min_growth_level_name；
    * 资产/道具仅展示后端给的标识与数量，不下发任何敏感数值，不前端计算。
    */
-  _buildRequirementList(requirement: any): string[] {
-    if (!requirement) {
-      return []
-    }
+  _buildRequirementList(requirement: any, levelBadgeText: string): string[] {
     const list: string[] = []
 
-    const levelName = requirement.min_growth_level_name || requirement.min_growth_level_key
-    if (levelName) {
-      list.push(`需达成长等级：${levelName}`)
+    if (levelBadgeText) {
+      list.push(`等级门槛：${levelBadgeText}`)
+    }
+
+    if (!requirement) {
+      return list
     }
 
     if (Array.isArray(requirement.extra_cost_assets)) {
@@ -960,7 +981,15 @@ Page({
   /** ⑩ 点击立即兑换 → 打开确认弹窗 */
   onExchange() {
     const { product, hasMultiSku, selectedSkuInfo, skuList } = this.data
-    if (!product || this.data.balanceInsufficient) {
+    if (!product) {
+      return
+    }
+    /** 等级门槛未满足（level_requirement.satisfied=false）：前置拦截并引导查看成长等级（与按钮"等级未达"文案对应，优先于余额判断） */
+    if (this.data.levelLocked) {
+      this._showLevelLockedModal(`该商品为${this.data.levelBadgeText}，您当前的等级暂未达到`)
+      return
+    }
+    if (this.data.balanceInsufficient) {
       return
     }
     /** 多规格须先选 SKU；单默认 SKU 用选中行或唯一行的 stock，与后端 skus[].stock 对齐 */
@@ -1214,6 +1243,24 @@ Page({
       edLog.error('兑换失败:', error)
       this.setData({ exchanging: false })
 
+      /**
+       * 等级门槛拦截（拍板⑪区间门槛，对接文档 §十一-M4）:
+       *   REDEEM_GROWTH_LEVEL_INSUFFICIENT — 等级不足（如"需黑金卡及以上"）
+       *   REDEEM_GROWTH_LEVEL_EXCEEDED     — 超出上限（如"银卡及以下专享"）
+       * 透传后端中文 message，并引导查看成长等级页；同时刷新详情纠正 satisfied 展示
+       */
+      if (
+        error.code === 'REDEEM_GROWTH_LEVEL_INSUFFICIENT' ||
+        error.code === 'REDEEM_GROWTH_LEVEL_EXCEEDED'
+      ) {
+        this.setData({ showConfirm: false })
+        this._showLevelLockedModal(error.message || '您当前的等级无法兑换该商品')
+        if (this.data.exchangeItemId) {
+          this._loadProductDetail(this.data.exchangeItemId, true)
+        }
+        return
+      }
+
       // 实物商品缺收货地址：后端返回 EXCHANGE_ADDRESS_REQUIRED 时，置 needAddress 并引导用户补选地址后重试
       if (error.code === 'EXCHANGE_ADDRESS_REQUIRED') {
         this.setData({ needAddress: true })
@@ -1243,6 +1290,26 @@ Page({
         confirmText: '我知道了'
       })
     }
+  },
+
+  /**
+   * 等级门槛未满足统一提示弹窗（前置拦截与后端 REDEEM_GROWTH_LEVEL_* 拦截共用）
+   * 引导跳转成长等级页查看当前等级与升级进度（橱窗效应 → 升级动力）
+   *
+   * @param content - 提示文案（前置拦截为前端拼装、后端拦截为透传中文 message）
+   */
+  _showLevelLockedModal(content: string) {
+    wx.showModal({
+      title: '会员等级专享',
+      content,
+      confirmText: '查看等级',
+      cancelText: '我知道了',
+      success: (res: WechatMiniprogram.ShowModalSuccessCallbackResult) => {
+        if (res.confirm) {
+          wx.navigateTo({ url: '/packageUser/growth-level/growth-level' })
+        }
+      }
+    })
   },
 
   /** 返回上一页 */

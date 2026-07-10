@@ -40,6 +40,11 @@
           <text class="current-points-num">{{historyTotalPoints}}</text>
           <text class="current-points-unit">累计积分</text>
         </view>
+        <!-- 升级提示（后端 next_level 差值字段，顶档不下发则不展示） -->
+        <view class="next-level-hint" wx:if="{{nextLevelText}}">
+          <t-icon name="arrow-up-circle" size="28rpx" color="#C5A572" />
+          <text class="next-level-hint-text">{{nextLevelText}}</text>
+        </view>
       </view>
 
       <!-- 等级阶梯 -->
@@ -78,23 +83,4 @@
     <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
-
-  <!-- 功能后续开放蒙版：遮挡页面内容（不遮顶部导航返回按钮，保证可返回） -->
-  <view
-    class="coming-soon-mask"
-    wx:if="{{comingSoonVisible}}"
-    catchtap="onComingSoonMaskTap"
-    catchtouchmove="onComingSoonMaskTap"
-  >
-    <view class="coming-soon-card">
-      <view class="coming-soon-icon">
-        <t-icon name="chart-bar" size="80rpx" color="#C5A572" />
-      </view>
-      <text class="coming-soon-title">功能即将开放</text>
-      <text class="coming-soon-desc">成长等级正在精心打磨，敬请期待</text>
-      <view class="coming-soon-back-btn" catchtap="onComingSoonBack">
-        <text>返回上一页</text>
-      </view>
-    </view>
-  </view>
 </view>

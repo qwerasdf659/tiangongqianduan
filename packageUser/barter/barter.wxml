@@ -47,6 +47,16 @@
           <text class="recipe-name">{{item.name}}</text>
           <text class="recipe-code">#{{item.recipe_code}}</text>
         </view>
+        <!-- 限量说明（拍板⑬-(c)：每人限换次数 / 配方总量，后端不下发则不展示） -->
+        <view class="recipe-limit" wx:if="{{item._limitText}}">
+          <t-icon name="time" size="24rpx" color="var(--tg-color-warning)" />
+          <text class="recipe-limit-text">{{item._limitText}}</text>
+        </view>
+        <!-- 产出商品（后端 output_item_name 直发展示；实物产出标注快递到家，拍板⑩履约方式） -->
+        <view class="recipe-require" wx:if="{{item._outputText}}">
+          <text class="require-label">产出</text>
+          <text class="require-value">{{item._outputText}}</text>
+        </view>
         <view class="recipe-require">
           <text class="require-label">所需旧物</text>
           <text class="require-value">{{item._requiredQuantity}} 件</text>
@@ -111,30 +121,31 @@
         </view>
       </scroll-view>
 
+      <!-- 实物产出收货地址（产出商品 fulfillment_type='physical' 时展示，提交前必选，拍板⑩快递履约） -->
+      <view class="barter-address-row" wx:if="{{needAddress}}" bindtap="onChooseAddress">
+        <view class="barter-address-icon">
+          <t-icon name="location" size="36rpx" color="var(--td-brand-color)" />
+        </view>
+        <view class="barter-address-body" wx:if="{{selectedAddress}}">
+          <view class="barter-address-top">
+            <text class="barter-address-name">{{selectedAddress.receiver_name}}</text>
+            <text class="barter-address-phone">{{selectedAddress.receiver_phone}}</text>
+          </view>
+          <text class="barter-address-detail"
+            >{{selectedAddress.province}}{{selectedAddress.city}}{{selectedAddress.district}}{{selectedAddress.detail_address}}</text
+          >
+        </view>
+        <view class="barter-address-body" wx:else>
+          <text class="barter-address-empty">实物产出将快递到家，请选择收货地址</text>
+        </view>
+        <t-icon name="chevron-right" size="32rpx" color="var(--tg-text-tertiary)" />
+      </view>
+
       <view
         class="submit-btn {{selectedItemIds.length === activeRecipe._requiredQuantity && !submitting ? '' : 'submit-btn-disabled'}}"
         bindtap="onSubmitBarter"
       >
         <text>{{submitting ? '合成中...' : '确认合成'}}</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 功能后续开放蒙版：遮挡页面内容（不遮顶部导航返回按钮，保证可返回） -->
-  <view
-    class="coming-soon-mask"
-    wx:if="{{comingSoonVisible}}"
-    catchtap="onComingSoonMaskTap"
-    catchtouchmove="onComingSoonMaskTap"
-  >
-    <view class="coming-soon-card">
-      <view class="coming-soon-icon">
-        <t-icon name="gift" size="80rpx" color="#C5A572" />
-      </view>
-      <text class="coming-soon-title">功能即将开放</text>
-      <text class="coming-soon-desc">以物易物正在精心打磨，敬请期待</text>
-      <view class="coming-soon-back-btn" catchtap="onComingSoonBack">
-        <text>返回上一页</text>
       </view>
     </view>
   </view>

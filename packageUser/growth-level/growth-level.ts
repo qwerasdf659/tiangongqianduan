@@ -1,21 +1,24 @@
 /**
- * 成长等级页面（纯展示）
+ * 成长等级页面（纯展示，即"会员尊享"页）
  *
- * 业务语义: 用户查看自己的成长等级、累计积分与等级阶梯进度。
- * 成长等级由累计历史积分（history_total_points）单一派生，用于高价值实物"会员解锁"权益。
+ * 业务语义: 用户查看自己的成长等级（9 档 v1~v9，铜卡~荣耀殿堂）、累计积分与等级阶梯进度。
+ * 成长等级由累计历史积分（history_total_points）单一派生，等级终身有效只增不减（拍板⑦）。
  *
- * 后端API:
- * - GET /api/v4/user/growth-level — 当前成长等级 + 等级阶梯（已脱敏，倍数/权重永不下发）
+ * 后端API（对接文档 §十一-M2）:
+ * - GET /api/v4/user/growth-level — 当前成长等级 + 等级阶梯 + next_level 差值（已脱敏，倍数/权重永不下发）
  *
  * 字段以后端为准（直接使用后端 snake_case 字段，不做映射）:
- *   current_level_key / current_level_name / history_total_points /
- *   thresholds_confirmed / levels[]{ level_key, level_name, min_history_points }
+ *   current_level_key / current_level_name / history_total_points / thresholds_confirmed /
+ *   levels[]{ level_key, level_name, min_history_points } /
+ *   next_level{ level_key, level_name, points_needed }（顶档为 null）
  *
  * 占位保护（拍板点⑨）: thresholds_confirmed=false 时后端将 min_history_points 下发为 null，
  *   前端只显示等级名、不显示"需达 Y 积分"的具体门槛数字，避免用占位值误导用户。
  *
+ * 禁止在小程序侧自算等级或要求下发倍数（发放倍数公示文案由运营配置，不是接口字段）。
+ *
  * @file packageUser/growth-level/growth-level.ts
- * @version 5.2.0
+ * @version 5.3.0
  * @since 2026-06-10
  */
 
@@ -28,8 +31,6 @@ const { userStore } = require('../../store/user')
 
 Page({
   data: {
-    /** 功能后续开放蒙版（暂屏蔽成长等级功能，后续开放时置 false 即可恢复） */
-    comingSoonVisible: true,
     /** 页面加载状态机 */
     loadStatus: 'loading' as 'loading' | 'success' | 'error',
     /** 当前等级 key（后端 current_level_key） */
@@ -42,24 +43,17 @@ Page({
     thresholdsConfirmed: false,
     /** 等级阶梯（后端 levels[]，附加前端展示字段 _isCurrent / _isReached / _thresholdText） */
     levels: [] as any[],
+    /**
+     * 升级提示文案（后端 next_level 差值字段，§9-9）:
+     * "再消费 X 元升{下一级名}"（1 元≈1 积分，拍板①业务前提）；顶档或占位期为空不展示
+     */
+    nextLevelText: '',
     /** MobX 绑定字段 */
     isLoggedIn: false
   },
 
   /** MobX Store 绑定实例（onUnload 时销毁） */
   userBindings: null as any,
-
-  /** 蒙版拦截所有点击/滑动（功能未开放期间阻止穿透到下层页面） */
-  onComingSoonMaskTap() {},
-
-  /** 蒙版「返回上一页」：功能未开放期间提供退出入口 */
-  onComingSoonBack() {
-    wx.navigateBack({
-      fail: () => {
-        wx.switchTab({ url: '/pages/user/user' })
-      }
-    })
-  },
 
   onLoad() {
     growthLog.info('成长等级页面加载')
@@ -121,12 +115,24 @@ Page({
           }
         })
 
+        /**
+         * "再消费 X 元升{下一级名}"升级提示（后端 next_level 差值字段）:
+         * 后端权威计算差值，前端不自算；顶档（next_level=null）不展示。
+         * 1 元 = 1 积分（拍板①业务前提），points_needed 即"再消费 X 元"。
+         */
+        const nextLevel = apiData.next_level
+        const nextLevelText =
+          nextLevel && nextLevel.level_name && typeof nextLevel.points_needed === 'number'
+            ? `再消费 ${nextLevel.points_needed} 元即可升级${nextLevel.level_name}`
+            : ''
+
         this.setData({
           currentLevelKey,
           currentLevelName: apiData.current_level_name || '',
           historyTotalPoints: apiData.history_total_points || 0,
           thresholdsConfirmed,
           levels: processedLevels,
+          nextLevelText,
           loadStatus: 'success'
         })
 

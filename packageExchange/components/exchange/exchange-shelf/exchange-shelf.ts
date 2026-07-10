@@ -278,6 +278,16 @@ Component({
         return
       }
 
+      /** 等级门槛未满足（level_requirement.satisfied=false）：前置拦截（后端 REDEEM_GROWTH_LEVEL_* 兜底） */
+      if (selectedShopProduct._levelLocked) {
+        wx.showToast({
+          title: `该商品为${selectedShopProduct._levelBadgeText || '会员等级专享'}，等级未达`,
+          icon: 'none',
+          duration: 2800
+        })
+        return
+      }
+
       if (
         costAssetCode === shelfAssetCodes.POINTS &&
         costAmount > 0 &&

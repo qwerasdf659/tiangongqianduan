@@ -18,7 +18,7 @@ Page({
     /** 当前手串信息 */
     templateName: '',
     beadCount: 0,
-    totalPrice: 0,
+    totalPrice: 0
   },
 
   onLoad() {
@@ -37,7 +37,7 @@ Page({
       renderHeight: Math.floor(height * dpi),
       templateName: template?.display_name || '手串预览',
       beadCount: beads.length,
-      totalPrice: diyStore.totalPrice || 0,
+      totalPrice: diyStore.totalPrice || 0
     })
   },
 
@@ -49,5 +49,5 @@ Page({
   /** 返回设计页 */
   onBack() {
     wx.navigateBack()
-  },
+  }
 })

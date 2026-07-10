@@ -201,15 +201,17 @@ async function logout() {
 /**
  * 获取当前用户成长等级（脱敏，需登录）- GET /api/v4/user/growth-level
  *
- * 后端 BE-4 新增只读接口，服务 V-4"会员解锁"展示与成长等级公示。
- * 倍数/权重等运营策略字段永不下发（商业机密）。
+ * 会员成长等级（9 档 v1~v9，铜卡~荣耀殿堂）由累计积分 history_total_points 实时派生。
+ * 倍数/权重等运营策略字段永不下发（商业机密，禁止在小程序侧自算等级或要求下发倍数）。
  *
- * 响应 data 字段（snake_case 原名，前端不做映射层）:
- *   current_level_key      当前等级 key（如 silver）
- *   current_level_name     当前等级中文名（如 白银）
+ * 响应 data 字段（snake_case 原名，前端不做映射层，对接文档 §十一-M2）:
+ *   current_level_key      当前等级 key（如 v9）
+ *   current_level_name     当前等级中文名（如 荣耀殿堂）
  *   history_total_points   累计积分（成长等级单一派生源）
  *   thresholds_confirmed   阈值是否已定稿（false=占位阶段）
  *   levels[]               等级阶梯（升序）: { level_key, level_name, min_history_points }
+ *   next_level             距下一级差值: { level_key, level_name, points_needed }，顶档 v9 为 null
+ *                          → 渲染"再消费 X 元升{下一级名}"（1 元≈1 积分）
  *
  * ⚠️ 占位保护（拍板点⑨）：thresholds_confirmed=false 时，后端将每个
  *    min_history_points 下发为 null，前端只显示等级名、不显示"需达 Y 积分"。

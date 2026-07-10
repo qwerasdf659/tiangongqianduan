@@ -166,6 +166,12 @@
         <view wx:elif="{{item.is_hot}}" class="badge-tag hot">热销</view>
         <view wx:elif="{{item.is_new}}" class="badge-tag new">新品</view>
         <view wx:elif="{{item.is_limited}}" class="badge-tag limited">限量</view>
+        <!-- 等级门槛专享角标（后端 level_requirement 有值时展示；未满足时置灰锁定态，橱窗效应） -->
+        <view
+          wx:if="{{item._levelBadgeText}}"
+          class="level-badge {{item._levelLocked ? 'level-badge-locked' : ''}}"
+          >👑 {{item._levelBadgeText}}</view
+        >
       </view>
 
       <view class="card-body">
@@ -199,8 +205,9 @@
           class="stock-text {{item.stock > 50 ? 'stock-high' : (item.stock > 10 ? 'stock-medium' : (item.stock > 0 ? 'stock-low' : 'stock-out'))}}"
           >{{item.stock > 0 ? ('库存 ' + item.stock) : '已售罄'}}</text
         >
-        <view class="cta-btn {{item.stock <= 0 ? 'btn-disabled' : ''}}"
-          >{{item.stock > 0 ? '立即兑换' : '已售罄'}}</view
+        <!-- CTA 按钮（等级门槛未满足时置灰"等级未达"，点卡片仍可进详情看门槛，对接文档 §十一-M4） -->
+        <view class="cta-btn {{item.stock <= 0 || item._levelLocked ? 'btn-disabled' : ''}}"
+          >{{item.stock <= 0 ? '已售罄' : (item._levelLocked ? '等级未达' : '立即兑换')}}</view
         >
       </view>
     </view>

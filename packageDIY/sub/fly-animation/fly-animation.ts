@@ -56,12 +56,7 @@ Component({
       })
 
       // 先缩小 + 移动到目标位置
-      anim
-        .translateX(deltaX)
-        .translateY(deltaY)
-        .scale(0.6)
-        .opacity(0.3)
-        .step()
+      anim.translateX(deltaX).translateY(deltaY).scale(0.6).opacity(0.3).step()
 
       setTimeout(() => {
         this.setData({ animData: anim.export() })

@@ -5,15 +5,6 @@
   style="left: {{startX}}px; top: {{startY}}px; width: {{size}}px; height: {{size}}px;"
   animation="{{animData}}"
 >
-  <image
-    wx:if="{{imageUrl}}"
-    class="fly-image"
-    src="{{imageUrl}}"
-    mode="aspectFill"
-  />
-  <view
-    wx:else
-    class="fly-color"
-    style="background: {{color}};"
-  />
+  <image wx:if="{{imageUrl}}" class="fly-image" src="{{imageUrl}}" mode="aspectFill" />
+  <view wx:else class="fly-color" style="background: {{color}};" />
 </view>

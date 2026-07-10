@@ -45,22 +45,22 @@
 
 /* ??? - ?????? */
 .triple-btn {
-  background: #FFFFFF;
-  color: #1A1A1A;
-  border: 2rpx solid #E0D0BC;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 2rpx solid #e0d0bc;
 }
 
 /* ??? - ???? */
 .five-btn {
-  background: linear-gradient(135deg, #F8EDD8, #F0E0C4);
-  color: #1A1A1A;
-  border: 2rpx solid #E0D0BC;
+  background: linear-gradient(135deg, #f8edd8, #f0e0c4);
+  color: #1a1a1a;
+  border: 2rpx solid #e0d0bc;
 }
 
 /* ??? - ?????? */
 .ten-btn {
-  background: linear-gradient(135deg, #D4A85A, #B8864A);
-  color: #FFFFFF;
+  background: linear-gradient(135deg, #d4a85a, #b8864a);
+  color: #ffffff;
   box-shadow: 0 6rpx 20rpx rgba(180, 130, 70, 0.3);
   position: relative;
   overflow: visible;
@@ -71,7 +71,7 @@
   position: absolute;
   top: -12rpx;
   right: 12rpx;
-  background: linear-gradient(135deg, #FF6B5A, #E84D3A);
+  background: linear-gradient(135deg, #ff6b5a, #e84d3a);
   color: var(--tg-color-white);
   font-size: var(--tg-font-size-micro);
   font-weight: var(--tg-font-weight-bold);
@@ -144,7 +144,7 @@
 .btn-saved {
   font-size: var(--tg-font-size-micro);
   background: rgba(200, 160, 106, 0.15);
-  color: #A0724A;
+  color: #a0724a;
   padding: 2rpx 8rpx;
   border-radius: 8rpx;
 }
@@ -152,6 +152,6 @@
 .btn-guarantee {
   font-size: var(--tg-font-size-mini);
   opacity: 0.7;
-  color: #A0724A;
+  color: #a0724a;
   margin-top: 2rpx;
 }

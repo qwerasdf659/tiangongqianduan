@@ -25,7 +25,7 @@ export interface BeadModelConfig {
 
 /** 珠子材质库 */
 export const BEAD_MODELS: Record<string, BeadModelConfig> = {
-  'obsidian_7a_6mm': {
+  obsidian_7a_6mm: {
     id: 'obsidian_7a_6mm',
     name: '7A冰曜石',
     diameter: 6,
@@ -36,10 +36,10 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.25,
       transmission: 0.15,
       clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
-    },
+      clearcoatRoughness: 0.1
+    }
   },
-  'obsidian_7a_10mm': {
+  obsidian_7a_10mm: {
     id: 'obsidian_7a_10mm',
     name: '7A冰曜石',
     diameter: 10,
@@ -50,10 +50,10 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.25,
       transmission: 0.15,
       clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
-    },
+      clearcoatRoughness: 0.1
+    }
   },
-  'obsidian_7a_12mm': {
+  obsidian_7a_12mm: {
     id: 'obsidian_7a_12mm',
     name: '7A冰曜石',
     diameter: 12,
@@ -64,24 +64,24 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.25,
       transmission: 0.15,
       clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
-    },
+      clearcoatRoughness: 0.1
+    }
   },
-  'obsidian_silver_6mm': {
+  obsidian_silver_6mm: {
     id: 'obsidian_silver_6mm',
     name: '7A银曜石',
     diameter: 6,
     segments: 24,
     material: {
-      baseColor: [0.18, 0.18, 0.20, 1.0],
+      baseColor: [0.18, 0.18, 0.2, 1.0],
       metallic: 0.15,
-      roughness: 0.20,
-      transmission: 0.10,
+      roughness: 0.2,
+      transmission: 0.1,
       clearcoat: 0.85,
-      clearcoatRoughness: 0.08,
-    },
+      clearcoatRoughness: 0.08
+    }
   },
-  'white_crystal_6mm': {
+  white_crystal_6mm: {
     id: 'white_crystal_6mm',
     name: '净体白水晶',
     diameter: 6,
@@ -92,10 +92,10 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.15,
       transmission: 0.7,
       clearcoat: 0.9,
-      clearcoatRoughness: 0.05,
-    },
+      clearcoatRoughness: 0.05
+    }
   },
-  'white_crystal_8mm': {
+  white_crystal_8mm: {
     id: 'white_crystal_8mm',
     name: '净体白水晶',
     diameter: 8,
@@ -106,10 +106,10 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.15,
       transmission: 0.7,
       clearcoat: 0.9,
-      clearcoatRoughness: 0.05,
-    },
+      clearcoatRoughness: 0.05
+    }
   },
-  'white_crystal_10mm': {
+  white_crystal_10mm: {
     id: 'white_crystal_10mm',
     name: '净体白水晶',
     diameter: 10,
@@ -120,37 +120,37 @@ export const BEAD_MODELS: Record<string, BeadModelConfig> = {
       roughness: 0.15,
       transmission: 0.7,
       clearcoat: 0.9,
-      clearcoatRoughness: 0.05,
-    },
+      clearcoatRoughness: 0.05
+    }
   },
-  'milky_crystal_8mm': {
+  milky_crystal_8mm: {
     id: 'milky_crystal_8mm',
     name: '奶白晶',
     diameter: 8,
     segments: 28,
     material: {
-      baseColor: [0.92, 0.90, 0.88, 0.9],
+      baseColor: [0.92, 0.9, 0.88, 0.9],
       metallic: 0.0,
       roughness: 0.35,
       transmission: 0.3,
       clearcoat: 0.6,
-      clearcoatRoughness: 0.15,
-    },
+      clearcoatRoughness: 0.15
+    }
   },
-  'milky_crystal_10mm': {
+  milky_crystal_10mm: {
     id: 'milky_crystal_10mm',
     name: '奶白晶',
     diameter: 10,
     segments: 32,
     material: {
-      baseColor: [0.92, 0.90, 0.88, 0.9],
+      baseColor: [0.92, 0.9, 0.88, 0.9],
       metallic: 0.0,
       roughness: 0.35,
       transmission: 0.3,
       clearcoat: 0.6,
-      clearcoatRoughness: 0.15,
-    },
-  },
+      clearcoatRoughness: 0.15
+    }
+  }
 }
 
 /**
@@ -168,12 +168,12 @@ export function calcBraceletPositions(
   const positions: Array<{ x: number; y: number; z: number; angle: number }> = []
 
   for (let i = 0; i < beadCount; i++) {
-    const angle = (2 * Math.PI / beadCount) * i
+    const angle = ((2 * Math.PI) / beadCount) * i
     positions.push({
       x: braceletRadius * Math.cos(angle),
       y: braceletRadius * Math.sin(angle),
       z: 0,
-      angle: angle * (180 / Math.PI),
+      angle: angle * (180 / Math.PI)
     })
   }
 
@@ -181,6 +181,6 @@ export function calcBraceletPositions(
     braceletRadius,
     beadDiameter,
     beadScale: beadDiameter / 1000,
-    positions,
+    positions
   }
 }

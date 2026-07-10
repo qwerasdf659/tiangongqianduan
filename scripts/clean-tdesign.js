@@ -28,7 +28,8 @@ function scanUsedComponents(dir, results) {
   try {
     const items = fs.readdirSync(dir, { withFileTypes: true })
     for (const item of items) {
-      if (['node_modules', '.git', '.cursor', '.claude', 'miniprogram_npm'].includes(item.name)) continue
+      if (['node_modules', '.git', '.cursor', '.claude', 'miniprogram_npm'].includes(item.name))
+        continue
       const full = path.join(dir, item.name)
       if (item.isDirectory()) {
         scanUsedComponents(full, results)
@@ -43,10 +44,14 @@ function scanUsedComponents(dir, results) {
               }
             }
           }
-        } catch (e) { /* 非 JSON 文件跳过 */ }
+        } catch (e) {
+          /* 非 JSON 文件跳过 */
+        }
       }
     }
-  } catch (e) { /* 目录不可读跳过 */ }
+  } catch (e) {
+    /* 目录不可读跳过 */
+  }
 }
 
 /**
@@ -69,7 +74,9 @@ function collectDependencies(compName, collected) {
         }
       }
     }
-  } catch (e) { /* 解析失败跳过 */ }
+  } catch (e) {
+    /* 解析失败跳过 */
+  }
 }
 
 function rmDirRecursive(dir) {
@@ -89,7 +96,9 @@ function dirSize(dir) {
       if (item.isDirectory()) total += dirSize(full)
       else if (item.isFile()) total += fs.statSync(full).size
     }
-  } catch (e) { /* 忽略 */ }
+  } catch (e) {
+    /* 忽略 */
+  }
   return total
 }
 
@@ -115,7 +124,8 @@ for (const comp of usedComponents) {
 console.log('含依赖共需保留:', [...allNeeded].sort().join(', '))
 
 // 3. 删除未使用的组件目录
-const allDirs = fs.readdirSync(TD_NPM_DIR, { withFileTypes: true })
+const allDirs = fs
+  .readdirSync(TD_NPM_DIR, { withFileTypes: true })
   .filter(d => d.isDirectory())
   .map(d => d.name)
 
@@ -143,7 +153,9 @@ function cleanExtras(dir) {
         fs.unlinkSync(full)
       }
     }
-  } catch (e) { /* 忽略 */ }
+  } catch (e) {
+    /* 忽略 */
+  }
 }
 cleanExtras(path.join(projectRoot, 'miniprogram_npm'))
 

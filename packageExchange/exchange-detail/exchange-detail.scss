@@ -1062,6 +1062,16 @@
   line-height: var(--tg-line-height-relaxed);
 }
 
+/* 等级门槛未满足（level_requirement.satisfied=false）：专享标识切换为灰色锁定态 */
+.ed-member-badge.ed-level-locked {
+  background: var(--tg-color-bg-grey);
+  border-color: var(--tg-color-border);
+
+  .ed-member-text {
+    color: var(--tg-text-tertiary);
+  }
+}
+
 .ed-requirement-card {
   margin: var(--tg-spacing-sm) var(--tg-spacing-md);
   padding: var(--tg-spacing-md);

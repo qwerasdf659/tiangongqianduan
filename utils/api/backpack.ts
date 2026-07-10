@@ -827,12 +827,17 @@ async function refreshRedemptionQR(item_id: number) {
  * 仅返回 is_enabled !== false 的配方
  *
  * 响应: { recipes: BarterRecipe[] }
- * BarterRecipe 字段（snake_case 原名，前端直接渲染不做映射）:
+ * BarterRecipe 字段（snake_case 原名，前端直接渲染不做映射，对接文档 §十一-M1 + B-1 后端答复）:
  *   recipe_code                 配方编码（提交时用此字段，非 recipe_id）
  *   name                        配方名称
  *   required_item_template_id   所需旧物的物品模板ID
  *   required_quantity           所需旧物数量
  *   output_exchange_item_id     产出兑换商品ID
+ *   output_item_name            产出商品名称（null=产出商品已不存在，异常态正常不会出现）
+ *   output_fulfillment_type     产出履约类型 physical/voucher/virtual（与后端履约分流同源：
+ *                               physical ⇔ 换物必传 address_id，前端据此提前拉起地址选择）
+ *   per_user_limit              每人限换次数（0 或缺省 = 不限，拍板⑬-(c) 防薅字段）
+ *   total_limit                 配方总量（0 或缺省 = 不限；实物产出后端强制 ≥1）
  *   is_enabled                  是否启用
  */
 async function getBarterRecipes() {
@@ -853,21 +858,35 @@ async function getBarterRecipes() {
  * 后端服务: BarterService.executeBarter
  * 幂等键: 按 RESTful 惯例放入请求头 Idempotency-Key（元数据与业务数据分离，不入 body）
  *
- * 请求体（snake_case 原名）:
+ * 请求体（snake_case 原名，对接文档 §十一-M1）:
  *   recipe_code   配方编码（string，非 recipe_id）
  *   old_item_ids  用于合成的旧物 item_id 数组（number[]）
+ *   address_id    收货地址主键（user_addresses.address_id）。产出为实物（模板 item_type='product'）
+ *                 时必填，后端据此写 address_snapshot 走快递发货链；券/道具产出不传
  *
- * 成功响应 data: { order_no, recipe_code, consumed_item_ids, minted_item: { item_id, item_name, tracking_code }, source: 'barter' }
+ * 成功响应 data: { order_no, order_status, recipe_code, consumed_item_ids, minted_item, source: 'barter' }
+ *   order_status='pending'   实物产出走快递发货链（pending→shipped→received，不 mint 进背包，minted_item 为 null）
+ *   order_status='completed' 券/道具产出即时到账（minted_item: { item_id, item_name, tracking_code } 为背包物品）
+ *   幂等重放时 data 为首次成功的完整结果 + 追加 is_duplicate: true（order_no 与首次一致，按成功处理）
+ *   ⚠️ order_status 仅出现在本提交接口响应体；订单实体（我的订单列表/详情）上的状态字段是 status，两处语境勿混用
  *
- * 错误码（前端透传后端中文 message、按 code 决定提示）:
- *   BARTER_RECIPE_NOT_FOUND / BARTER_QUANTITY_MISMATCH / BARTER_ITEM_NOT_FOUND /
- *   BARTER_ITEM_NOT_OWNED / BARTER_ITEM_NOT_AVAILABLE / BARTER_ITEM_TEMPLATE_MISMATCH /
- *   BARTER_DIRECTION_UPWARD_FORBIDDEN / BARTER_OUTPUT_NOT_FOUND
+ * 错误码（前端透传后端中文 message、按 code 决定提示，对接文档 §十一-M1）:
+ *   BARTER_RECIPE_NOT_FOUND / BARTER_ITEM_NOT_AVAILABLE / BARTER_DIRECTION_UPWARD_FORBIDDEN /
+ *   BARTER_PER_USER_LIMIT_EXCEEDED / BARTER_TOTAL_LIMIT_EXCEEDED / BARTER_ADDRESS_REQUIRED /
+ *   BARTER_OUTPUT_TEMPLATE_MISSING（运营配置缺陷兜底，提示稍后再试）
+ *
+ * 换物订单不可逆: barter 订单（source='barter'）不可取消/退款（能力位 refundable=false，
+ * 强行调用返回 BARTER_ORDER_IRREVERSIBLE），订单页按 refundable 隐藏取消/退款按钮
  *
  * @param recipe_code - 配方编码
  * @param old_item_ids - 用于合成的旧物 item_id 数组
+ * @param address_id - 收货地址主键（实物产出必传；后端 ID 可能以字符串下发，统一归一为数字）
  */
-async function submitBarter(recipe_code: string, old_item_ids: number[]) {
+async function submitBarter(
+  recipe_code: string,
+  old_item_ids: number[],
+  address_id?: number | string
+) {
   if (!recipe_code) {
     throw new Error('配方编码不能为空')
   }
@@ -877,9 +896,20 @@ async function submitBarter(recipe_code: string, old_item_ids: number[]) {
 
   const idempotencyKey = await generateIdempotencyKey('barter', recipe_code)
 
+  const requestData: Record<string, any> = { recipe_code, old_item_ids }
+
+  /**
+   * 实物产出必带 address_id（缺失后端返回 BARTER_ADDRESS_REQUIRED）。
+   * 与 exchangeProduct 同口径：后端主键可能以字符串下发（如 "26"），先归一为数字再判断，避免漏传。
+   */
+  const addressIdNum = typeof address_id === 'string' ? parseInt(address_id, 10) : address_id
+  if (typeof addressIdNum === 'number' && !isNaN(addressIdNum) && addressIdNum > 0) {
+    requestData.address_id = addressIdNum
+  }
+
   return apiClient.request('/exchange/barter', {
     method: 'POST',
-    data: { recipe_code, old_item_ids },
+    data: requestData,
     header: { 'Idempotency-Key': idempotencyKey },
     needAuth: true,
     showLoading: true,

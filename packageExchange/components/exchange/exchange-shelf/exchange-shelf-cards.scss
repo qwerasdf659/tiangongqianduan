@@ -88,6 +88,27 @@
   background: var(--tg-exchange-tag-recommended, #1e88e5);
 }
 
+/* 等级门槛专享角标（右上角，与左上 badge-tag 标签栈错位共存，拍板⑪橱窗效应） */
+.unified-card .level-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 6rpx 10rpx 6rpx 16rpx;
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-color-white);
+  border-radius: 0 0 0 14rpx;
+  z-index: 3;
+  letter-spacing: var(--tg-letter-spacing-tight);
+  background: linear-gradient(135deg, #c8a06a 0%, #a0724a 100%);
+}
+
+/* 未满足门槛（satisfied=false）：角标置灰，与置灰 CTA 按钮一致的锁定态 */
+.unified-card .level-badge.level-badge-locked {
+  background: var(--tg-text-disabled);
+  color: rgba(var(--tg-color-white-rgb), 0.85);
+}
+
 /* 类型胶囊标签 */
 .unified-card .type-capsule {
   position: absolute;

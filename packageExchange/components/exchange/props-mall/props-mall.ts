@@ -156,6 +156,11 @@ Component({
             sort_order: item.sort_order || 0,
             rarity_code: item.rarity_code || 'common',
             skus: Array.isArray(item.skus) ? item.skus : [],
+            /**
+             * 等级门槛脱敏摘要（后端 GET /exchange/items 新增下发，无门槛为 null，对接文档 §十一-M4）:
+             * { min_level_name, max_level_name, satisfied } → enrich 层派生 _levelBadgeText / _levelLocked
+             */
+            level_requirement: item.level_requirement || null,
             /** 一键兑换需要：列表接口下发的默认 SKU（单 active SKU 给值；多 SKU 为 null） */
             default_sku_id: item.default_sku_id === undefined ? null : item.default_sku_id
           }
@@ -350,6 +355,12 @@ Component({
         return
       }
       if (propExchanging) {
+        return
+      }
+
+      /** 等级门槛未满足（level_requirement.satisfied=false）：前置拦截（后端 REDEEM_GROWTH_LEVEL_* 兜底） */
+      if (selectedProp._levelLocked) {
+        propsShowToast(`该道具为${selectedProp._levelBadgeText || '会员等级专享'}，等级未达`)
         return
       }
 

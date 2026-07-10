@@ -67,7 +67,9 @@
           src="{{spotlightPrize.prize_image_url}}"
           mode="aspectFit"
         />
-        <text wx:if="{{spotlightPrize.prize_icon}}" class="spot-emoji">{{spotlightPrize.prize_icon}}</text>
+        <text wx:if="{{spotlightPrize.prize_icon}}" class="spot-emoji"
+          >{{spotlightPrize.prize_icon}}</text
+        >
         <t-icon wx:else name="gift" size="48rpx" class="spot-emoji" />
         <text class="spot-name"
           >{{spotlightPrize && spotlightPrize.prize_name ? spotlightPrize.prize_name : ''}}</text
@@ -120,7 +122,12 @@
       </view>
       <view class="stock-detail">
         <view class="stock-status-row">
-          <t-icon name="tips" size="28rpx" class="stock-fire" wx:if="{{stockUrgency !== 'normal'}}" />
+          <t-icon
+            name="tips"
+            size="28rpx"
+            class="stock-fire"
+            wx:if="{{stockUrgency !== 'normal'}}"
+          />
           <text class="stock-label">
             {{stockUrgency === 'critical' ? '即将售罄' : stockUrgency === 'low' ? '库存紧张' :
             '火热进行中'}}
@@ -151,13 +158,28 @@
       >
         <view class="grab-btn-bg" />
         <view class="grab-btn-inner">
-          <t-icon name="close-circle-filled" size="36rpx" class="grab-btn-icon" wx:if="{{isSoldOut}}" />
-          <t-icon name="time" size="36rpx" class="grab-btn-icon" wx:elif="{{state === 'grabbing'}}" />
-          <t-icon name="thumb-up" size="36rpx" class="grab-btn-icon" wx:elif="{{state === 'grabbed'}}" />
+          <t-icon
+            name="close-circle-filled"
+            size="36rpx"
+            class="grab-btn-icon"
+            wx:if="{{isSoldOut}}"
+          />
+          <t-icon
+            name="time"
+            size="36rpx"
+            class="grab-btn-icon"
+            wx:elif="{{state === 'grabbing'}}"
+          />
+          <t-icon
+            name="thumb-up"
+            size="36rpx"
+            class="grab-btn-icon"
+            wx:elif="{{state === 'grabbed'}}"
+          />
           <t-icon name="tips" size="36rpx" class="grab-btn-icon" wx:else />
           <text class="grab-btn-text">
-            {{isSoldOut ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing' ? '抢购中...'
-            : '抢购成功!'}}
+            {{isSoldOut ? '已抢光' : state === 'idle' ? '立即抢购' : state === 'grabbing' ?
+            '抢购中...' : '抢购成功!'}}
           </text>
         </view>
         <!-- 表面扫光 -->

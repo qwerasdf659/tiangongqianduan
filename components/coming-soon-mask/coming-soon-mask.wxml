@@ -1,0 +1,14 @@
+<!--components/coming-soon-mask/coming-soon-mask.wxml - 「功能即将开放」蒙版（公共预留组件）-->
+<!-- 遮挡页面内容（不遮顶部导航返回按钮，保证可返回）；catchtap/catchtouchmove 拦截穿透 -->
+<view class="coming-soon-mask" wx:if="{{visible}}" catchtap="onMaskTap" catchtouchmove="onMaskTap">
+  <view class="coming-soon-card">
+    <view class="coming-soon-icon">
+      <t-icon name="{{icon}}" size="80rpx" color="#C5A572" />
+    </view>
+    <text class="coming-soon-title">{{title}}</text>
+    <text class="coming-soon-desc">{{desc}}</text>
+    <view class="coming-soon-back-btn" catchtap="onBack">
+      <text>返回上一页</text>
+    </view>
+  </view>
+</view>

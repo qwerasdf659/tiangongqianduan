@@ -43,10 +43,14 @@ const DETAIL_STATUS_MAP: Record<
   completed: { label: '已完成', color: '#5BA877', icon: '✓', desc: '订单已完成' }
 }
 
-/** 订单来源标签映射 */
+/**
+ * 订单来源标签映射（source 字段区分普通兑换/竞价中标/以物易物）
+ * barter 单不可取消/退款（后端能力位 refundable 恒 false，canCancel 自然隐藏，对接文档 §十一-M1）
+ */
 const DETAIL_SOURCE_LABELS: Record<string, string> = {
   exchange: '普通兑换',
-  bid: '竞价中标'
+  bid: '竞价中标',
+  barter: '以物易物'
 }
 
 /** 评价文案 */
@@ -174,7 +178,8 @@ Page({
       }
 
       const itemSnapshot = order.item_snapshot || {}
-      const imageUrl = itemSnapshot.primary_media?.public_url || ''
+      /* 商品图：读快照 image_url（与订单列表页同口径），回退旧 primary_media.public_url */
+      const imageUrl = itemSnapshot.image_url || itemSnapshot.primary_media?.public_url || ''
 
       /** 构建完整时间线 */
       const timeline = this._buildTimeline(order)
@@ -197,7 +202,9 @@ Page({
         statusColor: statusInfo.color,
         statusIcon: statusInfo.icon,
         statusDesc: statusInfo.desc,
-        productName: itemSnapshot.name || '兑换商品',
+        /* 商品名：读后端全链路通用快照字段 item_snapshot.item_name（含 barter 单，对接文档 §十一-M1），
+           历史存量订单快照可能仅有旧 name 字段（快照为不可变历史数据），回退后再兜底占位 */
+        productName: itemSnapshot.item_name || itemSnapshot.name || '兑换商品',
         productImage: imageUrl || '/images/default-product.png',
         productDescription: itemSnapshot.description || '',
         hasProductImage: !!imageUrl,
