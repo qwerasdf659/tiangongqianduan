@@ -56,9 +56,8 @@ function darkenColor(hex: string, percent: number): string {
   return `rgb(${r},${g},${b})`
 }
 
-/** 绘制宝石（径向渐变 + 高光点，支持 circle/oval/square/heart 形状） */
-function drawGem(ctx: any, x: number, y: number, radius: number, color: string, gemShape: string) {
-  ctx.save()
+/** 构建宝石轮廓路径（circle/oval/square/heart，供填充/裁剪复用） */
+function buildGemPath(ctx: any, x: number, y: number, radius: number, gemShape: string) {
   ctx.beginPath()
   switch (gemShape) {
     case 'oval':
@@ -92,29 +91,131 @@ function drawGem(ctx: any, x: number, y: number, radius: number, color: string, 
       ctx.arc(x, y, radius, 0, Math.PI * 2)
   }
   ctx.closePath()
-  /* 径向渐变 */
+}
+
+/**
+ * 绘制宝石（占位画法，后端未传宝石图片时使用）
+ * 质感构成: 底部投影 → 深色宝石体渐变 → 明刻面(圆形限定) → 环形底部反光 → 月牙高光 → 星光点
+ */
+function drawGem(ctx: any, x: number, y: number, radius: number, color: string, gemShape: string) {
+  ctx.save()
+
+  /* 底部软投影（让宝石"坐"在底座上而非漂浮） */
+  ctx.beginPath()
+  ctx.ellipse(x, y + radius * 0.82, radius * 0.78, radius * 0.2, 0, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(30, 20, 10, 0.18)'
+  ctx.fill()
+
+  /* 宝石体: 多段径向渐变（亮心→本色→深边缘），比单一渐变更通透 */
+  buildGemPath(ctx, x, y, radius, gemShape)
   const gradient = ctx.createRadialGradient(
-    x - radius * 0.3,
-    y - radius * 0.3,
-    radius * 0.1,
+    x - radius * 0.35,
+    y - radius * 0.35,
+    radius * 0.05,
     x,
     y,
-    radius
+    radius * 1.05
   )
-  gradient.addColorStop(0, lightenColor(color, 60))
-  gradient.addColorStop(0.4, color)
-  gradient.addColorStop(1, darkenColor(color, 40))
+  gradient.addColorStop(0, lightenColor(color, 80))
+  gradient.addColorStop(0.25, lightenColor(color, 30))
+  gradient.addColorStop(0.6, color)
+  gradient.addColorStop(0.88, darkenColor(color, 35))
+  gradient.addColorStop(1, darkenColor(color, 55))
   ctx.fillStyle = gradient
   ctx.fill()
-  /* 边缘描边 */
+
+  /* 以下细节全部裁剪在宝石轮廓内 */
+  ctx.save()
+  buildGemPath(ctx, x, y, radius, gemShape)
+  ctx.clip()
+
+  /* 刻面（仅圆形: 内八边形台面 + 放射刻面线，模拟明亮式切工） */
+  if (gemShape !== 'oval' && gemShape !== 'square' && gemShape !== 'heart') {
+    const tableR = radius * 0.52
+    const facets = 8
+    ctx.lineWidth = 1
+    /* 台面八边形 */
+    ctx.beginPath()
+    for (let i = 0; i <= facets; i++) {
+      const a = (i / facets) * Math.PI * 2 - Math.PI / 8
+      const px = x + tableR * Math.cos(a)
+      const py = y + tableR * Math.sin(a)
+      if (i === 0) {
+        ctx.moveTo(px, py)
+      } else {
+        ctx.lineTo(px, py)
+      }
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)'
+    ctx.stroke()
+    /* 台面顶点 → 外缘的放射刻面线（亮暗交替，制造折射感） */
+    for (let i = 0; i < facets; i++) {
+      const a = (i / facets) * Math.PI * 2 - Math.PI / 8
+      ctx.beginPath()
+      ctx.moveTo(x + tableR * Math.cos(a), y + tableR * Math.sin(a))
+      ctx.lineTo(x + radius * Math.cos(a), y + radius * Math.sin(a))
+      ctx.strokeStyle = i % 2 === 0 ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.12)'
+      ctx.stroke()
+    }
+  }
+
+  /* 底缘环形反光（光从下方透出，增强宝石通透感） */
+  const rimGlow = ctx.createRadialGradient(x, y, radius * 0.55, x, y, radius)
+  rimGlow.addColorStop(0, 'rgba(255,255,255,0)')
+  rimGlow.addColorStop(0.8, 'rgba(255,255,255,0)')
+  rimGlow.addColorStop(0.95, 'rgba(255,255,255,0.22)')
+  rimGlow.addColorStop(1, 'rgba(255,255,255,0.05)')
+  ctx.fillStyle = rimGlow
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+
+  /* 左上月牙高光（大而柔的主反光） */
+  ctx.beginPath()
+  ctx.ellipse(
+    x - radius * 0.3,
+    y - radius * 0.42,
+    radius * 0.42,
+    radius * 0.2,
+    -Math.PI / 5,
+    0,
+    Math.PI * 2
+  )
+  const crescent = ctx.createRadialGradient(
+    x - radius * 0.3,
+    y - radius * 0.42,
+    0,
+    x - radius * 0.3,
+    y - radius * 0.42,
+    radius * 0.42
+  )
+  crescent.addColorStop(0, 'rgba(255,255,255,0.75)')
+  crescent.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = crescent
+  ctx.fill()
+  ctx.restore()
+
+  /* 边缘描边（收边） */
+  buildGemPath(ctx, x, y, radius, gemShape)
   ctx.strokeStyle = darkenColor(color, 60)
   ctx.lineWidth = 1
   ctx.stroke()
-  /* 高光点 */
+
+  /* 星光点（四芒星 + 小圆点，点睛） */
+  const sx = x - radius * 0.28
+  const sy = y - radius * 0.3
+  const sLen = radius * 0.22
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)'
+  ctx.lineWidth = 1.2
   ctx.beginPath()
-  ctx.arc(x - radius * 0.25, y - radius * 0.25, radius * 0.15, 0, Math.PI * 2)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+  ctx.moveTo(sx - sLen, sy)
+  ctx.lineTo(sx + sLen, sy)
+  ctx.moveTo(sx, sy - sLen)
+  ctx.lineTo(sx, sy + sLen)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.arc(sx, sy, radius * 0.07, 0, Math.PI * 2)
+  ctx.fillStyle = 'rgba(255,255,255,0.95)'
   ctx.fill()
+
   ctx.restore()
 }
 
@@ -536,7 +637,11 @@ Component({
       return true
     },
 
-    /** 绘制几何占位底图（后端未上传底图时的 fallback） */
+    /**
+     * 绘制几何占位底图（后端未上传底图时的 fallback）
+     * 吊坠: 挂环 + 双层水滴托（外层金属渐变 + 内层凹槽制造包边深度）+ 高光
+     * 戒指: 真正的环形指圈（挖空内圆）+ 金属光带 + 顶部戒托
+     */
     _drawFallbackBackground(
       ctx: any,
       drawW: number,
@@ -548,49 +653,177 @@ Component({
       const cxBg = ox + drawW / 2
       const cyBg = oy + drawH / 2
       if (categoryId === 193) {
-        /* 戒指: 银色环形 */
-        ctx.beginPath()
-        ctx.ellipse(cxBg, cyBg + drawH * 0.1, drawW * 0.4, drawH * 0.35, 0, 0, Math.PI * 2)
-        const g = ctx.createLinearGradient(ox, oy, ox + drawW, oy + drawH)
-        g.addColorStop(0, '#E8E8E8')
-        g.addColorStop(0.5, '#C0C0C0')
-        g.addColorStop(1, '#A0A0A0')
-        ctx.fillStyle = g
-        ctx.fill()
-        ctx.strokeStyle = '#808080'
-        ctx.lineWidth = 2
-        ctx.stroke()
+        this._drawFallbackRing(ctx, cxBg, cyBg, drawW, drawH, ox, oy)
       } else {
-        /* 吊坠: 水滴形金色轮廓 */
-        ctx.beginPath()
-        ctx.moveTo(cxBg, oy + drawH * 0.05)
-        ctx.bezierCurveTo(
-          cxBg + drawW * 0.45,
-          oy + drawH * 0.25,
-          cxBg + drawW * 0.4,
-          oy + drawH * 0.75,
-          cxBg,
-          oy + drawH * 0.92
-        )
-        ctx.bezierCurveTo(
-          cxBg - drawW * 0.4,
-          oy + drawH * 0.75,
-          cxBg - drawW * 0.45,
-          oy + drawH * 0.25,
-          cxBg,
-          oy + drawH * 0.05
-        )
-        ctx.closePath()
-        const gradient = ctx.createLinearGradient(ox, oy, ox, oy + drawH)
-        gradient.addColorStop(0, '#F5E6CC')
-        gradient.addColorStop(0.5, '#D4AF37')
-        gradient.addColorStop(1, '#B8860B')
-        ctx.fillStyle = gradient
-        ctx.fill()
-        ctx.strokeStyle = '#8B6914'
-        ctx.lineWidth = 2
-        ctx.stroke()
+        this._drawFallbackPendant(ctx, cxBg, drawW, drawH, ox, oy)
       }
+    },
+
+    /** 占位戒指: 环形指圈（evenodd 挖空）+ 斜向金属光带 + 顶部四爪戒托 */
+    _drawFallbackRing(
+      ctx: any,
+      cxBg: number,
+      cyBg: number,
+      drawW: number,
+      drawH: number,
+      ox: number,
+      oy: number
+    ) {
+      const ringCy = cyBg + drawH * 0.08
+      const outerRx = drawW * 0.36
+      const outerRy = drawH * 0.34
+      const bandRatio = 0.78
+
+      /* 底部软投影 */
+      ctx.beginPath()
+      ctx.ellipse(cxBg, ringCy + outerRy * 1.02, outerRx * 0.9, outerRy * 0.08, 0, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(30,20,10,0.12)'
+      ctx.fill()
+
+      /* 环形指圈: 外椭圆 - 内椭圆（evenodd 填充） */
+      ctx.beginPath()
+      ctx.ellipse(cxBg, ringCy, outerRx, outerRy, 0, 0, Math.PI * 2)
+      ctx.ellipse(cxBg, ringCy, outerRx * bandRatio, outerRy * bandRatio, 0, 0, Math.PI * 2)
+      const g = ctx.createLinearGradient(
+        cxBg - outerRx,
+        ringCy - outerRy,
+        cxBg + outerRx,
+        ringCy + outerRy
+      )
+      g.addColorStop(0, '#F4F4F4')
+      g.addColorStop(0.3, '#D8D8D8')
+      g.addColorStop(0.5, '#B8B8B8')
+      g.addColorStop(0.7, '#E6E6E6')
+      g.addColorStop(1, '#9E9E9E')
+      ctx.fillStyle = g
+      ctx.fill('evenodd')
+      /* 内外收边 */
+      ctx.strokeStyle = '#8A8A8A'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.ellipse(cxBg, ringCy, outerRx, outerRy, 0, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.ellipse(cxBg, ringCy, outerRx * bandRatio, outerRy * bandRatio, 0, 0, Math.PI * 2)
+      ctx.stroke()
+
+      /* 左上弧形高光带（金属反光） */
+      ctx.save()
+      ctx.beginPath()
+      const midRx = outerRx * (1 + bandRatio) * 0.5
+      const midRy = outerRy * (1 + bandRatio) * 0.5
+      ctx.ellipse(cxBg, ringCy, midRx, midRy, 0, Math.PI * 0.85, Math.PI * 1.45)
+      ctx.strokeStyle = 'rgba(255,255,255,0.75)'
+      ctx.lineWidth = (outerRx - outerRx * bandRatio) * 0.45
+      ctx.lineCap = 'round'
+      ctx.stroke()
+      ctx.restore()
+
+      /* 顶部戒托（梯形座 + 两只可见爪） */
+      const headY = ringCy - outerRy
+      const headW = drawW * 0.16
+      ctx.beginPath()
+      ctx.moveTo(cxBg - headW * 0.5, headY + drawH * 0.015)
+      ctx.lineTo(cxBg + headW * 0.5, headY + drawH * 0.015)
+      ctx.lineTo(cxBg + headW * 0.34, headY - drawH * 0.05)
+      ctx.lineTo(cxBg - headW * 0.34, headY - drawH * 0.05)
+      ctx.closePath()
+      const hg = ctx.createLinearGradient(cxBg, headY - drawH * 0.05, cxBg, headY + drawH * 0.015)
+      hg.addColorStop(0, '#EDEDED')
+      hg.addColorStop(1, '#ABABAB')
+      ctx.fillStyle = hg
+      ctx.fill()
+      ctx.strokeStyle = '#8A8A8A'
+      ctx.lineWidth = 1
+      ctx.stroke()
+    },
+
+    /** 占位吊坠: 挂环 + 外层金托 + 内层凹槽（包边深度）+ 弧形高光 */
+    _drawFallbackPendant(ctx: any, cxBg: number, drawW: number, drawH: number, ox: number, oy: number) {
+      /** 水滴路径（scale 控制内外层，1 = 外层原始大小） */
+      const teardrop = (scale: number) => {
+        const topY = oy + drawH * (0.05 + 0.435 * (1 - scale))
+        const bottomY = oy + drawH * (0.92 - 0.435 * (1 - scale))
+        const wx45 = drawW * 0.45 * scale
+        const wx40 = drawW * 0.4 * scale
+        const y25 = oy + drawH * 0.25
+        const y75 = oy + drawH * 0.75
+        ctx.beginPath()
+        ctx.moveTo(cxBg, topY)
+        ctx.bezierCurveTo(cxBg + wx45, y25, cxBg + wx40, y75, cxBg, bottomY)
+        ctx.bezierCurveTo(cxBg - wx40, y75, cxBg - wx45, y25, cxBg, topY)
+        ctx.closePath()
+      }
+
+      /* 底部软投影 */
+      ctx.beginPath()
+      ctx.ellipse(cxBg, oy + drawH * 0.94, drawW * 0.3, drawH * 0.025, 0, 0, Math.PI * 2)
+      ctx.fillStyle = 'rgba(30,20,10,0.12)'
+      ctx.fill()
+
+      /* 顶部挂环（金色圆环，evenodd 挖空） */
+      const bailCy = oy + drawH * 0.045
+      const bailR = drawW * 0.055
+      ctx.beginPath()
+      ctx.arc(cxBg, bailCy, bailR, 0, Math.PI * 2)
+      ctx.arc(cxBg, bailCy, bailR * 0.55, 0, Math.PI * 2)
+      const bailG = ctx.createLinearGradient(cxBg - bailR, bailCy - bailR, cxBg + bailR, bailCy + bailR)
+      bailG.addColorStop(0, '#F5E6CC')
+      bailG.addColorStop(0.5, '#D4AF37')
+      bailG.addColorStop(1, '#A67C1B')
+      ctx.fillStyle = bailG
+      ctx.fill('evenodd')
+      ctx.strokeStyle = '#8B6914'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(cxBg, bailCy, bailR, 0, Math.PI * 2)
+      ctx.stroke()
+
+      /* 外层金托: 多段渐变模拟金属反射带 */
+      teardrop(1)
+      const gradient = ctx.createLinearGradient(ox, oy, ox + drawW * 0.3, oy + drawH)
+      gradient.addColorStop(0, '#F8ECD4')
+      gradient.addColorStop(0.25, '#E6C860')
+      gradient.addColorStop(0.5, '#D4AF37')
+      gradient.addColorStop(0.72, '#B8860B')
+      gradient.addColorStop(0.88, '#D9B845')
+      gradient.addColorStop(1, '#9A7010')
+      ctx.fillStyle = gradient
+      ctx.fill()
+      ctx.strokeStyle = '#8B6914'
+      ctx.lineWidth = 1.5
+      ctx.stroke()
+
+      /* 内层凹槽（暗金渐变，制造包边纵深，宝石落在其中） */
+      teardrop(0.86)
+      const innerG = ctx.createLinearGradient(cxBg, oy + drawH * 0.1, cxBg, oy + drawH * 0.88)
+      innerG.addColorStop(0, '#8F6A12')
+      innerG.addColorStop(0.5, '#B08D24')
+      innerG.addColorStop(1, '#7A5A0E')
+      ctx.fillStyle = innerG
+      ctx.fill()
+      /* 凹槽上缘亮边（内凹的光学暗示） */
+      ctx.strokeStyle = 'rgba(255, 240, 200, 0.55)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      /* 左侧弧形高光带（沿外托左缘扫过） */
+      ctx.save()
+      teardrop(1)
+      ctx.clip()
+      ctx.beginPath()
+      ctx.moveTo(cxBg - drawW * 0.3, oy + drawH * 0.12)
+      ctx.quadraticCurveTo(
+        cxBg - drawW * 0.44,
+        oy + drawH * 0.42,
+        cxBg - drawW * 0.24,
+        oy + drawH * 0.78
+      )
+      ctx.strokeStyle = 'rgba(255,250,230,0.5)'
+      ctx.lineWidth = drawW * 0.035
+      ctx.lineCap = 'round'
+      ctx.stroke()
+      ctx.restore()
     },
 
     /**

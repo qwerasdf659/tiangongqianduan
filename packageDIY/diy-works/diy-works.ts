@@ -189,9 +189,9 @@ Page({
       return
     }
     if (work.status === 'draft') {
-      /** 草稿状态: 跳转设计页继续编辑 */
+      /** 草稿状态: 跳转手串设计台继续编辑（diy-lite 已支持串珠/镶嵌双模式还原） */
       wx.navigateTo({
-        url: `/packageDIY/diy-design/diy-design?workId=${work.diy_work_id}`
+        url: `/packageDIY/diy-lite/diy-lite?workId=${work.diy_work_id}`
       })
     } else {
       /** 其他状态: 跳转结果页查看/操作 */

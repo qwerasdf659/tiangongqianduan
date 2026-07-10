@@ -213,7 +213,8 @@ async function deleteDiyWork(workId: number): Promise<API.ApiResponse<void>> {
  * 后端逻辑: 调用微信 wxacode.getUnlimited 生成小程序码
  *          → 上传 Sealos 对象存储 → 返回图片URL
  *
- * 小程序码扫码后路径: /packageDIY/diy-design/diy-design?workId={diy_work_id}
+ * 小程序码扫码后路径: /packageDIY/diy-lite/diy-lite?workId={diy_work_id}
+ * ⚠️ 路径约定已从 diy-design 切换为 diy-lite（2026-07-10），需后端生成小程序码时同步使用新路径
  *
  * 返回: { qrcode_url: string }
  *

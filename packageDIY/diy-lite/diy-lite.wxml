@@ -1,226 +1,306 @@
 <!--
-  diy-lite 手串设计台（离线演示）
-  顶部信息条(含容量条) + 中央 bracelet-tray + 底部选珠区(左竖分类+右网格+搜索) + 底部CTA + 弹窗
-  ⚠️ 珠子价格/材质/寓意/手围/绳长为前端写死演示数据，正式版由后端下发
+  diy-lite 手串设计台（生产页）
+  顶部信息条(费用/尺码/容量条) + 中央 bracelet-tray + 底部选珠区(素材Tab+左竖分类+右网格+搜索)
+  + 底部双CTA(保存草稿/完成设计→diy-result支付) + 弹窗
+  数据来源：后端 /api/v4/diy/（模板/珠子/作品），前端不写死业务数据
 -->
 <view class="diy-lite-page">
-  <custom-navbar title="DIY 手串（离线演示）" />
+  <custom-navbar title="自由定制饰品" />
 
-  <!-- 顶部信息条：总价 + 颗数 + 手围 + 容量进度条 -->
-  <view class="topbar">
-    <view class="topbar-row">
-      <view class="topbar-price">
-        <text class="price-label">总价</text>
-        <text class="price-value">¥{{totalPriceText}}</text>
-      </view>
-      <view class="topbar-meta">
-        <text class="meta-item">{{beadCount}} 颗</text>
-        <view class="meta-pill" bindtap="onOpenWrist">
-          <text class="meta-pill-text"
-            >手围 {{wristSize}}cm · {{wearOptions[wearIndex].label}}</text
-          >
-        </view>
-      </view>
-    </view>
-    <view class="capacity-bar {{isFull ? 'capacity-bar-shake' : ''}}">
-      <view
-        class="capacity-fill {{isFull ? 'capacity-fill-full' : ''}} {{nearFull ? 'capacity-fill-near' : ''}}"
-        style="width: {{capacityPercent}}%"
-      ></view>
-    </view>
-    <text class="capacity-text"
-      >绳长 {{lengthText}}/{{capacityMm}}mm{{capacityTip ? ' · ' + capacityTip : ''}}</text
-    >
-    <!-- 实时数量引导文案（还需N颗/✓合适，借鉴 diy3；离线兜底，正式版按后端珠数范围） -->
-    <text class="fill-hint {{isFull || nearFull ? 'fill-hint-highlight' : ''}}">{{fillHint}}</text>
+  <!-- 加载态 -->
+  <view wx:if="{{loading}}" class="load-state">
+    <text class="load-state-text">加载款式与珠子素材中...</text>
   </view>
 
-  <!-- 中央手串渲染舞台 -->
-  <view class="stage" style="background: {{bgColor}}">
-    <bracelet-tray
-      id="braceletTray"
-      beads="{{selectedBeads}}"
-      preview3d="{{preview3d}}"
-      capacityMm="{{capacityMm}}"
-      scattered="{{scattered}}"
-      bind:remove="onTrayRemove"
-      bind:reorder="onTrayReorder"
-      bind:beadtap="onTrayBeadTap"
-      bind:selectionchange="onTraySelectionChange"
-    />
-    <!-- 悬浮操作钮 -->
-    <view class="stage-tools">
-      <view class="tool-btn {{canUndo ? '' : 'tool-btn-disabled'}}" bindtap="onUndo">
-        <text class="tool-btn-text">撤销</text>
-      </view>
-      <view class="tool-btn {{canRedo ? '' : 'tool-btn-disabled'}}" bindtap="onRedo">
-        <text class="tool-btn-text">重做</text>
-      </view>
-      <view class="tool-btn {{preview3d ? 'tool-btn-active' : ''}}" bindtap="onToggle3d">
-        <text class="tool-btn-text">3D</text>
-      </view>
-      <view
-        class="tool-btn {{scattered ? 'tool-btn-active' : ''}} {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
-        bindtap="onToggleScatter"
-      >
-        <text class="tool-btn-text">{{scattered ? '收拢' : '散开'}}</text>
-      </view>
-      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onSpinShow">
-        <text class="tool-btn-text">转一圈</text>
-      </view>
-      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onExportPhoto">
-        <text class="tool-btn-text">拍照</text>
-      </view>
-      <view class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}" bindtap="onOpenWuxing">
-        <text class="tool-btn-text">五行</text>
-      </view>
-      <view class="tool-btn" bindtap="onOpenGuide">
-        <text class="tool-btn-text">教程</text>
-      </view>
-      <view
-        class="tool-btn tool-btn-clear {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
-        bindtap="onClearAll"
-      >
-        <text class="tool-btn-text">清空</text>
-      </view>
-    </view>
-    <!-- 空态引导：一键成串 -->
-    <view class="empty-guide" wx:if="{{beadCount === 0}}" bindtap="onRandomFill">
-      <text class="empty-guide-text">✨ 一键成串 · 随机搭配</text>
-    </view>
-
-    <!-- 多选批量删除栏（轻点手串珠子可多选，对齐 diy-design 多选删除） -->
-    <view class="selection-bar" wx:if="{{selectedCount > 0}}">
-      <text class="selection-bar-count">已选 {{selectedCount}} 颗</text>
-      <view class="selection-bar-btn selection-bar-delete" bindtap="onDeleteSelected">
-        <text class="selection-bar-btn-text">删除选中</text>
-      </view>
-      <view class="selection-bar-btn" bindtap="onClearSelection">
-        <text class="selection-bar-btn-text selection-bar-cancel-text">取消</text>
-      </view>
-    </view>
-
-    <!-- 背景切换 -->
-    <view class="bg-switch">
-      <view
-        wx:for="{{bgOptions}}"
-        wx:key="*this"
-        class="bg-dot {{bgColor === item ? 'bg-dot-active' : ''}}"
-        style="background: {{item}}"
-        data-color="{{item}}"
-        bindtap="onSwitchBg"
-      ></view>
-    </view>
-  </view>
-
-  <!-- 底部选珠区：素材类型Tab + 搜索 + 左竖分类 + 右网格 -->
-  <view class="panel">
-    <!-- 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design；配饰/吊坠素材待后端提供） -->
-    <view class="mtype-tabs">
-      <view
-        wx:for="{{materialTypeTabs}}"
-        wx:key="key"
-        class="mtype-tab {{activeMaterialType === item.key ? 'mtype-tab-active' : ''}}"
-        data-type="{{item.key}}"
-        bindtap="onMaterialTypeChange"
-      >
-        <text class="mtype-tab-text">{{item.label}}</text>
-      </view>
-    </view>
-    <view class="search-bar" wx:if="{{activeMaterialType === 'beads'}}">
-      <input
-        class="search-input"
-        placeholder="搜索珠子名称"
-        value="{{keyword}}"
-        bindinput="onSearchInput"
-        confirm-type="search"
-      />
-      <view class="search-clear" wx:if="{{keyword}}" bindtap="onSearchClear">
-        <text class="search-clear-text">清除</text>
-      </view>
-    </view>
-
-    <view class="panel-body">
-      <!-- 左侧竖分类（仅饰品Tab有本地分类） -->
-      <scroll-view
-        class="cat-side"
-        scroll-y
-        enhanced
-        show-scrollbar="{{false}}"
-        wx:if="{{activeMaterialType === 'beads'}}"
-      >
-        <view
-          wx:for="{{categories}}"
-          wx:key="key"
-          class="cat-side-item {{activeCategory === item.key && !keyword ? 'cat-side-item-active' : ''}}"
-          data-key="{{item.key}}"
-          bindtap="onSwitchCategory"
-        >
-          <text class="cat-side-text">{{item.label}}</text>
+  <block wx:else>
+    <!-- 顶部信息条：费用 + 颗数 + 尺码 + 容量进度条 -->
+    <view class="topbar">
+      <view class="topbar-row">
+        <view class="topbar-price">
+          <text class="price-label">费用</text>
+          <text class="price-value">{{costText}}</text>
         </view>
-      </scroll-view>
-
-      <!-- 右侧珠子网格 -->
-      <scroll-view class="grid-side" scroll-y enhanced show-scrollbar="{{false}}">
-        <view class="grid-inner">
+        <view class="topbar-meta">
+          <text class="meta-item">{{beadCount}} 颗</text>
           <view
-            wx:for="{{groups}}"
-            wx:for-item="group"
-            wx:for-index="gIndex"
-            wx:key="name"
-            class="bead-card"
-            data-group="{{gIndex}}"
-            bindtap="onSelectBead"
-            bindlongpress="onBeadLongPress"
+            class="meta-pill"
+            bindtap="onOpenSize"
+            wx:if="{{!isSlotMode && sizeOptions.length > 0}}"
           >
-            <view class="bead-card-thumb-wrap">
-              <image
-                class="bead-card-thumb"
-                src="{{group.skus[group.sizeIndex].image}}"
-                mode="aspectFit"
-              />
-              <view class="bead-card-badge" wx:if="{{group.usedCount > 0}}">
-                <text class="bead-card-badge-text">{{group.usedCount}}</text>
-              </view>
-              <!-- 售罄遮罩（库存由后端 stock 下发，stock===0 时显示；离线数据无库存字段不显示） -->
-              <view class="bead-card-soldout" wx:if="{{group.skus[group.sizeIndex].stock === 0}}">
-                <text class="bead-card-soldout-text">售罄</text>
-              </view>
-            </view>
-            <text class="bead-card-name">{{group.name}}</text>
-            <!-- 尺码 +/- 切换 -->
-            <view class="size-switch" catchtap="">
-              <view class="size-btn" data-group="{{gIndex}}" data-dir="-1" catchtap="onSwitchSize">
-                <text class="size-btn-text">-</text>
-              </view>
-              <text class="size-current">{{group.skus[group.sizeIndex].sizeText}}</text>
-              <view class="size-btn" data-group="{{gIndex}}" data-dir="1" catchtap="onSwitchSize">
-                <text class="size-btn-text">+</text>
-              </view>
-            </view>
-            <text class="bead-card-price">¥{{group.skus[group.sizeIndex].price}}</text>
+            <text class="meta-pill-text">尺码 {{selectedSizeDisplay}}</text>
           </view>
-          <view class="grid-empty" wx:if="{{groups.length === 0}}">
-            <!-- 空态文案由 TS 预计算（gridEmptyText）：配饰/吊坠素材属后端业务数据，未接入前如实显示空态 -->
-            <text class="grid-empty-text">{{gridEmptyText}}</text>
+          <!-- 镶嵌模式：槽位进度 + 当前激活槽位 -->
+          <view class="meta-pill" wx:if="{{isSlotMode}}">
+            <text class="meta-pill-text"
+              >已镶 {{filledSlotCount}}/{{totalSlotCount}}{{activeSlotLabel ? ' · ' +
+              activeSlotLabel : ''}}</text
+            >
           </view>
         </view>
-      </scroll-view>
+      </view>
+      <block wx:if="{{capacityLimited}}">
+        <view class="capacity-bar {{isFull ? 'capacity-bar-shake' : ''}}">
+          <view
+            class="capacity-fill {{isFull ? 'capacity-fill-full' : ''}} {{nearFull ? 'capacity-fill-near' : ''}}"
+            style="width: {{capacityPercent}}%"
+          ></view>
+        </view>
+        <text class="capacity-text"
+          >已排 {{lengthText}}/{{capacityMm}}mm{{capacityTip ? ' · ' + capacityTip : ''}}</text
+        >
+      </block>
+      <!-- 实时数量引导文案（结合后端 min_beads 与剩余容量） -->
+      <text class="fill-hint {{isFull || nearFull ? 'fill-hint-highlight' : ''}}"
+        >{{fillHint}}</text
+      >
     </view>
-  </view>
 
-  <!-- 底部主 CTA：加入购物车 -->
-  <view class="cta-bar">
-    <view class="cta-summary">
-      <text class="cta-price">¥{{totalPriceText}}</text>
-      <text class="cta-count">共 {{beadCount}} 颗</text>
-    </view>
-    <view class="cta-btn {{beadCount > 0 ? '' : 'cta-btn-disabled'}}" bindtap="onAddToCart">
-      <text class="cta-btn-text">加入购物车</text>
-    </view>
-  </view>
+    <!-- 中央渲染舞台：串珠=bracelet-tray；镶嵌=shape-renderer(底图+槽位，状态在 diyStore) -->
+    <view class="stage" style="background: {{bgColor}}">
+      <bracelet-tray
+        wx:if="{{!isSlotMode}}"
+        id="braceletTray"
+        beads="{{selectedBeads}}"
+        preview3d="{{preview3d}}"
+        capacityMm="{{trayCapacityMm}}"
+        scattered="{{scattered}}"
+        bind:remove="onTrayRemove"
+        bind:reorder="onTrayReorder"
+        bind:beadtap="onTrayBeadTap"
+        bind:selectionchange="onTraySelectionChange"
+      />
+      <view class="slot-stage" wx:if="{{isSlotMode}}">
+        <shape-renderer
+          id="shapeRenderer"
+          canvasWidth="{{canvasWidth}}"
+          canvasHeight="{{canvasHeight}}"
+          bind:slottap="onSlotTap"
+        />
+      </view>
+      <!-- 悬浮操作钮（3D/散开/转一圈/拍照/五行为手串专属，镶嵌模式隐藏） -->
+      <view class="stage-tools">
+        <view class="tool-btn {{canUndo ? '' : 'tool-btn-disabled'}}" bindtap="onUndo">
+          <text class="tool-btn-text">撤销</text>
+        </view>
+        <view class="tool-btn {{canRedo ? '' : 'tool-btn-disabled'}}" bindtap="onRedo">
+          <text class="tool-btn-text">重做</text>
+        </view>
+        <view
+          wx:if="{{!isSlotMode}}"
+          class="tool-btn {{preview3d ? 'tool-btn-active' : ''}}"
+          bindtap="onToggle3d"
+        >
+          <text class="tool-btn-text">3D</text>
+        </view>
+        <view
+          wx:if="{{!isSlotMode}}"
+          class="tool-btn {{scattered ? 'tool-btn-active' : ''}} {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
+          bindtap="onToggleScatter"
+        >
+          <text class="tool-btn-text">{{scattered ? '收拢' : '散开'}}</text>
+        </view>
+        <view
+          wx:if="{{!isSlotMode}}"
+          class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
+          bindtap="onSpinShow"
+        >
+          <text class="tool-btn-text">旋转</text>
+        </view>
+        <view
+          wx:if="{{!isSlotMode}}"
+          class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
+          bindtap="onExportPhoto"
+        >
+          <text class="tool-btn-text">拍照</text>
+        </view>
+        <view
+          wx:if="{{!isSlotMode}}"
+          class="tool-btn {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
+          bindtap="onOpenWuxing"
+        >
+          <text class="tool-btn-text">五行</text>
+        </view>
+        <view class="tool-btn" bindtap="onOpenGuide">
+          <text class="tool-btn-text">教程</text>
+        </view>
+        <view
+          class="tool-btn tool-btn-clear {{beadCount > 0 ? '' : 'tool-btn-disabled'}}"
+          bindtap="onClearAll"
+        >
+          <text class="tool-btn-text">清空</text>
+        </view>
+      </view>
+      <!-- 空态引导：一键成串（手串专属） -->
+      <view class="empty-guide" wx:if="{{!isSlotMode && beadCount === 0}}" bindtap="onRandomFill">
+        <text class="empty-guide-text">✨ 一键成串 · 随机搭配</text>
+      </view>
 
-  <!-- 珠子详情弹窗 -->
+      <!-- 多选批量删除栏（轻点手串珠子可多选，手串专属） -->
+      <view class="selection-bar" wx:if="{{!isSlotMode && selectedCount > 0}}">
+        <text class="selection-bar-count">已选 {{selectedCount}} 颗</text>
+        <view class="selection-bar-btn selection-bar-delete" bindtap="onDeleteSelected">
+          <text class="selection-bar-btn-text">删除选中</text>
+        </view>
+        <view class="selection-bar-btn" bindtap="onClearSelection">
+          <text class="selection-bar-btn-text selection-bar-cancel-text">取消</text>
+        </view>
+      </view>
+
+      <!-- 缩放控制（手串专属：＋/－步进，画布上双指捏合也可缩放） -->
+      <view class="zoom-ctrl" wx:if="{{!isSlotMode}}">
+        <view class="zoom-btn" bindtap="onZoomIn">
+          <text class="zoom-btn-text">＋</text>
+        </view>
+        <view class="zoom-btn" bindtap="onZoomOut">
+          <text class="zoom-btn-text">－</text>
+        </view>
+      </view>
+
+      <!-- 背景切换 -->
+      <view class="bg-switch">
+        <view
+          wx:for="{{bgOptions}}"
+          wx:key="*this"
+          class="bg-dot {{bgColor === item ? 'bg-dot-active' : ''}}"
+          style="background: {{item}}"
+          data-color="{{item}}"
+          bindtap="onSwitchBg"
+        ></view>
+      </view>
+    </view>
+
+    <!-- 底部选珠区：素材类型Tab + 搜索 + 左竖分类 + 右网格 -->
+    <view class="panel">
+      <!-- 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design；配饰/吊坠素材待后端提供） -->
+      <view class="mtype-tabs">
+        <view
+          wx:for="{{materialTypeTabs}}"
+          wx:key="key"
+          class="mtype-tab {{activeMaterialType === item.key ? 'mtype-tab-active' : ''}}"
+          data-type="{{item.key}}"
+          bindtap="onMaterialTypeChange"
+        >
+          <text class="mtype-tab-text">{{item.label}}</text>
+        </view>
+      </view>
+      <!-- 素材提示条（可关闭，对齐旧版工作台"长按材料可查看实拍图"） -->
+      <view class="material-tip" wx:if="{{showMaterialTip && activeMaterialType === 'beads'}}">
+        <text class="material-tip-text">💡 长按珠子可查看详情大图</text>
+        <view class="material-tip-close" bindtap="onCloseMaterialTip">
+          <text class="material-tip-close-text">×</text>
+        </view>
+      </view>
+      <view class="search-bar" wx:if="{{activeMaterialType === 'beads'}}">
+        <input
+          class="search-input"
+          placeholder="搜索珠子名称"
+          value="{{keyword}}"
+          bindinput="onSearchInput"
+          confirm-type="search"
+        />
+        <view class="search-clear" wx:if="{{keyword}}" bindtap="onSearchClear">
+          <text class="search-clear-text">清除</text>
+        </view>
+      </view>
+
+      <view class="panel-body">
+        <!-- 左侧竖分类（仅饰品Tab有分类，来自后端珠子 group_code 聚合） -->
+        <scroll-view
+          class="cat-side"
+          scroll-y
+          enhanced
+          show-scrollbar="{{false}}"
+          wx:if="{{activeMaterialType === 'beads'}}"
+        >
+          <view
+            wx:for="{{categories}}"
+            wx:key="key"
+            class="cat-side-item {{activeCategory === item.key && !keyword ? 'cat-side-item-active' : ''}}"
+            data-key="{{item.key}}"
+            bindtap="onSwitchCategory"
+          >
+            <text class="cat-side-text">{{item.label}}</text>
+          </view>
+        </scroll-view>
+
+        <!-- 右侧珠子网格 -->
+        <scroll-view class="grid-side" scroll-y enhanced show-scrollbar="{{false}}">
+          <view class="grid-inner">
+            <view
+              wx:for="{{groups}}"
+              wx:for-item="group"
+              wx:for-index="gIndex"
+              wx:key="name"
+              class="bead-card {{group.skus[group.sizeIndex]._disabled ? 'bead-card-disabled' : ''}}"
+              data-group="{{gIndex}}"
+              bindtap="onSelectBead"
+              bindlongpress="onBeadLongPress"
+            >
+              <view class="bead-card-thumb-wrap">
+                <image
+                  class="bead-card-thumb"
+                  src="{{group.skus[group.sizeIndex].image}}"
+                  mode="aspectFit"
+                />
+                <view class="bead-card-badge" wx:if="{{group.usedCount > 0}}">
+                  <text class="bead-card-badge-text">{{group.usedCount}}</text>
+                </view>
+                <!-- 售罄遮罩（后端 stock===0 时显示） -->
+                <view class="bead-card-soldout" wx:if="{{group.skus[group.sizeIndex].stock === 0}}">
+                  <text class="bead-card-soldout-text">售罄</text>
+                </view>
+              </view>
+              <text class="bead-card-name">{{group.name}}</text>
+              <!-- 尺码 +/- 切换 -->
+              <view class="size-switch" catchtap="">
+                <view
+                  class="size-btn"
+                  data-group="{{gIndex}}"
+                  data-dir="-1"
+                  catchtap="onSwitchSize"
+                >
+                  <text class="size-btn-text">-</text>
+                </view>
+                <text class="size-current">{{group.skus[group.sizeIndex].sizeText}}</text>
+                <view class="size-btn" data-group="{{gIndex}}" data-dir="1" catchtap="onSwitchSize">
+                  <text class="size-btn-text">+</text>
+                </view>
+              </view>
+              <text class="bead-card-price"
+                >{{group.skus[group.sizeIndex].price}}
+                {{group.skus[group.sizeIndex].priceLabel}}</text
+              >
+            </view>
+            <view class="grid-empty" wx:if="{{groups.length === 0}}">
+              <!-- 空态文案由 TS 预计算（gridEmptyText）：配饰/吊坠素材属后端业务数据，未接入前如实显示空态 -->
+              <text class="grid-empty-text">{{gridEmptyText}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 底部主 CTA：保存草稿 + 完成设计（对齐 diy-design 生产闭环） -->
+    <view class="cta-bar">
+      <view class="cta-summary">
+        <text class="cta-price">{{costText}}</text>
+        <text class="cta-count">共 {{beadCount}} 颗</text>
+      </view>
+      <view class="cta-actions">
+        <view
+          class="cta-btn cta-btn-ghost {{beadCount > 0 ? '' : 'cta-btn-disabled'}}"
+          bindtap="onSaveDraft"
+        >
+          <text class="cta-btn-ghost-text">保存草稿</text>
+        </view>
+        <view class="cta-btn {{canSubmit ? '' : 'cta-btn-disabled'}}" bindtap="onSubmit">
+          <text class="cta-btn-text">完成设计</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 珠子详情弹窗（meaning/weight/energy/pairing 为后端可选字段，缺失时对应行隐藏） -->
   <view
     class="modal-mask"
     wx:if="{{detailVisible}}"
@@ -238,21 +318,21 @@
       <view class="detail-tags">
         <text class="detail-tag">{{detailBead.categoryLabel}}</text>
         <text class="detail-tag">{{detailBead.sizeText}}</text>
-        <text class="detail-tag">约 {{detailBead.weight}}g</text>
+        <text class="detail-tag" wx:if="{{detailBead.weight}}">约 {{detailBead.weight}}g</text>
       </view>
-      <text class="detail-meaning">{{detailBead.meaning}}</text>
-      <view class="detail-attrs">
-        <view class="detail-attr-row">
+      <text class="detail-meaning" wx:if="{{detailBead.meaning}}">{{detailBead.meaning}}</text>
+      <view class="detail-attrs" wx:if="{{detailBead.energy || detailBead.pairing}}">
+        <view class="detail-attr-row" wx:if="{{detailBead.energy}}">
           <text class="detail-attr-label">能量属性</text>
           <text class="detail-attr-value">{{detailBead.energy}}</text>
         </view>
-        <view class="detail-attr-row">
+        <view class="detail-attr-row" wx:if="{{detailBead.pairing}}">
           <text class="detail-attr-label">搭配建议</text>
           <text class="detail-attr-value">{{detailBead.pairing}}</text>
         </view>
       </view>
       <view class="detail-footer">
-        <text class="detail-price">¥{{detailBead.price}}</text>
+        <text class="detail-price">{{detailBead.price}} {{detailBead.priceLabel}}</text>
         <view class="detail-add-btn" catchtap="onDetailAdd">
           <text class="detail-add-text">加入手串</text>
         </view>
@@ -260,49 +340,36 @@
     </view>
   </view>
 
-  <!-- 手围设置弹窗（底部半屏，不遮挡上方手串，拖动滑块可实时预览收紧/放松） -->
+  <!-- 尺码选择弹窗（底部半屏，选项来自后端 sizing_rules.size_options） -->
   <view
     class="sheet-mask"
-    wx:if="{{wristVisible}}"
-    catchtap="onCloseWrist"
-    catchtouchmove="onCloseWrist"
+    wx:if="{{sizeVisible}}"
+    catchtap="onCloseSize"
+    catchtouchmove="onCloseSize"
   >
     <view class="wrist-card wrist-card-sheet" catchtap="">
-      <text class="wrist-title">手围与绳长</text>
-      <text class="wrist-value">{{wristSize}} cm</text>
-      <slider
-        class="wrist-slider"
-        min="10"
-        max="22"
-        step="1"
-        value="{{wristSize}}"
-        activeColor="#8b7355"
-        block-size="20"
-        bindchanging="onWristChange"
-        bindchange="onWristChange"
-      />
-      <view class="wear-options">
+      <text class="wrist-title">选择尺码</text>
+      <view class="wear-options size-options">
         <view
-          wx:for="{{wearOptions}}"
-          wx:key="key"
-          class="wear-item {{wearIndex === index ? 'wear-item-active' : ''}}"
+          wx:for="{{sizeOptions}}"
+          wx:key="label"
+          class="wear-item {{sizeIndex === index ? 'wear-item-active' : ''}}"
           data-index="{{index}}"
-          bindtap="onSelectWear"
+          bindtap="onSelectSize"
         >
-          <text class="wear-item-text">{{item.label}}</text>
+          <text class="wear-item-text">{{item.display}}</text>
         </view>
       </view>
-      <text class="wrist-note"
-        >绳长上限
-        {{capacityMm}}mm（手围×10×圈数）。珠子排满后需先删除才能继续添加。离线演示值，正式版由后端手围规则提供。</text
+      <text class="wrist-note" wx:if="{{capacityLimited}}"
+        >当前尺码容量 {{capacityMm}}mm（由款式规则计算）。排满后需删除珠子或换大尺码。</text
       >
-      <view class="wrist-confirm" catchtap="onCloseWrist">
+      <view class="wrist-confirm" catchtap="onCloseSize">
         <text class="wrist-confirm-text">确定</text>
       </view>
     </view>
   </view>
 
-  <!-- 五行雷达图弹窗（借鉴 diy3；数据依赖后端 five_elements，缺失显示空态） -->
+  <!-- 五行雷达图弹窗（数据依赖后端 five_elements，缺失显示空态） -->
   <view
     class="modal-mask"
     wx:if="{{wuxingVisible}}"
@@ -320,7 +387,7 @@
       <!-- 无数据：空态提示（绝不用假数据） -->
       <view wx:else class="wuxing-empty">
         <text class="wuxing-empty-title">暂无五行数据</text>
-        <text class="wuxing-empty-desc">五行属性需由后端下发，正式版接入后自动显示分布雷达图</text>
+        <text class="wuxing-empty-desc">五行属性需由后端下发，接入后自动显示分布雷达图</text>
       </view>
       <view class="wuxing-confirm" catchtap="onCloseWuxing">
         <text class="wuxing-confirm-text">知道了</text>
@@ -336,7 +403,7 @@
     catchtouchmove="onCloseGuide"
   >
     <view class="guide-card" catchtap="">
-      <!-- 四 Tab 使用指南（借鉴 H5：玩法/量手围/珠子尺寸/天然瑕疵） -->
+      <!-- 四 Tab 使用指南（玩法/量手围/珠子尺寸/天然瑕疵） -->
       <view class="guide-tabs">
         <view
           wx:for="{{guideTabs}}"
@@ -359,7 +426,10 @@
     </view>
   </view>
 
-  <!-- 登录弹窗（加入购物车前鉴权，对齐 diy-design） -->
+  <!-- 镶嵌模式填槽飞入动画（素材卡 → 槽位舞台，串珠模式由 bracelet-tray 自带 DOM 飞入） -->
+  <fly-animation id="flyAnim" bind:complete="onFlyComplete" />
+
+  <!-- 登录弹窗（保存/提交前鉴权，对齐 diy-design） -->
   <login-popup
     visible="{{loginPopupVisible}}"
     bind:close="onLoginPopupClose"

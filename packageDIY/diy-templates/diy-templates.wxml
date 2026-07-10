@@ -16,6 +16,35 @@
       </view>
     </scroll-view>
 
+    <!-- 本地演示入口卡片（数据驱动，见 LOCAL_DEMO_CARDS：手串/佛珠串珠 + 项链/戒指/吊坠/耳饰/手机链镶嵌；均不依赖后端、保存下单禁用） -->
+    <view
+      wx:for="{{visibleDemoCards}}"
+      wx:key="local"
+      class="template-card local-demo-card"
+      bind:tap="onSelectLocalDemoEntry"
+      data-local="{{item.local}}"
+    >
+      <image
+        wx:if="{{item.thumb}}"
+        class="template-thumb"
+        src="{{item.thumb}}"
+        mode="aspectFill"
+      />
+      <view wx:else class="template-thumb local-demo-thumb">
+        <text class="local-demo-thumb-text">{{item.emoji}}</text>
+      </view>
+      <view class="template-info">
+        <text class="template-name">{{item.name}}</text>
+        <text class="template-category">{{item.desc}}</text>
+        <view class="template-tags">
+          <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="template-tag"
+            >{{tag}}</text
+          >
+        </view>
+      </view>
+      <text class="arrow-icon">></text>
+    </view>
+
     <!-- 加载态 -->
     <view wx:if="{{loading}}" class="loading-wrap">
       <t-loading loading="{{true}}" text="加载中..." theme="spinner" />

@@ -1,5 +1,10 @@
 /**
- * DIY 饰品设计页（核心页面）
+ * DIY 饰品设计页（📦 旧版工作台，已归档仅作参考）
+ *
+ * ⚠️ 归档说明（2026-07-10，业务方决策）：
+ *   本页所有入口已关闭，功能已全部迁移/融合至 packageDIY/diy-lite（自由定制饰品生产页）。
+ *   页面保留仅作实现参考（串珠/镶嵌双模式、diyStore 用法、下单闭环的原始实现范本），
+ *   不再迭代业务代码；如需恢复入口，在 pages/diy 加回跳转卡片即可。
  *
  * 根据模板 layout.shape 自动切换串珠/镶嵌渲染模式
  * 功能: 预览Canvas、素材选择、撤销/重做、多选删除、珠子排序、
@@ -539,11 +544,11 @@ Page({
 
     // 起点：材料卡片的点击位置（如果有 touch 坐标就用，否则用屏幕底部中间）
     const startX = touch?.clientX ?? this.data.canvasWidth / 2
-    const startY = touch?.clientY ?? (this.data.canvasHeight - 100)
+    const startY = touch?.clientY ?? this.data.canvasHeight - 100
 
     // 终点：工作台画布中心（锚点位置）
     const endX = this.data.canvasWidth / 2
-    const endY = 200  // 工作台预览区的大致中心 Y 坐标
+    const endY = 200 // 工作台预览区的大致中心 Y 坐标
 
     // 获取材料图片 URL
     const imageUrl = bead?.image_media?.public_url || ''

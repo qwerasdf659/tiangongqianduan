@@ -10,8 +10,26 @@
   overflow: hidden;
 }
 
+/* 加载态（模板与珠子数据来自后端；加载失败自动切换本地演示模式） */
+.load-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tg-spacing-md);
+}
+
+.load-state-text {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+  text-align: center;
+  padding: 0 var(--tg-spacing-xl);
+}
+
+/* 顶部信息条（紧凑：单行费用/颗数/尺码 + 细容量条 + 一行提示，把纵向空间让给舞台） */
 .topbar {
-  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
   background: var(--tg-card-bg);
   flex-shrink: 0;
 }
@@ -34,7 +52,7 @@
 
 .price-value {
   font-family: var(--tg-font-number);
-  font-size: var(--tg-font-size-number-lg);
+  font-size: var(--tg-font-size-number-md);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   letter-spacing: var(--tg-letter-spacing-tight);
@@ -62,8 +80,8 @@
 }
 
 .capacity-bar {
-  margin-top: var(--tg-spacing-xs);
-  height: 8rpx;
+  margin-top: 4rpx;
+  height: 6rpx;
   border-radius: var(--td-radius-large);
   background: var(--tg-color-bg-grey);
   overflow: hidden;
@@ -116,6 +134,31 @@
   gap: var(--tg-spacing-sm);
 }
 
+/* 缩放控制（右下角＋/－，不加长右上工具列；双指捏合为主，按钮为辅） */
+.zoom-ctrl {
+  position: absolute;
+  right: var(--tg-spacing-sm);
+  bottom: var(--tg-spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tg-spacing-xs);
+}
+
+.zoom-btn {
+  @include flex-center;
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: var(--td-radius-circle);
+  background: var(--tg-card-bg);
+  box-shadow: var(--tg-shadow-card);
+}
+
+.zoom-btn-text {
+  font-size: var(--tg-font-size-title);
+  color: var(--tg-text-secondary);
+  line-height: 1;
+}
+
 .bg-dot {
   width: 44rpx;
   height: 44rpx;
@@ -128,19 +171,27 @@
   border-width: 4rpx;
 }
 
+/* 镶嵌模式舞台：shape-renderer 画布居中 */
+.slot-stage {
+  width: 100%;
+  height: 100%;
+  @include flex-center;
+}
+
+/* 悬浮工具钮（紧凑小圆钮，避免挤占舞台展示区） */
 .stage-tools {
   position: absolute;
-  right: var(--tg-spacing-md);
-  top: var(--tg-spacing-md);
+  right: var(--tg-spacing-sm);
+  top: var(--tg-spacing-sm);
   display: flex;
   flex-direction: column;
-  gap: var(--tg-spacing-sm);
+  gap: var(--tg-spacing-xs);
 }
 
 .tool-btn {
   @include flex-center;
-  width: 76rpx;
-  height: 76rpx;
+  width: 60rpx;
+  height: 60rpx;
   border-radius: var(--td-radius-circle);
   background: var(--tg-card-bg);
   box-shadow: var(--tg-shadow-card);
@@ -159,7 +210,7 @@
 }
 
 .tool-btn-text {
-  font-size: var(--tg-font-size-small);
+  font-size: var(--tg-font-size-mini);
   color: var(--tg-text-secondary);
 }
 
@@ -206,9 +257,10 @@
   color: var(--tg-text-secondary);
 }
 
+/* 底部选珠区（压缩高度，把纵向空间让给中央舞台） */
 .panel {
   flex-shrink: 0;
-  height: 460rpx;
+  height: 400rpx;
   display: flex;
   flex-direction: column;
   background: var(--tg-card-bg);
@@ -242,16 +294,40 @@
   font-weight: var(--tg-font-weight-semibold);
 }
 
+/* 素材提示条（长按看详情引导，可关闭，对齐旧版工作台） */
+.material-tip {
+  @include flex-center;
+  justify-content: space-between;
+  margin: var(--tg-spacing-xs) var(--tg-spacing-md) 0;
+  padding: var(--tg-spacing-xs) var(--tg-spacing-sm);
+  border-radius: var(--td-radius-default);
+  background: rgba(var(--td-brand-color-rgb), 0.08);
+}
+
+.material-tip-text {
+  font-size: var(--tg-font-size-mini);
+  color: var(--td-brand-color);
+}
+
+.material-tip-close {
+  padding: 0 var(--tg-spacing-xs);
+}
+
+.material-tip-close-text {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-tertiary);
+}
+
 .search-bar {
   @include flex-center;
   gap: var(--tg-spacing-sm);
-  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  padding: var(--tg-spacing-xs) var(--tg-spacing-md);
   flex-shrink: 0;
 }
 
 .search-input {
   flex: 1;
-  height: 60rpx;
+  height: 52rpx;
   padding: 0 var(--tg-spacing-md);
   border-radius: var(--td-radius-large);
   background: var(--tg-color-bg-grey);
@@ -409,10 +485,28 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 双操作按钮组：保存草稿(描边) + 完成设计(实心)，对齐 diy-design 生产闭环 */
+.cta-actions {
+  @include flex-center;
+  gap: var(--tg-spacing-sm);
+}
+
 .cta-btn {
-  padding: var(--tg-spacing-sm) var(--tg-spacing-xxl);
+  padding: var(--tg-spacing-sm) var(--tg-spacing-xl);
   border-radius: var(--td-radius-large);
   background: var(--td-brand-color);
+}
+
+.cta-btn-ghost {
+  background: var(--tg-card-bg);
+  border: 2rpx solid var(--td-brand-color);
+}
+
+.cta-btn-ghost-text {
+  font-size: var(--tg-font-size-title);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--td-brand-color);
+  letter-spacing: var(--tg-letter-spacing-wide);
 }
 
 .cta-btn-disabled {
@@ -526,23 +620,21 @@
   letter-spacing: var(--tg-letter-spacing-normal);
 }
 
-.wrist-value {
-  margin-top: var(--tg-spacing-sm);
-  font-family: var(--tg-font-number);
-  font-size: var(--tg-font-size-number-lg);
-  font-weight: var(--tg-font-weight-bold);
-  color: var(--td-brand-color);
-}
-
-.wrist-slider {
-  width: 100%;
-  margin: var(--tg-spacing-md) 0;
-}
-
 .wear-options {
   @include flex-center;
   gap: var(--tg-spacing-sm);
   width: 100%;
+}
+
+/* 尺码选项列表（后端 size_options，纵向排布支持任意数量选项） */
+.size-options {
+  flex-direction: column;
+  margin-top: var(--tg-spacing-md);
+}
+
+.size-options .wear-item {
+  width: 100%;
+  flex: none;
 }
 
 .wear-item {
@@ -804,6 +896,11 @@
   font-size: var(--tg-font-size-mini);
   color: var(--tg-color-white);
   font-weight: var(--tg-font-weight-bold);
+}
+
+/* 镶嵌模式：不匹配当前槽位约束的珠子置灰（点击有约束提示） */
+.bead-card-disabled {
+  opacity: 0.35;
 }
 
 /* 售罄遮罩（stock===0 时覆盖珠子缩略图，库存由后端下发） */

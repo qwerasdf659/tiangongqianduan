@@ -2,10 +2,12 @@
  * bracelet-tray 手串渲染组件（Canvas 2D）
  *
  * 职责：接收已选珠子数组 → 等弦长布局 → 立体绘制（圆裁+径向渐变+高光）→ 触摸交互
- * 触摸：拖拽换位 / 拖出删除 / 轻点删除 / 空白拖拽旋转手串；伪3D预览；散珠物理。
+ * 触摸：拖拽换位 / 拖出删除 / 轻点多选 / 空白拖拽旋转手串；伪3D预览；散珠物理。
  *
- * 物理朝向假设（离线演示，可调）：
+ * 异形珠（shape='special'）朝向假设：
  *   round 圆珠不旋转；paohuan 跑环长轴沿切向；yaopian 药片长轴沿径向。
+ *   ⚠️ 后端异形珠几何元数据（bore_orientation/image_bbox_ratio）下发前，
+ *   页面统一按 round 传入，special 分支处于待命状态（见接口需求文档第3节）。
  *
  * 与父页通信：
  *   properties.beads 变化 → 重新布局重绘
@@ -84,8 +86,8 @@ Component({
       }
     },
     /**
-     * 绳长容量（mm）：决定绳圈固定大小（周长=容量），珠子沿圈填一段弧。
-     * ⚠️ 演示布局参数，正式版由后端手围规则决定。
+     * 绳圈周长（mm）：决定绳圈固定大小（周长=容量），珠子沿圈填一段弧。
+     * 由页面根据后端 sizing_rules/bead_rules 计算传入（无规则时页面传渲染兜底值）。
      */
     capacityMm: {
       type: Number,
@@ -464,21 +466,9 @@ Component({
        * 所以空串/少珠时绳圈始终可见（修复“加跑环才出现手串线”的 bug）。
        * 珠子按各自沿绳尺寸占容量的比例分配角度，从正上方顺时针填一段弧。
        */
+      this._recomputeScale()
+      const ringRadius = this._ringRadius
       const capacityMm = this.properties.capacityMm || 150
-      const maxLongMm = Math.max(...beads.map(b => b.imgLongMm), 12)
-
-      /** 绳圈半径：周长=容量 → R=容量/2π，先按 basePxPerMm 再缩放适配画布 */
-      const basePxPerMm = 6
-      let ringRadius = (capacityMm * basePxPerMm) / (2 * Math.PI)
-      /** 拍照模式留白更少（珠子放大填满），普通模式留 8px 边距 */
-      const margin = this._photoMode ? 2 : 8
-      const avail = Math.min(centerX, centerY) - margin
-      const outer = ringRadius + (maxLongMm * basePxPerMm) / 2
-      const fit = outer > avail ? avail / outer : 1
-      ringRadius *= fit
-      const pixelPerMm = basePxPerMm * fit
-      this._pixelPerMm = pixelPerMm
-      this._ringRadius = ringRadius
 
       /**
        * 角度分配基数：正常按容量(周长)分配，保证首尾相切排满一圈。
@@ -504,6 +494,57 @@ Component({
         bead.y = bead.ty
         accMm += bead.alongCordMm
       })
+    },
+
+    /**
+     * 计算绳圈半径与 mm→px 比例（_layout 与用户缩放共用）：
+     * 基础比例 = 恰好不溢出画布的适配值；再乘用户缩放系数 _userScale（＋/－按钮与双指捏合），
+     * 上限收在"恰好填满画布"，下限由 _setUserScale 的 0.4 保证；拍照导出不受用户缩放影响。
+     */
+    _recomputeScale() {
+      const beads = (this._trayBeads || []) as TrayBead[]
+      const centerX = this._cssWidth / 2
+      const centerY = this._cssHeight / 2
+      const capacityMm = this.properties.capacityMm || 150
+      const maxLongMm = Math.max(...beads.map(b => b.imgLongMm), 12)
+
+      /** 绳圈半径：周长=容量 → R=容量/2π，先按 basePxPerMm 再缩放适配画布 */
+      const basePxPerMm = 6
+      const ringBase = (capacityMm * basePxPerMm) / (2 * Math.PI)
+      /** 拍照模式留白更少（珠子放大填满），普通模式留 8px 边距 */
+      const margin = this._photoMode ? 2 : 8
+      const avail = Math.min(centerX, centerY) - margin
+      const outer = ringBase + (maxLongMm * basePxPerMm) / 2
+      const fitBase = outer > avail ? avail / outer : 1
+      const userScale = this._photoMode ? 1 : this._userScale || 1
+      const fit = Math.min(fitBase * userScale, avail / outer)
+      this._ringRadius = ringBase * fit
+      this._pixelPerMm = basePxPerMm * fit
+    },
+
+    /** 外部调用：步进缩放（右下角＋/－按钮） */
+    adjustZoom(delta: number) {
+      this._setUserScale((this._userScale || 1) + delta)
+    },
+
+    /** 应用用户缩放：平面/3D 重排落位；散珠态保留物理现场只更新比例 */
+    _setUserScale(scale: number) {
+      const next = Math.max(0.4, Math.min(2.5, scale))
+      if (Math.abs(next - (this._userScale || 1)) < 0.005) {
+        return
+      }
+      this._userScale = next
+      if (this.properties.scattered) {
+        this._recomputeScale()
+        this._render()
+        /** 珠径变化后可能重叠，唤醒物理循环重新推开 */
+        if (!this._physicsRafId) {
+          this._startPhysics()
+        }
+      } else {
+        this._layout()
+        this._render()
+      }
     },
     /** 主渲染：清屏 → 绳圈 → 逐颗立体珠（伪3D时按zIndex排序） */
     _render() {
@@ -1260,8 +1301,32 @@ Component({
       img.src = url
       return null
     },
-    /** 触摸开始：3D 态记录起点用于翻转；平面态命中珠子准备拖拽/轻点，空白旋转 */
+    /** 双指捏合开始/更新：记录起始指距与起始缩放（所有模式通用，优先级高于拖拽/旋转） */
+    _tryHandlePinch(e: any): boolean {
+      const touches = e.touches || []
+      if (touches.length < 2) {
+        return false
+      }
+      const dist = Math.hypot(touches[0].x - touches[1].x, touches[0].y - touches[1].y)
+      if (!this._pinching) {
+        this._pinching = true
+        this._pinchStartDist = dist || 1
+        this._pinchStartScale = this._userScale || 1
+        /** 第二根手指落下即取消进行中的拖珠/旋转/3D翻转，避免手势打架 */
+        this._dragIndex = -1
+        this._rotating = false
+        this._drag3d = false
+      } else {
+        this._setUserScale(this._pinchStartScale * (dist / this._pinchStartDist))
+      }
+      return true
+    },
+
+    /** 触摸开始：双指=捏合缩放；3D 态记录起点用于翻转；平面态命中珠子准备拖拽/轻点，空白旋转 */
     onTouchStart(e: any) {
+      if (this._tryHandlePinch(e)) {
+        return
+      }
       const point = this._touchPoint(e)
       if (!point) {
         return
@@ -1310,8 +1375,12 @@ Component({
       }
     },
 
-    /** 触摸移动：3D 态左右拖=yaw 上下拖=pitch；平面态拖珠/旋转 */
+    /** 触摸移动：双指=捏合缩放；3D 态左右拖=yaw 上下拖=pitch；平面态拖珠/旋转 */
     onTouchMove(e: any) {
+      if (this._pinching || (e.touches && e.touches.length >= 2)) {
+        this._tryHandlePinch(e)
+        return
+      }
       const point = this._touchPoint(e)
       if (!point) {
         return
@@ -1363,7 +1432,14 @@ Component({
      * 触摸结束：判定 轻点删除 / 拖出删除 / 拖拽换位 / 旋转结束
      * 通过事件通知父页更新数据源（组件不直接改 properties.beads）
      */
-    onTouchEnd() {
+    onTouchEnd(e: any) {
+      /** 捏合结束：剩余触点不足两指即退出捏合态；本轮手势不再触发拖拽/轻点判定 */
+      if (this._pinching) {
+        if (!e || !e.touches || e.touches.length < 2) {
+          this._pinching = false
+        }
+        return
+      }
       if (this.properties.preview3d) {
         this._drag3d = false
         /** 3D 下轻点(几乎没拖动、时间短)：命中珠子看详情，不影响翻转 */

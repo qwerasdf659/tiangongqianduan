@@ -4,11 +4,12 @@
  * 直接在 tabBar 页面内展示 DIY 设计入口内容，
  * 保持底部 5 个 tab 始终可见。
  *
- * 四个入口:
+ * 三个入口:
  *   1. 我的设计 → /packageDIY/diy-works/diy-works
- *   2. 自由定制饰品 → /packageDIY/diy-design/diy-design（工作台）
- *   3. 手串设计台（离线演示）→ /packageDIY/diy-lite/diy-lite
- *   4. 设计广场 → 待上线
+ *   2. 自由定制饰品 → /packageDIY/diy-templates/diy-templates（先选款式/模式，再进 diy-lite 设计台）
+ *   3. 设计广场 → 待上线
+ *
+ * 旧版工作台（packageDIY/diy-design）入口已关闭（2026-07-10），页面归档保留仅作参考。
  *
  * @file pages/diy/diy.ts
  */
@@ -84,20 +85,14 @@ Page({
     })
   },
 
-  /** 自由定制饰品 → 工作台（diy-design，进入后自动加载默认模板） */
-  onFreeDesign() {
-    wx.navigateTo({
-      url: '/packageDIY/diy-design/diy-design'
-    })
-  },
-
   /**
-   * 手串设计台（离线演示）→ diy-lite
-   * ⚠️ 该页为离线演示，珠子价格/材质等为前端写死数据，正式版接后端 /api/v4/diy/ 接口
+   * 自由定制饰品 → 先进款式选择页（diy-templates，分类Tab 手链/项链/戒指/吊坠），
+   * 用户选定款式后带 templateId 进入 diy-lite 设计台（按 layout.shape 自动切换串珠/镶嵌模式）。
+   * 不直接跳 diy-lite：避免"自动取第一个模板"让用户莫名进入某个款式。
    */
   onGoToLite() {
     wx.navigateTo({
-      url: '/packageDIY/diy-lite/diy-lite'
+      url: '/packageDIY/diy-templates/diy-templates'
     })
   },
 

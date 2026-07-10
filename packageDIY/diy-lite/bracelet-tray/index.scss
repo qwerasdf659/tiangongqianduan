@@ -9,8 +9,8 @@
 }
 
 .tray-canvas {
-  width: 660rpx;
-  height: 660rpx;
+  width: 710rpx;
+  height: 710rpx;
 }
 
 /* DOM 飞入层：与 canvas 同区域绝对定位覆盖，不拦截触摸(交给下方 canvas) */
@@ -18,8 +18,8 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 660rpx;
-  height: 660rpx;
+  width: 710rpx;
+  height: 710rpx;
   pointer-events: none;
 }
 

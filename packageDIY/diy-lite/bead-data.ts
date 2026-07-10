@@ -1,9 +1,16 @@
 /**
- * diy-lite 本地珠子数据（⚠️ 离线演示专用）
+ * diy-lite 本地演示数据（📦 本地演示模式数据源 + 后端录入参考样例）
  *
- * 🚨 违规知悉项：本文件把珠子【价格/直径】等业务数据写死在前端，
- *   与「业务数据必须由后端权威提供」规则冲突，为用户明确同意的离线演示方案。
- *   正式版必须改为从后端 /api/v4/diy/... 下发（见文件底部“待后端提供”）。
+ * ⚠️ 用途说明（2026-07-10，业务方决策）：
+ *   diy-lite 已升级为生产页，正常链路走后端 /api/v4/diy/ 接口；
+ *   本文件是「本地演示模式」的数据源——后端不可用/暂无串珠模板时，
+ *   页面自动切换到本地数据展示（toast 告知切换原因，重新进入页面即重试后端；
+ *   本地模式下保存/下单明确禁用，绝不伪造业务提交）。
+ *   同时保留作后端录入素材的参考：
+ *   1. 字段样例（寓意/能量/搭配文案、材质档位、克重估算口径）；
+ *   2. 手围模型口径（手围10~22cm × 10 × 圈数(单1/双2/三3) = 容量mm，见 LOCAL_TEMPLATE）；
+ *   3. 27 张实拍图作为素材库图片规范参考（透明通道 PNG、实物居中）。
+ *   对应后端需求见 docs/自由定制饰品diy-lite接口需求-给后端.md 第 2/5 节。
  *
  * 数据来源：materials_manifest.json（4 分类）
  * 精简说明：为控制 packageDIY 分包体积（单分包上限 2MB），每款珠子保留
@@ -460,9 +467,270 @@ const LITE_BEADS: LiteBead[] = RAW_BEADS.map(bead => {
 })
 
 /**
- * ⚠️ 待后端提供（正式版替换点）：
- *   演示版 export 本地数组；正式版应改为调用
- *   API.getDiyTemplateBeads(templateId) 获取后端下发的珠子
- *   （含 price/diameter/material/meaning/图片 media，image 支持 CDN URL）。
+ * 本地演示模板（结构对齐后端 DiyTemplate 的 sizing_rules/bead_rules/capacity_rules）
+ *
+ * 让「本地演示模式」复用生产页同一套尺码/容量逻辑（容量 = circumference_mm - margin），
+ * 不再单独维护一套本地容量算法。尺码选项按归档的手围口径生成：
+ *   单圈 12~18cm（容量 = 手围cm×10）+ 双圈15cm/三圈15cm（演示多圈戴法，容量×圈数）。
+ * ⚠️ 仅本地演示模式使用；后端接通后走真实模板，本模板不参与生产链路。
  */
-module.exports = { LITE_BEADS, LITE_CATEGORIES }
+const LOCAL_TEMPLATE = {
+  /** 本地模板主键固定 0（区别于后端真实模板 id，草稿按此隔离） */
+  diy_template_id: 0,
+  display_name: '手串（本地演示）',
+  layout: { shape: 'circle' },
+  bead_rules: { margin: 0, default_diameter: 8, allowed_diameters: [] },
+  sizing_rules: {
+    default_size: '15',
+    size_options: [12, 13, 14, 15, 16, 17, 18]
+      .map(cm => ({
+        label: String(cm),
+        display: `手围 ${cm}cm（单圈 ${cm * 10}mm）`,
+        circumference_mm: cm * 10,
+        bead_count: 0,
+        radius_x: 0,
+        radius_y: 0
+      }))
+      .concat([
+        {
+          label: '15x2',
+          display: '手围 15cm（双圈 300mm）',
+          circumference_mm: 300,
+          bead_count: 0,
+          radius_x: 0,
+          radius_y: 0
+        },
+        {
+          label: '15x3',
+          display: '手围 15cm（三圈 450mm）',
+          circumference_mm: 450,
+          bead_count: 0,
+          radius_x: 0,
+          radius_y: 0
+        }
+      ])
+  },
+  capacity_rules: { min_beads: 1, max_beads: 0 }
+}
+
+/**
+ * 构造本地镶嵌演示模板（结构对齐后端 DiyTemplate 的 slots 形态）
+ *
+ * 底图均为 640×960（2:3 竖幅）AI 生成的"空托"商品图；槽位坐标为归一化中心点
+ * （对齐 shape-renderer._drawSlotOverlay 的坐标语义）：width 相对底图宽、height 相对底图高，
+ * 圆形槽两值需按底图宽高比折算（宽 w ≙ 高 w × 640/960 = w × 2/3）。
+ * ⚠️ 仅本地演示模式使用；保存/下单禁用，不参与生产链路。
+ * 同时可作为后端录入镶嵌模板的字段参考样例。
+ *
+ * @param id 本地模板主键（负数，区别于本地串珠模板 0 与后端真实模板，草稿缓存按此隔离）
+ * @param name 模板展示名
+ * @param categoryId 分类（192 项链 / 193 戒指 / 194 吊坠；195+ 为前端建议新分类，见接口文档）
+ * @param baseImage 空托底图本地路径
+ * @param slots 槽位归一化坐标列表 [{ id, label, x, y, w }]（w 为相对底图宽的直径）
+ */
+function buildLocalSlotTemplate(
+  id: number,
+  name: string,
+  categoryId: number,
+  baseImage: string,
+  slots: { id: string; label: string; x: number; y: number; w: number }[]
+) {
+  return {
+    diy_template_id: id,
+    display_name: name,
+    category_id: categoryId,
+    layout: {
+      shape: 'slots',
+      background_width: 640,
+      background_height: 960,
+      slot_definitions: slots.map(s => ({
+        slot_id: s.id,
+        label: s.label,
+        slot_shape: 'circle',
+        x: s.x,
+        y: s.y,
+        width: s.w,
+        /** 圆形槽：高相对底图高，按 2:3 底图折算保证像素上是正圆 */
+        height: Math.round(s.w * (640 / 960) * 1000) / 1000,
+        required: true,
+        allowed_diameters: [],
+        allowed_shapes: [],
+        allowed_group_codes: []
+      }))
+    },
+    /** 空托底图（对齐后端 base_image_media 结构，本地路径） */
+    base_image_media: { public_url: baseImage },
+    bead_rules: { margin: 0, default_diameter: 8, allowed_diameters: [] },
+    sizing_rules: { default_size: '', size_options: [] },
+    capacity_rules: { min_beads: 1, max_beads: slots.length }
+  }
+}
+
+/**
+ * 本地镶嵌演示模板集合（key 对应 diy-lite 入口参数 local=2/3/4）
+ * 槽位坐标均已按底图逐张合成验证（宝石落点与空托爪位/包边严丝合缝）。
+ */
+const LOCAL_SLOT_TEMPLATES: Record<string, any> = {
+  /** local=2 项链：银色六爪空托 + 链条 */
+  necklace: buildLocalSlotTemplate(
+    -1,
+    '托帕石项链（本地演示）',
+    192,
+    '/packageDIY/diy-lite/assets/demo-necklace-base.jpg',
+    [{ id: 'main', label: '主石', x: 0.51, y: 0.672, w: 0.15 }]
+  ),
+  /** local=3 戒指：顶视银戒 + 六爪空托 */
+  ring: buildLocalSlotTemplate(
+    -2,
+    '主石戒指（本地演示）',
+    193,
+    '/packageDIY/diy-lite/assets/demo-ring-base.jpg',
+    [{ id: 'main', label: '主石', x: 0.505, y: 0.285, w: 0.17 }]
+  ),
+  /** local=4 吊坠：金色水滴碎钻围镶空托 */
+  pendant: buildLocalSlotTemplate(
+    -3,
+    '水滴吊坠（本地演示）',
+    194,
+    '/packageDIY/diy-lite/assets/demo-pendant-base.jpg',
+    [{ id: 'main', label: '主石', x: 0.49, y: 0.605, w: 0.28 }]
+  ),
+  /** local=5 耳饰：一对银色六爪空托耳钉（2 槽位，填完左耳自动跳右耳） */
+  earrings: buildLocalSlotTemplate(
+    -4,
+    '一对耳钉（本地演示）',
+    195,
+    '/packageDIY/diy-lite/assets/demo-earrings-base.jpg',
+    [
+      { id: 'left', label: '左耳', x: 0.295, y: 0.565, w: 0.24 },
+      { id: 'right', label: '右耳', x: 0.705, y: 0.565, w: 0.24 }
+    ]
+  ),
+  /** local=6 手机链/包挂：编绳 + 3 个空珠位 + 流苏（3 槽位竖排） */
+  charm: buildLocalSlotTemplate(
+    -5,
+    '手机链包挂（本地演示）',
+    196,
+    '/packageDIY/diy-lite/assets/demo-charm-base.jpg',
+    [
+      { id: 'top', label: '上珠', x: 0.502, y: 0.362, w: 0.145 },
+      { id: 'middle', label: '中珠', x: 0.499, y: 0.521, w: 0.145 },
+      { id: 'bottom', label: '下珠', x: 0.502, y: 0.666, w: 0.145 }
+    ]
+  )
+}
+
+/**
+ * 本地 108 佛珠/念珠演示模板（串珠模式，结构对齐 LOCAL_TEMPLATE）
+ *
+ * 走 bracelet-tray 串珠链路（复用 27 颗水晶珠演示数据），与手串演示的区别只在尺码口径：
+ * 按"颗数 × 珠径"给出围长档位（108颗×6mm=648mm / 108颗×8mm=864mm / 54颗×8mm=432mm），
+ * 与五行雷达图/寓意文案玩法天然契合（盘珠人群核心诉求）。
+ * ⚠️ 仅本地演示模式使用（diy-lite?local=7）；保存/下单禁用，不参与生产链路。
+ */
+const LOCAL_MALA_TEMPLATE = {
+  /** 本地佛珠模板主键固定 -6（草稿缓存按此与手串演示模板 0 隔离） */
+  diy_template_id: -6,
+  display_name: '108佛珠（本地演示）',
+  category_id: 197,
+  layout: { shape: 'circle' },
+  bead_rules: { margin: 0, default_diameter: 8, allowed_diameters: [] },
+  sizing_rules: {
+    default_size: '108x8',
+    size_options: [
+      {
+        label: '54x8',
+        display: '54颗 · 8mm珠（围长 432mm）',
+        circumference_mm: 432,
+        bead_count: 0,
+        radius_x: 0,
+        radius_y: 0
+      },
+      {
+        label: '108x6',
+        display: '108颗 · 6mm珠（围长 648mm）',
+        circumference_mm: 648,
+        bead_count: 0,
+        radius_x: 0,
+        radius_y: 0
+      },
+      {
+        label: '108x8',
+        display: '108颗 · 8mm珠（围长 864mm）',
+        circumference_mm: 864,
+        bead_count: 0,
+        radius_x: 0,
+        radius_y: 0
+      }
+    ]
+  },
+  capacity_rules: { min_beads: 1, max_beads: 0 }
+}
+
+/**
+ * 本地镶嵌演示宝石（结构对齐后端 DiyBead 原始字段，直接走 _mapBead 映射；三个演示模板共用）
+ * price_asset_code 用 '元' 使费用条展示为 "30 元"（演示计价口径，与本地串珠演示一致）。
+ * ⚠️ 仅本地演示模式使用；图片为 AI 生成的顶视圆形切工宝石图（白底，渲染时圆形裁剪去白角）。
+ */
+const LOCAL_SLOT_GEMS = [
+  {
+    diy_material_id: 0,
+    material_code: 'demo-gem-blue',
+    display_name: '托帕石·冰湖蓝',
+    material_name: '托帕石·冰湖蓝',
+    group_code: 'blue',
+    diameter: 8,
+    shape: 'round',
+    price: 30,
+    price_asset_code: '元',
+    stock: -1,
+    is_stackable: 1,
+    sort_order: 0,
+    is_enabled: 1,
+    meaning: '十一月生辰石，象征真挚与好运，蓝调清澈如冰湖。',
+    image_media: { public_url: '/packageDIY/diy-lite/assets/demo-gem-blue.jpg' }
+  },
+  {
+    diy_material_id: 0,
+    material_code: 'demo-gem-pink',
+    display_name: '粉蓝宝·蔷薇粉',
+    material_name: '粉蓝宝·蔷薇粉',
+    group_code: 'red',
+    diameter: 8,
+    shape: 'round',
+    price: 45,
+    price_asset_code: '元',
+    stock: -1,
+    is_stackable: 1,
+    sort_order: 1,
+    is_enabled: 1,
+    meaning: '温柔而炽烈的蔷薇色调，寓意浪漫与忠贞。',
+    image_media: { public_url: '/packageDIY/diy-lite/assets/demo-gem-pink.jpg' }
+  },
+  {
+    diy_material_id: 0,
+    material_code: 'demo-gem-green',
+    display_name: '沙弗莱·翠绿',
+    material_name: '沙弗莱·翠绿',
+    group_code: 'green',
+    diameter: 8,
+    shape: 'round',
+    price: 58,
+    price_asset_code: '元',
+    stock: -1,
+    is_stackable: 1,
+    sort_order: 2,
+    is_enabled: 1,
+    meaning: '浓郁翠绿如初夏森林，象征生机与富足。',
+    image_media: { public_url: '/packageDIY/diy-lite/assets/demo-gem-green.jpg' }
+  }
+]
+
+module.exports = {
+  LITE_BEADS,
+  LITE_CATEGORIES,
+  LOCAL_TEMPLATE,
+  LOCAL_MALA_TEMPLATE,
+  LOCAL_SLOT_TEMPLATES,
+  LOCAL_SLOT_GEMS
+}

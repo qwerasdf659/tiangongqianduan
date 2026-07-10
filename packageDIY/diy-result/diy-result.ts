@@ -893,7 +893,7 @@ Page({
   onShareAppMessage() {
     return {
       title: `来看看我设计的${this.data.templateName}`,
-      path: `/packageDIY/diy-design/diy-design?workId=${this.data.workId}`
+      path: `/packageDIY/diy-lite/diy-lite?workId=${this.data.workId}`
     }
   }
 })

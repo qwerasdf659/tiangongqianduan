@@ -69,6 +69,20 @@
   background: var(--tg-diy-canvas-bg);
 }
 
+/* 本地演示手串卡片（虚线警示边框区分于后端模板；在列表容器外需自带边距） */
+.local-demo-card {
+  margin: var(--tg-spacing-sm) var(--tg-spacing-md) 0;
+  border: 2rpx dashed rgba(var(--tg-color-warning-rgb), 0.6);
+}
+
+.local-demo-thumb {
+  @include flex-center;
+}
+
+.local-demo-thumb-text {
+  font-size: 48rpx;
+}
+
 .template-info {
   flex: 1;
   margin-left: var(--tg-spacing-md);

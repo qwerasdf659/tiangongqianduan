@@ -60,8 +60,9 @@
       </view>
     </view>
 
-    <!-- 自由定制饰品卡片 -->
-    <view class="design-mode-card" bindtap="onFreeDesign">
+    <!-- 自由定制饰品卡片（diy-lite 生产页：后端素材 + 下单闭环 + 串珠/镶嵌双模式）
+         旧版工作台(diy-design)入口已关闭，页面归档保留仅作参考 -->
+    <view class="design-mode-card" bindtap="onGoToLite">
       <view class="mode-icon-wrap">
         <image
           wx:if="{{freeDesignIcon}}"
@@ -75,15 +76,6 @@
       <text class="mode-desc"
         >从零开始，发挥您的创意，自由选择材料形状和尺寸，打造您最满意的饰品</text
       >
-    </view>
-
-    <!-- 手串设计台（离线演示）卡片 -->
-    <view class="design-mode-card" bindtap="onGoToLite">
-      <view class="mode-icon-wrap">
-        <view class="mode-icon-placeholder mode-icon-lite" />
-      </view>
-      <text class="mode-title">手串设计台</text>
-      <text class="mode-desc">在线搭配水晶珠子，实时预览立体效果，一键成串（离线演示）</text>
     </view>
 
     <!-- 设计广场卡片 -->

@@ -3,7 +3,7 @@
  *
  * 三个入口:
  *   1. 我的设计 → /packageDIY/diy-works/diy-works
- *   2. 自由定制饰品 → /packageDIY/diy-design/diy-design（直接进入工作台）
+ *   2. 自由定制饰品 → /packageDIY/diy-templates/diy-templates（先选款式，再进 diy-lite 设计台）
  *   3. 设计广场 → /packageDIY/diy-plaza/diy-plaza（模板列表页，原款式选择逻辑迁移至此）
  *
  * 后端依赖: 无（本页面为纯前端导航页，不调用API）
@@ -28,10 +28,10 @@ Page({
     })
   },
 
-  /** 自由定制饰品 — 直接进入工作台（工作台自动加载默认模板） */
+  /** 自由定制饰品 — 先选款式（diy-templates），选定后带 templateId 进入 diy-lite 设计台 */
   onFreeDesign() {
     wx.navigateTo({
-      url: '/packageDIY/diy-design/diy-design'
+      url: '/packageDIY/diy-templates/diy-templates'
     })
   },
 
