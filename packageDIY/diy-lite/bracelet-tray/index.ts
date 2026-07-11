@@ -4,10 +4,10 @@
  * 职责：接收已选珠子数组 → 等弦长布局 → 立体绘制（圆裁+径向渐变+高光）→ 触摸交互
  * 触摸：拖拽换位 / 拖出删除 / 轻点多选 / 空白拖拽旋转手串；伪3D预览；散珠物理。
  *
- * 异形珠（shape='special'）朝向假设：
- *   round 圆珠不旋转；paohuan 跑环长轴沿切向；yaopian 药片长轴沿径向。
- *   ⚠️ 后端异形珠几何元数据（bore_orientation/image_bbox_ratio）下发前，
- *   页面统一按 round 传入，special 分支处于待命状态（见接口需求文档第3节）。
+ * 异形珠（shape='special'）几何权威来源（对接文档 13.1-A / 11.7-2）：
+ *   穿绳朝向 = 后端 bore_orientation（along_length 管珠/跑环长轴沿切向躺排；
+ *   along_width 药片长轴沿径向立排；none 圆珠不旋转），实物边 = size_length_mm/size_width_mm；
+ *   实拍图宽高比 = 页面由 image_media.width/height 派生后经 imgRatio 透传（图已裁透明边）。
  *
  * 与父页通信：
  *   properties.beads 变化 → 重新布局重绘
@@ -16,10 +16,19 @@
  * @file packageDIY/diy-lite/bracelet-tray/index.ts
  */
 
-/** 异形珠实拍图去透明后的“宽:高”比例（sharp 实测：药片0.5 / 跑环0.28） */
-const SPECIAL_IMG_RATIO: Record<string, number> = {
-  yaopian: 0.5,
-  paohuan: 0.28
+/**
+ * 异形珠实拍图"宽:高"比例（<1 表示竖长图）：
+ * 生产链路由页面从 image_media.width/height 派生（imgRatio 透传，11.7-2）；
+ * 缺失时回退实物短边/长边比（几何近似）；再缺退 0.5 兜底
+ */
+function getSpecialRatio(bead: TrayBead): number {
+  if (bead.imgRatio && bead.imgRatio > 0) {
+    return bead.imgRatio
+  }
+  if (bead.sizeWidthMm > 0 && bead.sizeLengthMm > 0) {
+    return bead.sizeWidthMm / bead.sizeLengthMm
+  }
+  return 0.5
 }
 
 /** 布局后的珠子（含坐标/角度/半径，供绘制与命中检测） */
@@ -32,6 +41,14 @@ interface TrayBead {
   shape: string
   material: string
   image: string
+  /** 穿绳方向（后端 bore_orientation 透传：along_length/along_width/none） */
+  boreOrientation: string
+  /** 异形珠实物长边 mm（后端 size_length_mm，圆珠 0） */
+  sizeLengthMm: number
+  /** 异形珠实物短边 mm（后端 size_width_mm，圆珠 0） */
+  sizeWidthMm: number
+  /** 实拍图宽:高比例（页面由 image_media.width/height 派生，圆珠 1） */
+  imgRatio: number
   /** 画布像素坐标 */
   x: number
   y: number
@@ -232,6 +249,11 @@ Component({
           shape: bead.shape,
           material: bead.material || 'crystal',
           image: bead.image,
+          /* 异形珠几何（后端 bore_orientation/size 边长 + 页面派生 imgRatio 透传） */
+          boreOrientation: bead.bore_orientation || 'none',
+          sizeLengthMm: bead.size_length_mm || 0,
+          sizeWidthMm: bead.size_width_mm || 0,
+          imgRatio: bead.imgRatio || 0,
           /** 保留旧位置用于补间；新珠从画布底部中央“飞入”(素材栏在下方) */
           x: isSame ? existed.x : cx,
           y: isSame ? existed.y : this._cssHeight + 40,
@@ -423,26 +445,31 @@ Component({
       this._tweenRafId = this._canvas.requestAnimationFrame(tick)
     },
 
-    /** 解析珠子实物几何（沿绳尺寸 + 长边 + 旋转模式） */
+    /**
+     * 解析珠子实物几何（沿绳尺寸 + 长边 + 旋转模式）
+     * 权威依据 = 后端 bore_orientation + size_length_mm/size_width_mm（13.1-A，透传字段）：
+     *   along_length 管珠/跑环 → 绳穿长轴，长轴沿切向躺排，沿绳占长边
+     *   along_width  药片     → 绳穿短边，长轴沿径向立排，沿绳占短边
+     *   none         圆珠     → 沿绳占直径，不旋转
+     */
     _parseGeometry(bead: TrayBead) {
-      if (bead.shape !== 'special') {
-        bead.alongCordMm = bead.diameter
-        bead.imgLongMm = bead.diameter
-        bead.rotateMode = 'none'
-        return
-      }
-      const nums = bead.sizeText.replace(/mm/gi, '').split(/x/i).map(Number)
-      const shortMm = Math.min(nums[0], nums[1])
-      const longMm = Math.max(nums[0], nums[1])
-      if (bead.id.indexOf('paohuan') >= 0) {
+      const longMm = bead.sizeLengthMm || bead.diameter
+      const shortMm = bead.sizeWidthMm || bead.diameter
+      if (bead.boreOrientation === 'along_length') {
         bead.alongCordMm = longMm
         bead.imgLongMm = longMm
         bead.rotateMode = 'tangentLong'
-      } else {
+        return
+      }
+      if (bead.boreOrientation === 'along_width') {
         bead.alongCordMm = shortMm
         bead.imgLongMm = longMm
         bead.rotateMode = 'radialLong'
+        return
       }
+      bead.alongCordMm = bead.diameter
+      bead.imgLongMm = bead.diameter
+      bead.rotateMode = 'none'
     },
     /**
      * 闭合手串布局：珠子始终首尾相切排满一整圈（真实手串是闭合环）。
@@ -860,8 +887,7 @@ Component({
      */
     _drawSpecialShadow(ctx: any, bead: TrayBead) {
       const longPx = bead.imgLongMm * this._pixelPerMm
-      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
-      const shortPx = longPx * (SPECIAL_IMG_RATIO[ratioKey] || 0.5)
+      const shortPx = longPx * getSpecialRatio(bead)
       let rotation = 0
       if (bead.rotateMode === 'radialLong') {
         rotation = bead.angle + Math.PI / 2
@@ -920,9 +946,8 @@ Component({
       if (this._contourCache[key]) {
         return this._contourCache[key]
       }
-      /** 模板分辨率固定 120px × dpr，短边按 SPECIAL_IMG_RATIO 收窄贴合实拍图比例 */
-      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
-      const ratio = SPECIAL_IMG_RATIO[ratioKey] || 0.5
+      /** 模板分辨率固定 120px × dpr，短边按实拍图宽高比收窄贴合（image_media 宽高派生） */
+      const ratio = getSpecialRatio(bead)
       const H = 120 * (this._dpr || 1)
       const W = Math.max(2, Math.round(H * ratio))
       let off: any
@@ -1048,8 +1073,7 @@ Component({
     _draw3dBead(ctx: any, bead: TrayBead) {
       const image = this._loadImage(bead.image)
       const base = bead.imgLongMm * this._pixelPerMm
-      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
-      const shortBase = bead.shape === 'special' ? base * (SPECIAL_IMG_RATIO[ratioKey] || 1) : base
+      const shortBase = bead.shape === 'special' ? base * getSpecialRatio(bead) : base
       const scale = bead.scale3d || 1
       const drawLong = base * scale
       const drawShort = shortBase * scale
@@ -1141,9 +1165,7 @@ Component({
     _drawBead(ctx: any, bead: TrayBead) {
       const image = this._loadImage(bead.image)
       const longPx = bead.imgLongMm * this._pixelPerMm
-      const ratioKey = bead.id.indexOf('paohuan') >= 0 ? 'paohuan' : 'yaopian'
-      const shortPx =
-        bead.shape === 'special' ? longPx * (SPECIAL_IMG_RATIO[ratioKey] || 1) : longPx
+      const shortPx = bead.shape === 'special' ? longPx * getSpecialRatio(bead) : longPx
 
       /** 入场缩放：新珠 appear 从 0→1 放大冒出 */
       const appear = bead.appear === undefined ? 1 : bead.appear

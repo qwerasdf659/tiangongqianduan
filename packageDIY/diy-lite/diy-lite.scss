@@ -103,6 +103,42 @@
   color: var(--tg-text-tertiary);
 }
 
+/* 长度/重量实时联动行（手围驱动 §3.3/§3.4：已排/目标/差值/克重，估算值带"约"） */
+.length-row {
+  margin-top: 2rpx;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--tg-spacing-sm);
+}
+
+.length-item {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 差值"还差约X.Xcm"（正常引导态，品牌色） */
+.length-item-diff {
+  color: var(--td-brand-color);
+  font-weight: var(--tg-font-weight-medium);
+}
+
+/* 差值"已超出约X.Xcm"（超出目标警示态） */
+.length-item-over {
+  color: var(--tg-color-error);
+  font-weight: var(--tg-font-weight-semibold);
+}
+
+/* 物理数据不完整标注（部分素材信息完善中/暂无克重，如实提示不编造） */
+.length-note {
+  margin-top: 2rpx;
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
 /* 实时数量引导文案（还需N颗/✓合适，借鉴 diy3） */
 .fill-hint {
   margin-top: 2rpx;
@@ -657,6 +693,156 @@
 .wear-item-active .wear-item-text {
   color: var(--tg-color-white);
   font-weight: var(--tg-font-weight-semibold);
+}
+
+/* 测量引导入口（跳转教程"量手围"Tab，前端静态图文，§3.1） */
+.wrist-measure-link {
+  margin-top: var(--tg-spacing-xs);
+  align-self: flex-end;
+}
+
+.wrist-measure-link-text {
+  font-size: var(--tg-font-size-mini);
+  color: var(--td-brand-color);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 档位选项纵向双行（display 运营文案 + 手围/目标串长补充行） */
+.wear-item-column {
+  flex-direction: column;
+  align-items: center;
+  gap: 2rpx;
+}
+
+.wear-item-meta {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-micro);
+  color: var(--tg-text-tertiary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.wear-item-active .wear-item-meta {
+  color: var(--tg-color-white);
+}
+
+/* 自定义手围估算区（输入 cm + 选珠径 → 后端 estimate 权威换算，§3.2） */
+.custom-wrist {
+  width: 100%;
+  margin-top: var(--tg-spacing-md);
+  padding: var(--tg-spacing-sm) var(--tg-spacing-md);
+  border-radius: var(--td-radius-default);
+  background: var(--tg-color-bg-grey);
+  display: flex;
+  flex-direction: column;
+  gap: var(--tg-spacing-sm);
+}
+
+.custom-wrist-label {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-secondary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+.custom-wrist-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tg-spacing-xs);
+}
+
+.custom-wrist-input {
+  flex: 1;
+  height: 64rpx;
+  padding: 0 var(--tg-spacing-md);
+  border-radius: var(--td-radius-default);
+  background: var(--tg-card-bg);
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-primary);
+}
+
+.custom-wrist-unit {
+  font-size: var(--tg-font-size-body);
+  color: var(--tg-text-secondary);
+}
+
+.custom-diameter-row {
+  display: flex;
+  align-items: center;
+  gap: var(--tg-spacing-sm);
+}
+
+.custom-diameter-label {
+  flex-shrink: 0;
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
+}
+
+.custom-diameter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tg-spacing-xs);
+}
+
+.custom-diameter-item {
+  padding: 2rpx var(--tg-spacing-sm);
+  border-radius: var(--td-radius-large);
+  background: var(--tg-card-bg);
+  border: 2rpx solid var(--tg-color-border);
+}
+
+.custom-diameter-item-active {
+  background: var(--td-brand-color);
+  border-color: var(--td-brand-color);
+}
+
+.custom-diameter-item-text {
+  font-family: var(--tg-font-number);
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-secondary);
+}
+
+.custom-diameter-item-active .custom-diameter-item-text {
+  color: var(--tg-color-white);
+}
+
+.custom-estimate-btn {
+  @include flex-center;
+  padding: var(--tg-spacing-xs) 0;
+  border-radius: var(--td-radius-default);
+  border: 2rpx solid var(--td-brand-color);
+}
+
+.custom-estimate-btn-disabled {
+  opacity: 0.5;
+}
+
+.custom-estimate-btn-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--td-brand-color);
+  letter-spacing: var(--tg-letter-spacing-normal);
+}
+
+/* 估算结果（后端 estimate 返回的参考颗数/目标串长/可戴范围） */
+.custom-estimate-result {
+  font-size: var(--tg-font-size-mini);
+  color: var(--tg-text-secondary);
+  line-height: var(--tg-line-height-normal);
+}
+
+.custom-use-btn {
+  @include flex-center;
+  padding: var(--tg-spacing-xs) 0;
+  border-radius: var(--td-radius-default);
+  background: var(--td-brand-color);
+}
+
+.custom-use-btn-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-color-white);
+  letter-spacing: var(--tg-letter-spacing-normal);
 }
 
 .wrist-note {

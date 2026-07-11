@@ -48,6 +48,17 @@ Page({
      * "再消费 X 元升{下一级名}"（1 元≈1 积分，拍板①业务前提）；顶档或占位期为空不展示
      */
     nextLevelText: '',
+    /** 当前等级在阶梯中的序号（1-based，纯展示：来自后端 levels[] 数组位置，非前端自算业务数据） */
+    currentLevelIndex: 0,
+    /** 是否已达最高等级（levels[] 末位即当前等级，用于展示荣耀文案） */
+    isTopLevel: false,
+    /**
+     * 升级进度条填充百分比（0~100，仅 UI 可视化）:
+     * 由后端权威数字（history_total_points / 当前档与下一档 min_history_points）换算为条宽，
+     * 页面不展示任何前端自算的数字文案，具体差值仍以后端 nextLevelText 为准。
+     * 阈值未定稿（thresholds_confirmed=false）或顶档时为 -1 不展示。
+     */
+    progressPercent: -1,
     /** MobX 绑定字段 */
     isLoggedIn: false
   },
@@ -126,6 +137,33 @@ Page({
             ? `再消费 ${nextLevel.points_needed} 元即可升级${nextLevel.level_name}`
             : ''
 
+        /** 当前等级序号（1-based）与顶档标记：来自后端 levels[] 数组位置，纯展示 */
+        const currentIndex = processedLevels.findIndex((level: any) => level.isCurrent)
+        const currentLevelIndex = currentIndex >= 0 ? currentIndex + 1 : 0
+        const isTopLevel = currentIndex >= 0 && currentIndex === processedLevels.length - 1
+
+        /**
+         * 升级进度条填充百分比（仅 UI 可视化，不产生任何数字文案）:
+         * 分段进度 = (累计积分 - 当前档门槛) / (下一档门槛 - 当前档门槛)
+         * 全部输入均为后端权威数字；阈值未定稿 / 顶档 / 数据不齐时为 -1 不渲染进度条
+         */
+        let progressPercent = -1
+        if (thresholdsConfirmed && !isTopLevel && currentIndex >= 0) {
+          const currentMin = rawLevels[currentIndex] && rawLevels[currentIndex].min_history_points
+          const nextMin =
+            rawLevels[currentIndex + 1] && rawLevels[currentIndex + 1].min_history_points
+          const historyPoints = apiData.history_total_points
+          if (
+            typeof currentMin === 'number' &&
+            typeof nextMin === 'number' &&
+            typeof historyPoints === 'number' &&
+            nextMin > currentMin
+          ) {
+            const ratio = ((historyPoints - currentMin) / (nextMin - currentMin)) * 100
+            progressPercent = Math.max(0, Math.min(100, Math.round(ratio)))
+          }
+        }
+
         this.setData({
           currentLevelKey,
           currentLevelName: apiData.current_level_name || '',
@@ -133,6 +171,9 @@ Page({
           thresholdsConfirmed,
           levels: processedLevels,
           nextLevelText,
+          currentLevelIndex,
+          isTopLevel,
+          progressPercent,
           loadStatus: 'success'
         })
 

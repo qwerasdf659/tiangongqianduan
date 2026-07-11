@@ -4,14 +4,16 @@
  * 用户操作流程: 分类Tab（手链/项链/戒指/吊坠）→ 选具体款式 → 带 templateId 进入设计台(diy-lite)
  * 后端API: GET /api/v4/diy/templates?category_id=xxx
  *
- * 分类体系（后端 categories 表）:
- *   190 = DIY饰品（一级分类）
- *   191 = 手链 / 192 = 项链 / 193 = 戒指 / 194 = 吊坠（二级分类）
+ * 分类体系（后端 categories 表，parent=190 DIY饰品）:
+ *   191 = 手链 / 192 = 项链 / 193 = 戒指 / 194 = 吊坠
+ *   291 = 耳饰(DIY_EARRING) / 292 = 手机链包挂(DIY_CHARM) / 293 = 108佛珠(DIY_MALA)
+ *   （291~293 为 2026-07-10 seeder 实际落库 ID，对接文档 13.1-F；空分类只显示演示卡，
+ *   后端 getUserTemplates 只返回 published 模板，运营录入后自动出现）
  *
  * 模板字段对齐后端:
  *   diy_template_id（主键） / display_name（名称） / category_id（分类）
  *   layout.shape（形状类型） / material_group_codes（材料分组）
- *   preview_media（关联的预览图 MediaFile，含 public_url / thumbnails）
+ *   preview_media（toSafeJSON 5 字段最小集: media_id/width/height/public_url/thumbnails{w375,w750,w1080}）
  *
  * @file packageDIY/diy-templates/diy-templates.ts
  */
@@ -20,7 +22,7 @@
 const { API } = require('../../utils/index')
 
 /**
- * DIY 二级分类 Tab 列表（对齐后端 categories 表 id=191~194）
+ * DIY 二级分类 Tab 列表（对齐后端 categories 表 id=191~194 + 291~293 真实落库 ID）
  * 「全部」Tab 的 category_id 为 0，表示不筛选
  */
 const CATEGORY_TABS: { category_id: number; label: string }[] = [
@@ -28,7 +30,10 @@ const CATEGORY_TABS: { category_id: number; label: string }[] = [
   { category_id: 191, label: '手链' },
   { category_id: 192, label: '项链' },
   { category_id: 193, label: '戒指' },
-  { category_id: 194, label: '吊坠' }
+  { category_id: 194, label: '吊坠' },
+  { category_id: 291, label: '耳饰' },
+  { category_id: 292, label: '手机链' },
+  { category_id: 293, label: '108佛珠' }
 ]
 
 /** category_id → 中文名映射（用于列表展示） */
@@ -36,13 +41,16 @@ const CATEGORY_NAME_MAP: Record<number, string> = {
   191: '手链',
   192: '项链',
   193: '戒指',
-  194: '吊坠'
+  194: '吊坠',
+  291: '耳饰',
+  292: '手机链包挂',
+  293: '108佛珠'
 }
 
 /**
  * 本地演示入口卡片清单（前端本地数据，不依赖后端；均明确标注演示、保存/下单禁用）
  * local 对应 diy-lite 入口参数（1 手串串珠 / 2~6 镶嵌换宝石 / 7 佛珠串珠）；
- * categories 控制在哪些分类 Tab 下显示（0=全部；耳饰/手机链暂无后端分类仅在「全部」展示）。
+ * categories 控制在哪些分类 Tab 下显示（0=全部；耳饰291/手机链292/佛珠293 用真实落库分类 ID）。
  */
 const LOCAL_DEMO_CARDS = [
   {
@@ -61,7 +69,7 @@ const LOCAL_DEMO_CARDS = [
     thumb: '/packageDIY/diy-lite/assets/demo-mala-thumb.jpg',
     emoji: '',
     tags: ['本地演示', '串珠'],
-    categories: [0, 191]
+    categories: [0, 293]
   },
   {
     local: 2,
@@ -97,7 +105,7 @@ const LOCAL_DEMO_CARDS = [
     thumb: '/packageDIY/diy-lite/assets/demo-earrings-base.jpg',
     emoji: '',
     tags: ['本地演示', '镶嵌'],
-    categories: [0]
+    categories: [0, 291]
   },
   {
     local: 6,
@@ -106,7 +114,7 @@ const LOCAL_DEMO_CARDS = [
     thumb: '/packageDIY/diy-lite/assets/demo-charm-base.jpg',
     emoji: '',
     tags: ['本地演示', '镶嵌'],
-    categories: [0]
+    categories: [0, 292]
   }
 ]
 

@@ -237,47 +237,13 @@ export const diyStore = observable({
     return this.currentTemplate?.layout?.shape === 'slots'
   },
 
-  /** 已选珠子直径之和（串珠模式，用于容量校验） */
-  get totalDiameter(): number {
-    return this.selectedBeads.reduce((sum: number, b: API.DiyBead) => sum + b.diameter, 0)
-  },
-
-  /** 当前尺码对应的建议珠子数量（串珠模式，用于 UI 展示） */
+  /**
+   * 当前尺码颗数容量（串珠模式容量的权威口径，拍板①颗数制）:
+   * 容量上限 = sizing_rules.size_options[].bead_count，0 = 后端未给规则不限容。
+   * 不做 circumference_mm 毫米制换算（该字段不存在，对接文档 11.7-3）。
+   */
   get currentBeadCount(): number {
     return getBeadCountForSize(this.currentTemplate, this.selectedSizeLabel)
-  },
-
-  /**
-   * 当前尺码可容纳的最大直径之和（串珠模式）
-   * PRD公式: 所有珠子直径之和 ≤ 尺寸(mm) - 弹性余量
-   *
-   * 后端数据:
-   *   sizing_rules.size_options[].circumference_mm — 尺寸周长（mm）
-   *   bead_rules.margin — 弹性余量（默认10mm）
-   *
-   * 如果后端未提供 circumference_mm，降级为 bead_count * default_diameter 估算
-   */
-  get maxDiameter(): number {
-    const template = this.currentTemplate
-    if (!template) {
-      return 0
-    }
-    const sizeOptions = getSizeOptions(template)
-    const currentOption = sizeOptions.find(o => o.label === this.selectedSizeLabel)
-    /* 优先使用后端提供的周长值（mm） */
-    if (currentOption && (currentOption as any).circumference_mm) {
-      const margin = template.bead_rules?.margin || 10
-      return (currentOption as any).circumference_mm - margin
-    }
-    /* 降级: bead_count * default_diameter */
-    const count = currentOption?.bead_count || 0
-    const defaultDiameter = template.bead_rules?.default_diameter || 8
-    return count * defaultDiameter
-  },
-
-  /** 剩余可用空间 = 最大直径之和 - 已用直径之和（串珠模式） */
-  get remainingSpace(): number {
-    return this.maxDiameter - this.totalDiameter
   },
 
   /** 已填入宝石的槽位数（镶嵌模式） */
@@ -589,9 +555,8 @@ export const diyStore = observable({
   // ===== 串珠模式方法 =====
 
   /**
-   * 添加珠子（含容量校验）
-   * PRD公式: 所有珠子直径之和 ≤ 尺寸(mm) - 弹性余量
-   * 同时校验: 珠子数量不超过 bead_count 上限、直径在允许范围内
+   * 添加珠子（含颗数容量校验，拍板①颗数制）
+   * 校验: 直径在允许范围内 + 已选颗数 < 当前尺码 bead_count（0=不限容）
    * @returns true=添加成功, false=容量超限或直径不允许
    */
   addBead: action(function (this: any, bead: API.DiyBead): boolean {
@@ -603,13 +568,9 @@ export const diyStore = observable({
     if (allowedDiameters.length > 0 && !allowedDiameters.includes(bead.diameter)) {
       return false
     }
-    /* 容量校验1: 珠子数量不超过 bead_count 上限 */
+    /* 颗数容量校验: 已选颗数不超过当前尺码 bead_count 上限（权威口径） */
     const maxCount = this.currentBeadCount
     if (maxCount > 0 && this.selectedBeads.length >= maxCount) {
-      return false
-    }
-    /* 容量校验2: 直径之和不超过可用周长（PRD公式） */
-    if (this.maxDiameter > 0 && this.totalDiameter + bead.diameter > this.maxDiameter) {
       return false
     }
     this._pushUndo()

@@ -1,6 +1,8 @@
-/* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
+/* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+/* min-height:0 是关键：Skyline flex 子项默认 min-height:auto，缺失会被内容撑高导致无法滚动 */
 .page-scroll-view {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -14,6 +16,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  /* Skyline: 缺 min-height:0 时容器被内容撑高超出屏幕，scroll-view 内部无溢出而无法滚动 */
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* 页面标题 */
@@ -114,7 +119,11 @@
   font-size: var(--td-font-size-base);
 }
 
-/* 当前等级卡片 */
+/* ============================================================
+ * 当前等级卡片（hero）
+ * hero-v1~v9 为等级主题色（玩法级视觉创意，允许自由配色）:
+ * v1铜 v2银 v3金 v4铂金 v5钻石 v6黑金 v7~v9 高阶尊享
+ * ============================================================ */
 .current-card {
   background: linear-gradient(135deg, #fdf9f0 0%, #ffffff 100%);
   border-radius: var(--td-radius-large);
@@ -125,17 +134,137 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 装饰光斑（Skyline 不支持伪元素，用真实节点；纯装饰不响应触摸） */
+.hero-decor {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-decor-top {
+  width: 280rpx;
+  height: 280rpx;
+  top: -140rpx;
+  right: -80rpx;
+  background: radial-gradient(circle, rgba(197, 165, 114, 0.14) 0%, rgba(197, 165, 114, 0) 70%);
+}
+
+.hero-decor-bottom {
+  width: 220rpx;
+  height: 220rpx;
+  bottom: -110rpx;
+  left: -60rpx;
+  background: radial-gradient(circle, rgba(197, 165, 114, 0.1) 0%, rgba(197, 165, 114, 0) 70%);
+}
+
+/* 等级主题化卡片底色（低饱和渐变，保证深色文字可读性） */
+.hero-v1 {
+  background: linear-gradient(135deg, #faf3ec 0%, #ffffff 100%);
+  border-color: rgba(192, 138, 90, 0.28);
+}
+
+.hero-v2 {
+  background: linear-gradient(135deg, #f2f4f7 0%, #ffffff 100%);
+  border-color: rgba(168, 176, 188, 0.35);
+}
+
+.hero-v3 {
+  background: linear-gradient(135deg, #fdf7e6 0%, #ffffff 100%);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.hero-v4 {
+  background: linear-gradient(135deg, #eef4f9 0%, #ffffff 100%);
+  border-color: rgba(148, 175, 196, 0.35);
+}
+
+.hero-v5 {
+  background: linear-gradient(135deg, #eaf7fa 0%, #ffffff 100%);
+  border-color: rgba(111, 190, 212, 0.32);
+}
+
+.hero-v6 {
+  background: linear-gradient(135deg, #f3f1ed 0%, #fffdf8 100%);
+  border-color: rgba(58, 52, 44, 0.25);
+}
+
+.hero-v7 {
+  background: linear-gradient(135deg, #f4f0fa 0%, #ffffff 100%);
+  border-color: rgba(139, 109, 184, 0.28);
+}
+
+.hero-v8 {
+  background: linear-gradient(135deg, #fbf0ec 0%, #ffffff 100%);
+  border-color: rgba(200, 106, 90, 0.28);
+}
+
+.hero-v9 {
+  background: linear-gradient(135deg, #fdf6e3 0%, #fffaf0 100%);
+  border-color: rgba(184, 134, 11, 0.35);
 }
 
 .current-badge {
   width: 112rpx;
   height: 112rpx;
   border-radius: 50%;
-  background: rgba(197, 165, 114, 0.12);
+  background: linear-gradient(135deg, #d4b98c 0%, #c5a572 100%);
+  box-shadow: 0 8rpx 24rpx rgba(197, 165, 114, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+/* 等级奖章材质渐变（badge-v1~v9 与阶梯 medal-v1~v9 同一套材质体系） */
+.badge-v1 {
+  background: linear-gradient(135deg, #d29a6b 0%, #b0784a 100%);
+  box-shadow: 0 8rpx 24rpx rgba(176, 120, 74, 0.35);
+}
+
+.badge-v2 {
+  background: linear-gradient(135deg, #bcc4d0 0%, #939ca9 100%);
+  box-shadow: 0 8rpx 24rpx rgba(147, 156, 169, 0.35);
+}
+
+.badge-v3 {
+  background: linear-gradient(135deg, #e2c060 0%, #c49a2e 100%);
+  box-shadow: 0 8rpx 24rpx rgba(196, 154, 46, 0.35);
+}
+
+.badge-v4 {
+  background: linear-gradient(135deg, #a9c3d8 0%, #7d9cb5 100%);
+  box-shadow: 0 8rpx 24rpx rgba(125, 156, 181, 0.35);
+}
+
+.badge-v5 {
+  background: linear-gradient(135deg, #86ccdf 0%, #55a8bf 100%);
+  box-shadow: 0 8rpx 24rpx rgba(85, 168, 191, 0.35);
+}
+
+.badge-v6 {
+  background: linear-gradient(135deg, #575044 0%, #2e2922 100%);
+  box-shadow: 0 8rpx 24rpx rgba(46, 41, 34, 0.4);
+}
+
+.badge-v7 {
+  background: linear-gradient(135deg, #a488cc 0%, #7d5cab 100%);
+  box-shadow: 0 8rpx 24rpx rgba(125, 92, 171, 0.35);
+}
+
+.badge-v8 {
+  background: linear-gradient(135deg, #d98a76 0%, #b25a48 100%);
+  box-shadow: 0 8rpx 24rpx rgba(178, 90, 72, 0.35);
+}
+
+.badge-v9 {
+  background: linear-gradient(135deg, #e8c25a 0%, #b8860b 100%);
+  box-shadow: 0 8rpx 24rpx rgba(184, 134, 11, 0.4);
 }
 
 .current-level-name {
@@ -143,13 +272,48 @@
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
   letter-spacing: var(--tg-letter-spacing-normal);
-  margin-bottom: 20rpx;
+  margin-bottom: 8rpx;
+  /* 提升到装饰光斑之上（绝对定位节点默认盖住静态内容） */
+  position: relative;
+  z-index: 1;
+}
+
+/* 等级序号（第 N 级 · 共 M 级） */
+.current-level-index {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
+  margin-bottom: 16rpx;
+  position: relative;
+  z-index: 1;
+}
+
+/* 等级位置指示点：一档一点，filled 数量 = 当前序号 */
+.level-dots {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 24rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.level-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: rgba(197, 165, 114, 0.2);
+}
+
+.level-dot-filled {
+  background: #c5a572;
 }
 
 .current-points {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .current-points-num {
@@ -166,6 +330,24 @@
   margin-top: 4rpx;
 }
 
+/* 升级进度条（仅 UI 可视化：条宽来自后端权威数字换算，不展示前端自算数字） */
+.progress-track {
+  width: 100%;
+  height: 12rpx;
+  border-radius: 6rpx;
+  background: rgba(197, 165, 114, 0.15);
+  margin-top: 28rpx;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6rpx;
+  background: linear-gradient(90deg, #d4b98c 0%, #c5a572 100%);
+}
+
 /* 升级提示（后端 next_level 差值字段："再消费 X 元升{下一级名}"） */
 .next-level-hint {
   display: flex;
@@ -175,12 +357,23 @@
   padding: 12rpx 28rpx;
   background: rgba(197, 165, 114, 0.1);
   border-radius: 32rpx;
+  position: relative;
+  z-index: 1;
 }
 
 .next-level-hint-text {
   font-size: var(--tg-font-size-caption);
   color: #a08b6e;
   font-weight: var(--tg-font-weight-medium);
+}
+
+/* 顶档荣耀提示（殿堂金配色） */
+.top-level-hint {
+  background: rgba(184, 134, 11, 0.1);
+}
+
+.top-level-hint-text {
+  color: #b8860b;
 }
 
 /* 等级阶梯 */
@@ -192,12 +385,22 @@
   border: 1rpx solid rgba(0, 0, 0, 0.04);
 }
 
+.section-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+
 .section-title {
   font-size: var(--td-font-size-base);
   font-weight: var(--tg-font-weight-bold);
   color: var(--tg-text-primary);
-  display: block;
-  margin-bottom: 24rpx;
+}
+
+.section-subtitle {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-tertiary);
 }
 
 .ladder-item {
@@ -205,29 +408,91 @@
   align-items: stretch;
 }
 
-.ladder-dot-wrap {
+/* 时间轴左轨：奖章 + 连接线 */
+.ladder-rail {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-right: 20rpx;
 }
 
-.ladder-dot {
-  width: 24rpx;
-  height: 24rpx;
+/* 等级奖章（medal-v1~v9 材质渐变，与 hero 卡片 badge 同一套体系） */
+.ladder-medal {
+  width: 52rpx;
+  height: 52rpx;
   border-radius: 50%;
-  background: var(--tg-color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  margin-top: 6rpx;
+  background: var(--tg-color-border);
+  /* 与右侧行卡片首行文字光学对齐 */
+  margin-top: 10rpx;
 }
 
-.ladder-reached .ladder-dot {
-  background: #c5a572;
+/* 未达档位：锁定置灰，覆盖材质色 */
+.medal-locked {
+  background: var(--tg-color-bg-grey, #f2f2f2);
+  border: 1rpx solid var(--tg-color-border);
 }
 
-.ladder-current .ladder-dot {
-  background: var(--td-brand-color);
+.medal-v1 {
+  background: linear-gradient(135deg, #d29a6b 0%, #b0784a 100%);
+}
+
+.medal-v2 {
+  background: linear-gradient(135deg, #bcc4d0 0%, #939ca9 100%);
+}
+
+.medal-v3 {
+  background: linear-gradient(135deg, #e2c060 0%, #c49a2e 100%);
+}
+
+.medal-v4 {
+  background: linear-gradient(135deg, #a9c3d8 0%, #7d9cb5 100%);
+}
+
+.medal-v5 {
+  background: linear-gradient(135deg, #86ccdf 0%, #55a8bf 100%);
+}
+
+.medal-v6 {
+  background: linear-gradient(135deg, #575044 0%, #2e2922 100%);
+}
+
+.medal-v7 {
+  background: linear-gradient(135deg, #a488cc 0%, #7d5cab 100%);
+}
+
+.medal-v8 {
+  background: linear-gradient(135deg, #d98a76 0%, #b25a48 100%);
+}
+
+.medal-v9 {
+  background: linear-gradient(135deg, #e8c25a 0%, #b8860b 100%);
+}
+
+/* 锁定态优先级最高：未达档位不显示材质色（放在 medal-v* 之后覆盖） */
+.ladder-medal.medal-locked {
+  background: var(--tg-color-bg-grey, #f2f2f2);
+}
+
+/* 当前档奖章：呼吸光晕动画（玩法级视觉创意，允许自由写 keyframes） */
+@keyframes medal-glow {
+  0% {
+    box-shadow: 0 0 0 4rpx rgba(160, 114, 74, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 10rpx rgba(160, 114, 74, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 0 4rpx rgba(160, 114, 74, 0.1);
+  }
+}
+
+.ladder-current .ladder-medal {
   box-shadow: 0 0 0 6rpx rgba(160, 114, 74, 0.15);
+  animation: medal-glow 2.4s ease-in-out infinite;
 }
 
 .ladder-line {
@@ -243,7 +508,26 @@
 
 .ladder-body {
   flex: 1;
-  padding-bottom: 32rpx;
+  padding-bottom: 20rpx;
+}
+
+/* 每档一张行卡片：当前档高亮底色 */
+.ladder-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  border-radius: var(--td-radius-default, 12rpx);
+}
+
+.ladder-current .ladder-row-card {
+  background: rgba(197, 165, 114, 0.1);
+  border: 1rpx solid rgba(197, 165, 114, 0.25);
+}
+
+.ladder-text-col {
+  flex: 1;
+  min-width: 0;
 }
 
 .ladder-name-row {
@@ -255,6 +539,10 @@
   font-size: var(--td-font-size-base);
   color: var(--tg-text-secondary);
   font-weight: var(--tg-font-weight-medium);
+}
+
+.ladder-reached .ladder-name {
+  color: var(--tg-text-primary);
 }
 
 .ladder-current .ladder-name {
@@ -275,6 +563,56 @@
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
   margin-top: 6rpx;
+  display: block;
+}
+
+/* ============================================================
+ * 成长规则说明卡（文案依据已拍板业务决议，非前端编造规则）
+ * ============================================================ */
+.rules-section {
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 32rpx;
+  margin-top: var(--tg-spacing-lg);
+  box-shadow: var(--tg-shadow-card);
+  border: 1rpx solid rgba(0, 0, 0, 0.04);
+}
+
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 16rpx 0;
+}
+
+.rule-icon-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: var(--td-radius-default, 12rpx);
+  background: rgba(197, 165, 114, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rule-text-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.rule-title {
+  font-size: var(--td-font-size-base);
+  font-weight: var(--tg-font-weight-medium);
+  color: var(--tg-text-primary);
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.rule-desc {
+  font-size: var(--td-font-size-s);
+  color: var(--tg-text-tertiary);
+  line-height: 1.5;
   display: block;
 }
 

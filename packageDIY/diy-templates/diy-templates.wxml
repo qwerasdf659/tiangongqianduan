@@ -69,9 +69,10 @@
         bind:tap="onSelectTemplate"
         data-template-id="{{item.diy_template_id}}"
       >
+        <!-- 预览图降级链（11.7-1，后端衍生图档位 w375/w750/w1080）：卡片缩略图 w375 → 原图 -->
         <image
           class="template-thumb"
-          src="{{item.preview_media.thumbnails.small || item.preview_media.public_url || ''}}"
+          src="{{item.preview_media.thumbnails.w375 || item.preview_media.public_url || ''}}"
           mode="aspectFill"
           lazy-load
         />

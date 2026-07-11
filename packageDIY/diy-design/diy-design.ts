@@ -285,8 +285,9 @@ Page({
       if (designData) {
         const allBeads = diyStore.allBeads
         if (designData.mode === 'beading' && designData.beads) {
-          if (designData.selected_size) {
-            diyStore.setSize(designData.selected_size)
+          /** 手围档位还原（§11.4 契约 design_data.size；custom 为 diy-lite 自定义手围，此页按默认尺码展示） */
+          if (designData.size && designData.size.label && designData.size.label !== 'custom') {
+            diyStore.setSize(designData.size.label)
           }
           for (const beadRef of designData.beads) {
             /* 使用 material_code 匹配珠子（对齐后端 diy_materials 表主键） */
@@ -708,7 +709,20 @@ Page({
         const beads = diyStore.selectedBeads.map((b: API.DiyBead, i: number) => {
           return { slot_index: i, material_code: b.material_code, diameter: b.diameter }
         })
-        workData.design_data = { mode: 'beading', selected_size: diyStore.selectedSizeLabel, beads }
+        workData.design_data = { mode: 'beading', beads }
+        /**
+         * 手围档位契约（§11.4/§16.3-4）: size: { label, wrist_size_mm } 是后端 confirm 长度硬校验依据；
+         * 项链品类档位无 wrist_size_mm 时按佩戴长度口径填 target_length_mm（后端双字段命中）。
+         * 档位未配置毫米数据时不携带 size，后端跳过长度校验、仅颗数兜底
+         */
+        const selectedOption = template.sizing_rules?.size_options?.find(
+          (o: API.DiySizeOption) => o.label === diyStore.selectedSizeLabel
+        )
+        const wristSizeMm =
+          Number(selectedOption?.wrist_size_mm) || Number(selectedOption?.target_length_mm) || 0
+        if (selectedOption && wristSizeMm > 0) {
+          workData.design_data.size = { label: selectedOption.label, wrist_size_mm: wristSizeMm }
+        }
       }
       const saveRes = await API.saveDiyWork(workData)
       wx.hideLoading()

@@ -3,6 +3,7 @@
 /* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
 .page-scroll-view {
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -14,6 +15,9 @@
   flex-direction: column;
   background: var(--tg-color-bg);
   padding: 24rpx;
+  /* Skyline: 缺 min-height:0 时容器被内容撑高超出屏幕，scroll-view 内部无溢出而无法滚动 */
+  min-height: 0;
+  overflow: hidden;
 }
 
 .empty-state {

@@ -66,7 +66,7 @@ module.exports = {
   /** 用户通知系统（方案B独立化）: getUserNotifications / getUserNotificationUnreadCount / markNotificationsAsRead / markSingleNotificationAsRead */
   ...userNotificationsModule,
 
-  /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyPaymentAssets / getDiyTemplateBeads / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
+  /** DIY饰品设计引擎: getDiyTemplates / getDiyTemplateById / getDiyEstimate / getDiyPaymentAssets / getDiyTemplateBeads / getDiyMaterialGroups / getDiyWorks / getDiyWorkById / saveDiyWork / deleteDiyWork / confirmDiyWork / completeDiyWork / cancelDiyWork */
   ...diyModule,
 
   /** 用户域-收货地址: getUserAddresses / createUserAddress / updateUserAddress / deleteUserAddress / setDefaultUserAddress */

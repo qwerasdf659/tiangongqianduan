@@ -245,6 +245,32 @@ declare namespace API {
     } | null
   }
 
+  /**
+   * 用户端脱敏媒体对象（后端 MediaFile.toSafeJSON() 输出的权威最小字段集）
+   *
+   * 适用范围（DIY 对接文档 13.1-D）: DIY beads 列表 image_media、模板列表/详情
+   * preview_media / base_image_media、非作者作品详情 preview_media。
+   * ⚠️ 只有这 5 个字段（object_key/uploaded_by/thumbnail_keys 等已隐藏），
+   *    前端勿依赖 mime_type/file_size/original_name 等已移除字段。
+   * 图片降级链: 底图/宝石图 thumbnails.w750 → public_url；珠子小图可用 w375。
+   */
+  interface SafeMediaObject {
+    /** 媒体文件ID（media_files.media_id） */
+    media_id: number
+    /** 图片宽度px（异形珠绘制比例用 width/height 计算，图已裁透明边） */
+    width: number | null
+    /** 图片高度px */
+    height: number | null
+    /** 图片完整公网URL（后端已拼接并带 content_hash 缓存参数） */
+    public_url: string
+    /** 三档宽度档 WebP 缩略图完整URL */
+    thumbnails: {
+      w375: string
+      w750: string
+      w1080: string
+    } | null
+  }
+
   /** 抽奖配置（对齐后端 GET /api/v4/lottery/campaigns/:code/config 响应） */
   interface LotteryConfig {
     campaign_code: string
@@ -1143,8 +1169,12 @@ declare namespace API {
 
   /**
    * 消费记录（对齐后端 consumption_records 表 + GET /api/v4/shop/consumption/me 响应）
-   * 状态枚举（4态）: pending / approved / rejected / expired
-   * 后端有 final_status 双重状态: pending_review / approved / rejected
+   *
+   * 状态口径（后端 2026-07-11 暴力重构五.6 已完成）:
+   *   final_status 双状态字段已删除，status 为唯一状态机；
+   *   原 final_status 的 pending_review 并入 status 的 pending。
+   *   status 枚举（4态）: pending / approved / rejected / expired
+   *   状态显示名以响应内 status_name 为准（前端不硬编码翻译表）。
    */
   interface ConsumptionRecord {
     /** 记录主键（BIGINT PK） */
@@ -1157,10 +1187,10 @@ declare namespace API {
     consumption_amount: number
     /** 待发放积分数（⚠️ 不是 points_awarded） */
     points_to_award: number
-    /** 状态: pending / approved / rejected / expired */
+    /** 状态（唯一状态机）: pending / approved / rejected / expired */
     status: string
-    /** 最终状态: pending_review / approved / rejected */
-    final_status: string
+    /** 状态显示名（后端下发，如"待审核"/"已通过"，前端零映射直读） */
+    status_name?: string
     /** 商家备注 */
     merchant_notes?: string
     /** 管理员备注 */
@@ -2237,8 +2267,6 @@ declare namespace API {
   // ===== DIY饰品设计引擎（对齐后端数据库真实状态 2026-04-02） =====
 
   /** 槽位形状类型（决定渲染裁剪蒙版和空槽位轮廓） */
-  type SlotShapeType = 'circle' | 'oval' | 'square' | 'rectangle'
-
   /** 布局形状类型（串珠: circle/ellipse/arc/line，镶嵌: slots） */
   type LayoutShapeType = 'circle' | 'ellipse' | 'arc' | 'line' | 'slots'
 
@@ -2253,8 +2281,11 @@ declare namespace API {
 
   /**
    * 槽位定义（镶嵌模式专用）
-   * 由 Web 管理后台可视化标注工具（Konva.js）生成
+   * 由 Web 管理后台可视化标注工具（Konva.js 槽位编辑器 diy-slot-editor）生成
    * 存储在 diy_templates.layout.slot_definitions JSON字段中
+   *
+   * ⚠️ 标注器输出字段为 x/y/width/height/rotation/render_diameter/allowed_xxx/required，
+   *    无 slot_shape 字段（对接文档 11.7-4）——空槽轮廓/宝石裁剪按 width/height 比例画椭圆/圆
    */
   interface DiySlotDefinition {
     /** 槽位唯一标识（后端生成，如 "slot_center"） */
@@ -2265,26 +2296,25 @@ declare namespace API {
     x: number
     /** 槽位中心 Y 坐标百分比（0~1，相对backgroundHeight） */
     y: number
-    /** 槽位宽度百分比（0~1） */
+    /** 槽位宽度百分比（0~1，相对底图宽） */
     width: number
-    /** 槽位高度百分比（0~1） */
+    /** 槽位高度百分比（0~1，相对底图高。⚠️ 宽高分母不同，竖幅底图上圆形槽两值不相等） */
     height: number
-    /** 槽位旋转角度（度），标注工具设置 */
+    /** 槽位旋转角度（度，绕槽位中心），标注工具设置 */
     rotation?: number
-    /** 槽位形状（决定渲染裁剪蒙版） */
-    slot_shape?: SlotShapeType
     /** 该槽位可容纳的宝石直径（mm），空数组表示不限 */
     allowed_diameters?: number[]
-    /** 该槽位允许的宝石形状，空/不传表示仅匹配 slot_shape */
+    /** 该槽位允许的宝石形状（匹配素材 shape 字段），空/不传表示不限 */
     allowed_shapes?: string[]
     /** 该槽位允许的宝石分组code（对应 asset_group_defs.group_code），空/不传则继承模板级 material_group_codes */
     allowed_group_codes?: string[]
     /** 是否为必填槽位（影响结算校验） */
     required: boolean
     /**
-     * 渲染直径(mm)，小程序渲染珠子时用此值控制显示大小
-     * 有值: 珠子图片按此直径等比渲染，居中放置在槽位区域内
-     * null: 珠子图片拉伸填满槽位区域
+     * 渲染直径(mm)，小程序渲染宝石时用此值控制显示大小（对接文档 11.7-4）
+     * 有值: 宝石按"素材直径(mm) / render_diameter(mm)"等比渲染，居中放置在槽位区域内
+     *       （render_diameter 即恰好填满槽位的毫米直径，素材更小则等比缩小）
+     * null: 宝石图片拉伸填满槽位区域
      */
     render_diameter?: number | null
   }
@@ -2341,7 +2371,7 @@ declare namespace API {
   }
 
   /**
-   * 尺寸规则（后端 diy_templates.sizing_rules JSON）
+   * 尺寸规则（后端 diy_templates.sizing_rules JSON，手围驱动方案 §11.1 权威 Schema）
    * 串珠模式必填，镶嵌模式为null
    */
   interface DiySizingRules {
@@ -2349,20 +2379,63 @@ declare namespace API {
     default_size: string
     /** 尺码选项列表 */
     size_options: DiySizeOption[]
+    /**
+     * 模板级弹力/工艺余量（毫米，手围驱动方案 §11.1）:
+     * 档位缺 target_length_mm 时后端按 wrist_size_mm + elastic_margin_mm 推导；
+     * 前端用于"可戴范围"提示展示
+     */
+    elastic_margin_mm?: number
   }
 
-  /** 单个尺码选项 */
+  /** 单个尺码选项（手围驱动方案 §11.1：长度为主口径、bead_count 退为兜底防呆） */
   interface DiySizeOption {
     /** 尺码标识（如 "S" / "M" / "L"） */
     label: string
-    /** 显示文案（如 "小号 (约15cm)"） */
+    /** 显示文案（如 "小号 (约15cm)"——"约XXcm"仅为运营展示文案，不参与校验） */
     display: string
     /** 该尺码对应的半径X */
     radius_x: number
     /** 该尺码对应的半径Y */
     radius_y: number
-    /** 该尺码建议的珠子数量 */
+    /**
+     * 该尺码可容纳的珠子颗数——兜底防呆上限（拍板 Q1：长度为主、颗数退为兜底）:
+     * 已选颗数 ≤ bead_count（配合 capacity_rules.min/max_beads），防止极端数量
+     */
     bead_count: number
+    /**
+     * 该档位对应的手围（毫米，用户入口值，如 150）
+     * ⚠️ 仅手链品类（DIY_BRACELET）必填；项链品类档位无手围概念，此字段缺省
+     */
+    wrist_size_mm?: number
+    /**
+     * 该档位目标成品周长（毫米，通常 = 手围 + 工艺余量）
+     * 串珠模板必填，长度联动展示与后端校验基准
+     */
+    target_length_mm?: number
+  }
+
+  /**
+   * 手围算珠估算结果（后端权威换算，拍板 Q2 方案甲）
+   * 后端API: GET /api/v4/diy/templates/:id/estimate?wrist_size_mm=150&diameter=8
+   * 所有长度字段单位均为毫米（§10.5-3 单位统一 mm），前端展示层 ÷10 保留 1 位小数
+   */
+  interface DiyEstimateResult {
+    /** 入参回显: 手围（毫米；项链模板此处为佩戴长度毫米值，§16.3-4 双字段命中口径） */
+    wrist_size_mm: number
+    /** 入参回显: 主珠径（毫米） */
+    diameter: number
+    /** 弹力/工艺余量（毫米，模板级 sizing_rules.elastic_margin_mm 或后端全局默认） */
+    elastic_margin_mm: number
+    /** 目标成品周长（毫米，档位命中取配置值，否则 = 手围 + 余量） */
+    target_length_mm: number
+    /** 参考颗数（后端按 target_length_mm / diameter 换算并按 capacity_rules 收敛） */
+    recommend_bead_count: number
+    /** 可制作最小长度（毫米，短于手围戴不上） */
+    min_length_mm: number
+    /** 可制作最大长度（毫米，= target + elastic_margin） */
+    max_length_mm: number
+    /** 命中的档位标识（如 "M"，未命中任何档位为 null） */
+    matched_size_label: string | null
   }
 
   /**
@@ -2389,7 +2462,11 @@ declare namespace API {
     template_code: string
     /** 模板名称（后端 display_name） */
     display_name: string
-    /** 分类ID（后端 category_id，关联 categories 表的DIY子分类 191-194） */
+    /**
+     * 分类ID（后端 categories 表 DIY 子分类，parent=190）:
+     * 191手链 / 192项链 / 193戒指 / 194吊坠 / 291耳饰 / 292手机链包挂 / 293 108佛珠
+     * （291~293 为 2026-07-10 seeder 新建，对接文档 13.1-F 实际落库 ID）
+     */
     category_id: number
     /** 排列形状配置（后端 layout JSON，含 shape + 几何参数 + slot_definitions） */
     layout: DiyLayout
@@ -2423,18 +2500,10 @@ declare namespace API {
       category_name: string
       category_code: string
     }
-    /** 预览图信息（后端 include MediaFile as preview_media） */
-    preview_media?: {
-      media_id: number
-      object_key: string
-      thumbnail_keys?: Record<string, string>
-    }
-    /** 底图信息（后端 include MediaFile as base_image，镶嵌模式用） */
-    base_image?: {
-      media_id: number
-      object_key: string
-      thumbnail_keys?: Record<string, string>
-    }
+    /** 预览图（用户端接口经 toSafeJSON 收敛为 5 字段最小集，对接文档 13.1-D） */
+    preview_media?: SafeMediaObject | null
+    /** 镶嵌模式底图（用户端接口经 toSafeJSON 收敛为 5 字段最小集） */
+    base_image_media?: SafeMediaObject | null
   }
 
   /**
@@ -2500,24 +2569,57 @@ declare namespace API {
     diameter: number
     /** 切割形状（circle/ellipse/oval/square/heart/teardrop） */
     shape: string
-    /** 价格（星石 star_stone 计价） */
+    /** 价格（星石 star_stone 计价；后端价格护栏: price=0 的素材禁止启用） */
     price: number
     /** 定价资产代码（实际数据全部为 star_stone） */
     price_asset_code: string
-    /** 库存（-1表示无限库存） */
+    /**
+     * 库存（后端掩码下发，拍板③）: -1=无限 / 0=售罄 / 1=有货
+     * 正数一律被后端压成 1，前端"售罄禁购 stock===0"逻辑不变，勿依赖精确数量
+     */
     stock: number
     /** 可叠加标识 */
     is_stackable: number
     /** 图片媒体ID */
     image_media_id?: number
-    /** 图片媒体对象（后端 JOIN media_files 返回，含 public_url） */
-    image_media?: MediaObject | null
+    /** 图片媒体对象（用户端经 toSafeJSON 收敛为 5 字段最小集，对接文档 13.1-D） */
+    image_media?: SafeMediaObject | null
     /** 分类ID */
     category_id?: number
     /** 排序权重 */
     sort_order: number
     /** 是否启用 */
     is_enabled: number
+
+    // ===== 展示/渲染/大类字段（2026-07-10 迁移落库，对接文档 13.1-A 十列） =====
+
+    /** 素材大类: beads珠子 / accessories配饰 / pendants吊坠（素材类型 Tab 用，与 material_type 是两个概念） */
+    item_type: 'beads' | 'accessories' | 'pendants'
+    /** 材质光影档位（Canvas 立体高光参数）: crystal通透水晶 / stone玉石奶体 / metal金属镜面 / matte哑光 */
+    material_type: 'crystal' | 'stone' | 'metal' | 'matte'
+    /** 五行属性（命理业务数据，仅由后端下发）: metal/wood/water/fire/earth，逗号分隔多值；null=未录入 */
+    five_elements?: string | null
+    /** 单颗净重(g)，1位小数（详情展示）；null=未录入 */
+    weight?: number | null
+    /** 寓意文案（详情弹窗展示）；null=未录入则隐藏该行 */
+    meaning?: string | null
+    /** 能量属性文案（如"财富·活力"）；null=未录入则隐藏该行 */
+    energy?: string | null
+    /** 搭配建议文案（如"搭配白水晶提亮"）；null=未录入则隐藏该行 */
+    pairing?: string | null
+    /** 异形珠实物长边(mm)，圆珠为 null */
+    size_length_mm?: number | null
+    /** 异形珠实物短边(mm)，圆珠为 null */
+    size_width_mm?: number | null
+    /** 穿绳方向: along_length管珠沿长轴 / along_width药片沿短边 / none圆珠 */
+    bore_orientation: 'along_length' | 'along_width' | 'none'
+    /**
+     * 单颗沿绳占用长度（毫米，后端序列化派生字段，拍板 Q3，§11.2）:
+     * 派生规则 = bore_orientation + 实物尺寸（along_length→size_length_mm /
+     * along_width→size_width_mm / none→diameter），前端直接累加即为已排长度，不自行按形状推算。
+     * null = 该素材物理数据不完整，不计入长度累加并提示"信息完善中"（§10.5-2）
+     */
+    cord_occupy_mm: number | null
   }
 
   /**
@@ -2560,20 +2662,21 @@ declare namespace API {
     updated_at: string
     /** 关联的模板数据（后端 include DiyTemplate） */
     template?: DiyTemplate
-    /** 预览图 */
-    preview_media?: {
-      media_id: number
-      object_key: string
-      thumbnail_keys?: Record<string, string>
-    }
+    /** 预览图（用户端接口经 toSafeJSON 收敛为 5 字段最小集） */
+    preview_media?: SafeMediaObject | null
   }
 
   /** 设计数据（联合类型，由 mode 字段区分） */
   interface DiyDesignData {
     /** 模式标识（beading串珠 / slots镶嵌） */
     mode: 'beading' | 'slots'
-    /** 串珠模式: 选择的尺码 */
-    selected_size?: string
+    /**
+     * 串珠模式: 用户所选手围档位（后端 confirm 长度硬校验依据，§11.4 契约）:
+     * label = 档位标识（命中档位如 "M"，自定义手围为 "custom"）；
+     * wrist_size_mm = 手围毫米值（项链品类填用户所选佩戴长度毫米值，§16.3-4 双字段命中口径）。
+     * 不带 wrist_size_mm 时后端跳过长度硬校验、仅颗数兜底
+     */
+    size?: { label: string; wrist_size_mm: number }
     /** 串珠模式: 珠子列表（material_code 对齐后端 diy_materials 表主键） */
     beads?: { slot_index: number; material_code: string; diameter?: number }[]
     /** 镶嵌模式: 槽位填充数据（material_code 对齐后端 diy_materials 表主键） */

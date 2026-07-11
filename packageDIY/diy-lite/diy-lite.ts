@@ -2,6 +2,7 @@
  * diy-lite 自由定制饰品设计台（生产页）
  *
  * 职责：选珠面板（素材类型Tab + 左侧竖分类 + 右侧网格 + 搜索 + 尺码切换）、珠子详情、
+ *       手围驱动全联动（手围档位/自定义手围估算 + 长度/重量/价格实时联动 + 成品尺寸前置提示）、
  *       尺码与容量限制（后端 sizing_rules/bead_rules/capacity_rules）、伪3D预览、背景切换、
  *       教程引导、撤销/重做30步历史栈、手串珠子多选批量删除、售罄禁购(stock)、
  *       保存草稿/完成设计 → diy-result 结果页 → 支付（三步状态机 draft→frozen→completed）。
@@ -11,19 +12,24 @@
  *
  * 后端API（与 diy-design 同一套 /api/v4/diy/ 体系）:
  *   GET  /api/v4/diy/templates — 模板列表（未传 templateId 时取第一个串珠模板）
- *   GET  /api/v4/diy/templates/:id — 模板详情（sizing_rules/bead_rules/capacity_rules）
- *   GET  /api/v4/diy/templates/:id/beads — 实物珠子素材（价格/库存/图片均为后端权威数据）
- *   POST /api/v4/diy/works — 保存作品草稿
- *   GET  /api/v4/diy/works/:id — 作品详情（分享还原）
+ *   GET  /api/v4/diy/templates/:id — 模板详情（sizing_rules 含 wrist_size_mm/target_length_mm/elastic_margin_mm）
+ *   GET  /api/v4/diy/templates/:id/estimate — 手围算珠（自定义手围 + 珠径 → 参考颗数，后端权威换算）
+ *   GET  /api/v4/diy/templates/:id/beads — 实物素材（珠子/配饰/吊坠，价格/库存/图片均为后端权威数据；
+ *        每颗素材含 cord_occupy_mm 沿绳占用毫米数（后端派生），长度联动直接累加；
+ *        默认不传 item_type 返回全部大类，素材类型 Tab 按 item_type 字段前端过滤）
+ *   POST /api/v4/diy/works — 保存作品草稿（design_data 携带 size: { label, wrist_size_mm }，§11.4 契约）
+ *   GET  /api/v4/diy/works/:id — 作品详情（分享还原，非作者仅 frozen/completed 可读脱敏版）
  *
- * 容量模型（对齐 diyStore.maxDiameter 的 PRD 公式）:
- *   容量(mm) = size_option.circumference_mm - bead_rules.margin
- *   （后端未给 circumference_mm 时降级为 bead_count × default_diameter）
- *   珠子直径累加达容量则禁止继续添加。
+ * 容量模型（手围驱动方案拍板 Q1：长度为主、颗数退为兜底）:
+ *   长度口径 = 累加后端下发的 cord_occupy_mm，对照当前档位 target_length_mm 实时联动展示；
+ *   超出可戴上限（target + elastic_margin）时前置友好提示不硬拦截（§7-3），最终以后端 confirm 硬校验为准；
+ *   颗数上限 = 当前尺码 size_options[].bead_count 保留为兜底防呆，配合 capacity_rules.min_beads/max_beads。
  *
- * 待后端补充（见 docs/自由定制饰品diy-lite接口需求-给后端.md）:
- *   material_type/meaning/weight/energy/pairing/five_elements — 缺失时对应展示隐藏/空态
- *   异形珠几何元数据 — 缺失前所有珠子统一按圆珠渲染
+ * 单位口径（§10.5-3）: 接口字段一律毫米(mm)，展示层 ÷10 保留 1 位小数（cm），文案统一带"约"（§7）。
+ *
+ * 素材展示字段（13.1-A 已落库随接口下发）:
+ *   material_type/meaning/weight/energy/pairing/five_elements — 未录入(null)时对应展示隐藏/空态
+ *   异形珠几何: bore_orientation/size_length_mm/size_width_mm + image_media.width/height 绘制比例（11.7-2）
  *
  * @file packageDIY/diy-lite/diy-lite.ts
  */
@@ -54,12 +60,23 @@ const LOCAL_SLOT_ENTRY_MAP: Record<string, string> = {
 /** 撤销/重做历史栈上限（对齐 diy-design/diyStore 的 30 步，UI 常量前端自主决定） */
 const HISTORY_LIMIT = 30
 
-/** 素材类型 Tab（对齐 diy-design 的 饰品/配饰/吊坠；配饰与吊坠素材待后端提供，显示空态） */
+/**
+ * 素材类型 Tab（对齐后端 diy_materials.item_type 大类枚举，13.1-A）:
+ * beads 珠子 / accessories 配饰（隔片/佛头/流苏）/ pendants 吊坠。
+ * beads 接口默认返回全部大类，Tab 按素材 item_type 字段过滤；某大类无素材时显示空态。
+ */
 const MATERIAL_TYPE_TABS = [
   { key: 'beads', label: '饰品' },
   { key: 'accessories', label: '配饰' },
   { key: 'pendants', label: '吊坠' }
 ]
+
+/** 素材大类 → 中文名（空态文案用） */
+const MATERIAL_TYPE_LABELS: Record<string, string> = {
+  beads: '饰品',
+  accessories: '配饰',
+  pendants: '吊坠'
+}
 
 /** 背景选项（纯 UI 常量，前端自主决定） */
 const BG_OPTIONS = ['#F4F2EC', '#EAF0F0', '#F6EAF0', '#EEECF6']
@@ -160,19 +177,17 @@ Page({
     costText: '0',
     /** 已选颗数 */
     beadCount: 0,
-    /** 当前串长（mm，四舍五入展示） */
-    lengthText: '0',
-    /** 容量占用百分比（0-100，用于进度条） */
+    /** 容量占用百分比（0-100，用于进度条，按颗数计算） */
     capacityPercent: 0,
-    /** 是否存在容量上限（后端规则齐备时 true；缺失时不限容，对齐 diyStore maxDiameter=0 语义） */
+    /** 是否存在容量上限（当前尺码 bead_count > 0 时 true；后端未给颗数规则时不限容） */
     capacityLimited: false,
-    /** 容量上限（mm，后端 sizing_rules/bead_rules 计算而来） */
-    capacityMm: 0,
-    /** 传给 bracelet-tray 的绳圈周长（无容量上限时用渲染兜底值，纯 UI） */
+    /** 容量上限（颗数，兜底防呆口径 = 当前尺码 size_options[].bead_count，拍板 Q1 长度为主颗数兜底） */
+    capacityBeads: 0,
+    /** 传给 bracelet-tray 的绳圈周长（mm，纯渲染几何：颗数×默认珠径估算，不参与业务校验） */
     trayCapacityMm: 150,
     /** 容量提示文案 */
     capacityTip: '',
-    /** 实时数量引导文案（结合后端 min_beads 与剩余容量） */
+    /** 实时数量引导文案（结合后端 min_beads 与剩余可加颗数） */
     fillHint: '从下方挑一颗珠子开始吧',
     /** 是否已满（满则禁止添加） */
     isFull: false,
@@ -180,6 +195,27 @@ Page({
     nearFull: false,
     /** 每个珠子 id(material_code) 的已选数量（网格角标用） */
     usedCountMap: {} as Record<string, number>,
+
+    /* ===== 长度/重量实时联动（手围驱动方案 §3.3/§3.4，累加后端 cord_occupy_mm / weight） ===== */
+
+    /** 已排长度展示文案（如 "约11.2cm"，估算值统一带"约"，§7-1） */
+    usedLengthText: '',
+    /** 目标长度展示文案（当前档位 target_length_mm，如 "约15.5cm"；后端未配置时为空） */
+    targetLengthText: '',
+    /** 长度差值文案（"还差约3.8cm" / "已超出约0.6cm"；无目标长度时为空） */
+    lengthDiffText: '',
+    /** 已排长度是否超出目标（差值文案警示色用） */
+    lengthOver: false,
+    /** 累计重量文案（如 "约86.0g"，累加后端 weight；无克重数据时为空） */
+    weightText: '',
+    /**
+     * 物理数据不完整标注（TS 预计算，避免 WXML 跨行表达式）:
+     * 存在 cord_occupy_mm 为 null 的素材 → "部分素材信息完善中，未计入串长"（§10.5-2）；
+     * 存在 weight 为 null 的素材 → "部分素材暂无克重"（§3.4）；均无缺失时为空串（该行隐藏）
+     */
+    physicalNote: '',
+    /** 是否展示长度/重量联动行（串珠模式且已有珠子时展示） */
+    showLengthRow: false,
 
     /** 撤销/重做可用态（30 步历史栈，对齐 diy-design） */
     canUndo: false,
@@ -201,14 +237,33 @@ Page({
     detailVisible: false,
     detailBead: null as any,
 
-    /** 尺码选择弹窗（后端 sizing_rules.size_options） */
+    /** 尺码选择弹窗（后端 sizing_rules.size_options，手围驱动方案 §3.1 手围入口） */
     sizeVisible: false,
-    /** 尺码选项列表（label/display，来自后端） */
-    sizeOptions: [] as { label: string; display: string }[],
-    /** 当前尺码下标 */
+    /**
+     * 尺码选项列表（来自后端 size_options）:
+     * display 运营文案 + metaText（手围/目标串长毫米字段换算的 cm 文案，字段缺失时为空）
+     */
+    sizeOptions: [] as { label: string; display: string; metaText: string }[],
+    /** 当前尺码下标（自定义手围生效时为 -1） */
     sizeIndex: 0,
-    /** 当前尺码展示文案（如 "小号 (约15cm)"） */
+    /** 当前尺码展示文案（如 "小号 (约15cm)" 或 "自定义 手围约15.2cm"） */
     selectedSizeDisplay: '',
+    /** 尺寸入口用语（手链品类="手围"，项链等品类="佩戴长度"，§11.1 品类差异） */
+    sizeTermLabel: '手围',
+    /** 自定义手围输入值（cm 字符串，用户键入） */
+    customWristInput: '',
+    /** 自定义估算的主珠径选项（mm，来自模板 bead_rules.allowed_diameters / default_diameter） */
+    customDiameterOptions: [] as number[],
+    /** 当前选中的主珠径下标 */
+    customDiameterIndex: 0,
+    /** 估算结果文案（后端 estimate 返回，如 "约需 18 颗 8mm 珠 · 目标串长约15.5cm"） */
+    estimateText: '',
+    /** 估算请求进行中（防重复点击） */
+    estimating: false,
+    /** 是否已有可应用的估算结果（"使用该手围"按钮可用态） */
+    estimateReady: false,
+    /** 当前是否为自定义手围模式（尺码列表全部非选中态） */
+    customSizeActive: false,
 
     /** 五行雷达图弹窗（数据依赖后端 five_elements，缺失显示空态） */
     wuxingVisible: false,
@@ -271,8 +326,17 @@ Page({
   _template: null as any,
   /** 全量珠子视图模型（后端 beads 映射而来） */
   _allBeads: [] as any[],
-  /** 当前尺码标识（如 "S"/"M"/"L"，对应 sizing_rules.size_options[].label） */
+  /** 当前尺码标识（如 "S"/"M"/"L"，对应 sizing_rules.size_options[].label；自定义手围为 "custom"） */
   _selectedSizeLabel: '',
+  /**
+   * 自定义手围（后端 estimate 接口返回，_selectedSizeLabel === 'custom' 时生效）:
+   * 字段与 API.DiyEstimateResult 一致（wrist_size_mm/target_length_mm/max_length_mm/recommend_bead_count 等）
+   */
+  _customSize: null as any,
+  /** 尺码弹窗内待应用的估算结果（点"使用该手围"后写入 _customSize 或命中档位） */
+  _pendingEstimate: null as any,
+  /** 超出可戴上限的前置提示是否已弹过（回到上限内自动复位，避免每加一颗都 toast） */
+  _overLimitNotified: false,
   /** 当前费用明细（按 price_asset_code 分组，提交时传给结果页支付面板） */
   _costBreakdown: [] as any[],
   /** 当前作品ID（保存草稿/提交后获得，用于分享还原） */
@@ -465,11 +529,17 @@ Page({
         return
       }
 
-      /** 串珠作品：从 design_data 还原珠子（material_code 匹配当前素材库） */
+      /** 串珠作品：从 design_data 还原珠子与手围档位（material_code 匹配当前素材库，size 契约 §11.4） */
       const restored: any[] = []
+      let restoredCustomWristMm = 0
       if (designData && designData.mode === 'beading' && designData.beads) {
-        if (designData.selected_size) {
-          this._selectedSizeLabel = designData.selected_size
+        if (designData.size && designData.size.label) {
+          if (designData.size.label === 'custom' && Number(designData.size.wrist_size_mm) > 0) {
+            /** 自定义手围：契约只存 wrist_size_mm，目标长度需重调 estimate 补齐 */
+            restoredCustomWristMm = Number(designData.size.wrist_size_mm)
+          } else {
+            this._selectedSizeLabel = designData.size.label
+          }
         }
         for (const beadRef of designData.beads) {
           const matched = this._allBeads.find((b: any) => b.material_code === beadRef.material_code)
@@ -478,7 +548,11 @@ Page({
           }
         }
       }
-      this._setupSizing()
+      if (restoredCustomWristMm > 0) {
+        await this._restoreCustomSize(restoredCustomWristMm)
+      } else {
+        this._setupSizing()
+      }
       this._applyRestoredBeads(restored)
       this.setData({ loading: false })
       wx.showToast({ title: '已加载分享的设计', icon: 'none', duration: 2000 })
@@ -515,16 +589,28 @@ Page({
     }
   },
 
-  /** 把 _allBeads 聚合出左侧分类并刷新网格（后端/本地两种数据源共用） */
-  _applyBeadsToPanel() {
+  /**
+   * 按素材大类聚合左侧分类（group_code 维度，仅统计该大类下有素材的分组）
+   * @param materialType 素材大类（beads/accessories/pendants）
+   */
+  _categoriesForType(materialType: string): { key: string; label: string }[] {
     const seen: Record<string, boolean> = {}
     const categories: { key: string; label: string }[] = []
     this._allBeads.forEach((b: any) => {
+      if ((b.item_type || 'beads') !== materialType) {
+        return
+      }
       if (!seen[b.category]) {
         seen[b.category] = true
         categories.push({ key: b.category, label: b.categoryLabel })
       }
     })
+    return categories
+  },
+
+  /** 把 _allBeads 聚合出左侧分类并刷新网格（后端/本地两种数据源共用，数据重载时回到饰品Tab） */
+  _applyBeadsToPanel() {
+    const categories = this._categoriesForType('beads')
     this.setData(
       { categories, activeCategory: categories[0]?.key || '', activeMaterialType: 'beads' },
       () => this._refreshGroups()
@@ -542,6 +628,7 @@ Page({
     this._template = template
     this._allBeads = LITE_BEADS.map((b: any) => this._mapLocalBead(b))
     this._selectedSizeLabel = ''
+    this._customSize = null
     this.setData({
       localMode: true,
       /** 本地串珠模板强制退出镶嵌模式（镶嵌演示走 _enterLocalSlotMode 独立通道） */
@@ -598,6 +685,8 @@ Page({
   /**
    * 本地珠子 → 页面视图模型（字段与 _mapBead 输出对齐，本地数据已是展示形态）
    * 本地演示价为"元"计价（后端真实数据为资产计价 price_asset_code）。
+   * cord_occupy_mm 按与后端 deriveCordOccupyMm 相同规则在演示数据源补齐（bead-data.ts），
+   * 生产链路该字段仅由后端派生下发，此处不承担业务口径。
    */
   _mapLocalBead(b: any): any {
     return {
@@ -768,33 +857,61 @@ Page({
 
   /**
    * 后端 DiyBead → 页面视图模型（snake_case 计费字段透传 + camelCase 展示字段）
-   * material_type/meaning/weight/energy/pairing/five_elements 为待后端补充字段：
-   * 存在则透传展示，缺失则 undefined（详情行隐藏/五行空态），不做前端默认值。
+   * material_type/meaning/weight/energy/pairing/five_elements 已随接口下发（13.1-A 落库）:
+   * 有值则透传展示，未录入(null)则详情行隐藏/五行空态，不做前端默认值。
    */
   _mapBead(b: any): any {
+    /** 图片降级链（11.7-1）：珠子网格/手串小图用 w375 档 → public_url（媒体对象为 5 字段最小集） */
     const media = b.image_media || null
-    const image =
-      (media && ((media.thumbnails && media.thumbnails.medium) || media.public_url)) || ''
+    const image = (media && ((media.thumbnails && media.thumbnails.w375) || media.public_url)) || ''
+    /** 异形珠判定：后端 bore_orientation ≠ none 即异形（管珠/药片），圆珠为 none */
+    const isSpecial = !!b.bore_orientation && b.bore_orientation !== 'none'
+    /**
+     * 异形珠实拍图"宽:高"比例（11.7-2）：用 image_media.width/height 计算（图已裁透明边），
+     * 图片尺寸缺失时回退实物短边/长边比（几何近似），再缺退 1（按圆渲染）
+     */
+    let imgRatio = 1
+    if (media && media.width > 0 && media.height > 0) {
+      imgRatio = media.width / media.height
+    } else if (b.size_width_mm > 0 && b.size_length_mm > 0) {
+      imgRatio = b.size_width_mm / b.size_length_mm
+    }
     return {
       /** 后端原始对象引用（镶嵌模式 diyStore.fillSlot 约束校验/渲染需要原始 shape 等字段） */
       raw: b,
-      /* 后端原始字段透传（提交/计费/库存用） */
+      /* 后端原始字段透传（提交/计费/库存/几何用） */
       diy_material_id: b.diy_material_id,
       material_code: b.material_code,
       group_code: b.group_code,
       price_asset_code: b.price_asset_code,
+      /** 库存掩码三值（拍板③）：-1 无限 / 0 售罄 / 1 有货，勿依赖精确数量 */
       stock: b.stock,
+      /** 素材大类（beads/accessories/pendants，素材类型 Tab 过滤依据；缺省归入珠子） */
+      item_type: b.item_type || 'beads',
+      /* 异形珠几何（13.1-A 三列透传，bracelet-tray 布局朝向依据） */
+      bore_orientation: b.bore_orientation || 'none',
+      size_length_mm: b.size_length_mm,
+      size_width_mm: b.size_width_mm,
+      /**
+       * 单颗沿绳占用长度（mm，后端序列化派生字段，拍板 Q3，§11.2）:
+       * 长度联动直接累加此字段，前端不按形状分支推算；
+       * null = 物理数据不完整，不计入累加并提示"信息完善中"。
+       * undefined（后端字段缺失）与 null 同语义归一为 null
+       */
+      cord_occupy_mm: b.cord_occupy_mm ?? null,
       /* 展示字段 */
       id: b.material_code,
       name: b.display_name,
       category: b.group_code,
       categoryLabel: GROUP_NAME_MAP[b.group_code] || b.group_code,
       diameter: b.diameter,
-      sizeText: `${b.diameter}mm`,
+      sizeText: isSpecial ? `${b.size_width_mm}mmx${b.size_length_mm}mm` : `${b.diameter}mm`,
       price: b.price,
       priceLabel: ASSET_DISPLAY_NAME[b.price_asset_code] || b.price_asset_code,
-      /** 无异形几何元数据前统一按圆珠渲染（见接口需求文档第3节） */
-      shape: 'round',
+      /** 形状：异形珠（bore_orientation≠none）走 special 渲染分支，其余按圆珠 */
+      shape: isSpecial ? 'special' : 'round',
+      /** 异形珠实拍图宽高比（special 渲染用，圆珠为 1） */
+      imgRatio,
       /** 材质光影档位：后端 material_type 未下发时按 crystal 渲染（文档 2.1 已约定） */
       material: b.material_type || 'crystal',
       image,
@@ -806,12 +923,72 @@ Page({
     }
   },
 
-  // ===== 尺码/容量（后端 sizing_rules/bead_rules/capacity_rules，本地模式用 LOCAL_TEMPLATE 同结构） =====
+  // ===== 尺码/手围/容量（手围驱动方案：长度为主、颗数兜底；本地模式用 LOCAL_TEMPLATE 同结构） =====
 
-  /** 初始化尺码选项与当前尺码（后端 sizing_rules），并计算容量 */
+  /**
+   * 尺寸入口用语（§11.1 品类差异）:
+   * 手链品类（DIY_BRACELET / 档位含 wrist_size_mm）= "手围"；
+   * 项链等品类（档位只配 target_length_mm）= "佩戴长度"（§16.3-1 入口文案口径）。
+   */
+  _resolveSizeTermLabel(): string {
+    const template = this._template
+    const options = template?.sizing_rules?.size_options || []
+    if (template?.category?.category_code === 'DIY_BRACELET') {
+      return '手围'
+    }
+    const hasWrist = options.some((o: any) => Number(o.wrist_size_mm) > 0)
+    return hasWrist ? '手围' : '佩戴长度'
+  },
+
+  /**
+   * 单个尺码档位的手围/目标串长补充文案（后端毫米字段 ÷10 展示 cm，§10.5-3）:
+   * 字段缺失时如实返回空串（后端未配置数据，不编造，§7-4）。
+   */
+  _buildSizeMetaText(option: any, termLabel: string): string {
+    const parts: string[] = []
+    if (Number(option.wrist_size_mm) > 0) {
+      parts.push(`${termLabel}约${(option.wrist_size_mm / 10).toFixed(1)}cm`)
+    }
+    if (Number(option.target_length_mm) > 0) {
+      parts.push(`目标串长约${(option.target_length_mm / 10).toFixed(1)}cm`)
+    }
+    return parts.join(' · ')
+  },
+
+  /** 初始化尺码选项与当前尺码（后端 sizing_rules），并计算颗数容量与自定义估算珠径选项 */
   _setupSizing() {
     const template = this._template
     const options = template?.sizing_rules?.size_options || []
+    const termLabel = this._resolveSizeTermLabel()
+    /** 自定义估算的主珠径选项：allowed_diameters（后端权威）→ 单值 default_diameter → 空（隐藏估算区） */
+    const allowedDiameters: number[] = template?.bead_rules?.allowed_diameters || []
+    const defaultDiameter: number = template?.bead_rules?.default_diameter || 0
+    const diameterOptions =
+      allowedDiameters.length > 0 ? allowedDiameters : defaultDiameter > 0 ? [defaultDiameter] : []
+    let diameterIndex = diameterOptions.indexOf(defaultDiameter)
+    if (diameterIndex < 0) {
+      diameterIndex = 0
+    }
+
+    /** 自定义手围模式：尺码列表全部非选中（sizeIndex=-1），展示文案用 _customSize 的手围毫米值 */
+    if (this._selectedSizeLabel === 'custom' && this._customSize) {
+      this.setData({
+        sizeTermLabel: termLabel,
+        sizeOptions: options.map((o: any) => ({
+          label: o.label,
+          display: o.display,
+          metaText: this._buildSizeMetaText(o, termLabel)
+        })),
+        sizeIndex: -1,
+        customSizeActive: true,
+        customDiameterOptions: diameterOptions,
+        customDiameterIndex: diameterIndex,
+        selectedSizeDisplay: `自定义 ${termLabel}约${(this._customSize.wrist_size_mm / 10).toFixed(1)}cm`
+      })
+      this._recalcCapacity()
+      return
+    }
+
     const defaultLabel = template?.sizing_rules?.default_size || options[0]?.label || ''
     if (!this._selectedSizeLabel) {
       this._selectedSizeLabel = defaultLabel
@@ -822,37 +999,86 @@ Page({
       this._selectedSizeLabel = options[0]?.label || ''
     }
     this.setData({
-      sizeOptions: options.map((o: any) => ({ label: o.label, display: o.display })),
+      sizeTermLabel: termLabel,
+      sizeOptions: options.map((o: any) => ({
+        label: o.label,
+        display: o.display,
+        metaText: this._buildSizeMetaText(o, termLabel)
+      })),
       sizeIndex,
+      customSizeActive: false,
+      customDiameterOptions: diameterOptions,
+      customDiameterIndex: diameterIndex,
       selectedSizeDisplay: options[sizeIndex]?.display || ''
     })
     this._recalcCapacity()
   },
 
   /**
-   * 当前尺码容量（mm），对齐 diyStore.maxDiameter 的 PRD 公式:
-   *   优先 circumference_mm - margin；降级 bead_count × default_diameter；无规则返回 0(不限容)
+   * 当前尺寸上下文（长度联动/保存契约的统一取数口径）:
+   *   档位模式 — 取当前 size_options 档位的 wrist_size_mm/target_length_mm + 模板级 elastic_margin_mm；
+   *   自定义模式 — 取后端 estimate 返回的毫米字段。
+   * wristSizeMm 用于 design_data.size 契约（§16.3-4：项链档位无手围时填 target_length_mm，双字段命中）；
+   * 后端未配置的字段返回 0（展示层据此隐藏对应文案，不编造默认值）。
+   */
+  _currentSizeInfo(): {
+    label: string
+    wristSizeMm: number
+    targetLengthMm: number
+    maxLengthMm: number
+  } {
+    if (this._selectedSizeLabel === 'custom' && this._customSize) {
+      return {
+        label: 'custom',
+        wristSizeMm: Number(this._customSize.wrist_size_mm) || 0,
+        targetLengthMm: Number(this._customSize.target_length_mm) || 0,
+        maxLengthMm: Number(this._customSize.max_length_mm) || 0
+      }
+    }
+    const template = this._template
+    const options = template?.sizing_rules?.size_options || []
+    const current = options.find((o: any) => o.label === this._selectedSizeLabel)
+    if (!current) {
+      return { label: this._selectedSizeLabel, wristSizeMm: 0, targetLengthMm: 0, maxLengthMm: 0 }
+    }
+    const targetLengthMm = Number(current.target_length_mm) || 0
+    /** 项链品类档位无手围：契约字段填佩戴长度毫米值（§16.3-4 后端按 target_length_mm 命中） */
+    const wristSizeMm = Number(current.wrist_size_mm) || targetLengthMm
+    const elasticMarginMm = Number(template?.sizing_rules?.elastic_margin_mm) || 0
+    return {
+      label: current.label,
+      wristSizeMm,
+      targetLengthMm,
+      /** 可戴上限 = 目标周长 + 弹力余量（两者均为后端数据，缺一则不做上限提示） */
+      maxLengthMm: targetLengthMm > 0 && elasticMarginMm > 0 ? targetLengthMm + elasticMarginMm : 0
+    }
+  },
+
+  /**
+   * 当前尺码颗数兜底上限（拍板 Q1：长度为主、颗数退为兜底防呆）:
+   *   档位模式 = size_options[].bead_count；自定义手围 = estimate 无档位颗数，返回 0 不限
+   *   （自定义模式仍受 capacity_rules.max_beads 全局防呆与后端 confirm 硬校验约束）。
    */
   _capacityForCurrentSize(): number {
+    if (this._selectedSizeLabel === 'custom') {
+      return 0
+    }
     const template = this._template
     const options = template?.sizing_rules?.size_options || []
     const current = options.find((o: any) => o.label === this._selectedSizeLabel)
     if (!current) {
       return 0
     }
-    if (current.circumference_mm) {
-      const margin = template?.bead_rules?.margin ?? 10
-      return current.circumference_mm - margin
-    }
-    const defaultDiameter = template?.bead_rules?.default_diameter || 8
-    return (current.bead_count || 0) * defaultDiameter
+    return current.bead_count || 0
   },
 
-  /** 重算容量并刷新已选珠子的占用展示（尺码变化/初始化时调用） */
+  /** 重算颗数容量并刷新已选珠子的占用展示（尺码变化/初始化时调用） */
   _recalcCapacity() {
-    const capacityMm = Math.round(this._capacityForCurrentSize())
-    const capacityLimited = capacityMm > 0
-    this.setData({ capacityMm, capacityLimited }, () =>
+    const capacityBeads = this._capacityForCurrentSize()
+    const capacityLimited = capacityBeads > 0
+    /** 尺码变化后目标长度随之变化，超限提示复位重新判定 */
+    this._overLimitNotified = false
+    this.setData({ capacityBeads, capacityLimited }, () =>
       this._applySelection(this.data.selectedBeads, false)
     )
   },
@@ -867,7 +1093,7 @@ Page({
     this.setData({ sizeVisible: false })
   },
 
-  /** 选择尺码（后端 size_options 内取值） */
+  /** 选择尺码档位（后端 size_options 内取值，退出自定义手围模式） */
   onSelectSize(e: any) {
     const index = Number(e.currentTarget.dataset.index)
     const option = this.data.sizeOptions[index]
@@ -875,22 +1101,176 @@ Page({
       return
     }
     this._selectedSizeLabel = option.label
-    this.setData({ sizeIndex: index, selectedSizeDisplay: option.display })
+    this._customSize = null
+    this.setData({
+      sizeIndex: index,
+      customSizeActive: false,
+      selectedSizeDisplay: option.display
+    })
     this._recalcCapacity()
+  },
+
+  // ===== 自定义手围估算（§3.1 自定义输入 + §3.2 珠径智能算珠，后端 estimate 权威换算） =====
+
+  /** 自定义手围输入（cm，如 "15.5"；输入变化后旧估算结果失效） */
+  onCustomWristInput(e: any) {
+    this.setData({ customWristInput: e.detail.value, estimateText: '', estimateReady: false })
+    this._pendingEstimate = null
+  },
+
+  /** 切换估算主珠径（选项来自模板 bead_rules，后端权威数据） */
+  onSelectCustomDiameter(e: any) {
+    const index = Number(e.currentTarget.dataset.index)
+    if (index === this.data.customDiameterIndex) {
+      return
+    }
+    this.setData({ customDiameterIndex: index, estimateText: '', estimateReady: false })
+    this._pendingEstimate = null
+  },
+
+  /**
+   * 调后端估算参考颗数（GET /diy/templates/:id/estimate，拍板 Q2 方案甲）:
+   * 前端只做入参合法性检查与结果展示，换算规则完全在后端（§11.8-2 前端不写换算公式）。
+   */
+  async onEstimateSize() {
+    if (this.data.estimating) {
+      return
+    }
+    const termLabel = this.data.sizeTermLabel
+    const wristCm = Number(this.data.customWristInput)
+    if (!Number.isFinite(wristCm) || wristCm <= 0) {
+      wx.showToast({ title: `请输入有效的${termLabel}（cm）`, icon: 'none' })
+      return
+    }
+    const diameter = this.data.customDiameterOptions[this.data.customDiameterIndex]
+    if (!diameter) {
+      wx.showToast({ title: '该款式暂无可用珠径数据', icon: 'none' })
+      return
+    }
+    /** cm → mm（接口单位统一毫米，§10.5-3） */
+    const wristSizeMm = Math.round(wristCm * 10)
+    this.setData({ estimating: true })
+    try {
+      const estimateRes = await API.getDiyEstimate(this.data.templateId, {
+        wrist_size_mm: wristSizeMm,
+        diameter
+      })
+      if (!estimateRes.success || !estimateRes.data) {
+        this.setData({ estimating: false })
+        wx.showToast({ title: estimateRes.message || '估算失败，请稍后重试', icon: 'none' })
+        return
+      }
+      const estimate = estimateRes.data
+      this._pendingEstimate = estimate
+      /** 展示均为估算值带"约"（§7-1）；可戴范围 = 后端 min_length_mm ~ max_length_mm */
+      const targetCm = (estimate.target_length_mm / 10).toFixed(1)
+      const minCm = (estimate.min_length_mm / 10).toFixed(1)
+      const maxCm = (estimate.max_length_mm / 10).toFixed(1)
+      this.setData({
+        estimating: false,
+        estimateReady: true,
+        estimateText: `约需 ${estimate.recommend_bead_count} 颗 ${estimate.diameter}mm 珠 · 目标串长约${targetCm}cm（可戴范围约${minCm}~${maxCm}cm）`
+      })
+    } catch (err: any) {
+      this.setData({ estimating: false })
+      /** 后端业务错误码（响应顶层 code）：模板未配置尺寸规则等，如实提示 */
+      if (err?.code === 'DIY_SIZING_RULES_MISSING' || err?.code === 'DIY_TEMPLATE_NOT_BEADING') {
+        wx.showToast({ title: err.message || '该款式暂不支持手围估算', icon: 'none' })
+      } else {
+        wx.showToast({ title: '网络异常，估算失败', icon: 'none' })
+      }
+    }
+  },
+
+  /**
+   * 应用估算结果（"使用该手围"）:
+   * 命中既有档位（matched_size_label）→ 直接选中该档位（颗数兜底/目标长度走档位配置）；
+   * 未命中 → 进入自定义手围模式（label='custom'，长度口径用 estimate 毫米字段，颗数兜底不限）。
+   */
+  onUseEstimate() {
+    const estimate = this._pendingEstimate
+    if (!estimate) {
+      return
+    }
+    const options = this._template?.sizing_rules?.size_options || []
+    const matchedIndex = estimate.matched_size_label
+      ? options.findIndex((o: any) => o.label === estimate.matched_size_label)
+      : -1
+    if (matchedIndex >= 0) {
+      this._selectedSizeLabel = options[matchedIndex].label
+      this._customSize = null
+      this.setData({
+        sizeIndex: matchedIndex,
+        customSizeActive: false,
+        selectedSizeDisplay: options[matchedIndex].display,
+        sizeVisible: false
+      })
+    } else {
+      this._selectedSizeLabel = 'custom'
+      this._customSize = estimate
+      this.setData({
+        sizeIndex: -1,
+        customSizeActive: true,
+        selectedSizeDisplay: `自定义 ${this.data.sizeTermLabel}约${(estimate.wrist_size_mm / 10).toFixed(1)}cm`,
+        sizeVisible: false
+      })
+    }
+    this._recalcCapacity()
+  },
+
+  /**
+   * 还原自定义手围（分享/本地草稿还原时只存了 wrist_size_mm）:
+   * 重新调后端 estimate 补齐目标长度/可戴范围口径；失败不阻塞（长度行降级只展示已排长度）。
+   */
+  async _restoreCustomSize(wristSizeMm: number) {
+    const diameter =
+      this._template?.bead_rules?.default_diameter ||
+      this._template?.bead_rules?.allowed_diameters?.[0] ||
+      0
+    /** 先落最小可用状态（label=custom + 手围值），估算结果回来后补全目标长度 */
+    this._selectedSizeLabel = 'custom'
+    this._customSize = { wrist_size_mm: wristSizeMm, target_length_mm: 0, max_length_mm: 0 }
+    if (!diameter || !this.data.templateId) {
+      this._setupSizing()
+      return
+    }
+    try {
+      const estimateRes = await API.getDiyEstimate(this.data.templateId, {
+        wrist_size_mm: wristSizeMm,
+        diameter
+      })
+      if (estimateRes.success && estimateRes.data) {
+        this._customSize = estimateRes.data
+      }
+    } catch (_err) {
+      /* 估算失败保持最小状态：长度联动降级为只展示已排长度 */
+    }
+    this._setupSizing()
   },
 
   // ===== 素材面板 =====
 
   /**
-   * 切换素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design）
-   * ⚠️ 配饰/吊坠素材属后端业务数据，未接入前显示空态提示，绝不用假素材填充。
+   * 切换素材类型 Tab（饰品/配饰/吊坠，按后端 diy_materials.item_type 大类过滤）
+   * beads 接口默认返回全部大类，切换 Tab 为纯前端过滤；该大类无素材时显示空态提示，
+   * 绝不用假素材填充（配饰/吊坠素材由运营在管理台录入后自动出现）。
    */
   onMaterialTypeChange(e: any) {
     const materialType = e.currentTarget.dataset.type as string
     if (materialType === this.data.activeMaterialType) {
       return
     }
-    this.setData({ activeMaterialType: materialType }, () => this._refreshGroups())
+    /** 左侧分类按该大类下实际存在的分组重建，默认选中第一个分类 */
+    const categories = this._categoriesForType(materialType)
+    this.setData(
+      {
+        activeMaterialType: materialType,
+        categories,
+        activeCategory: categories[0]?.key || '',
+        keyword: ''
+      },
+      () => this._refreshGroups()
+    )
   },
 
   /** 切换主分类 */
@@ -917,19 +1297,22 @@ Page({
     this.setData({ showMaterialTip: false })
   },
 
-  /** 刷新款式组：按素材类型 + 当前分类 + 搜索关键词过滤，再按名称聚合 */
+  /** 刷新款式组：按素材大类（item_type）+ 当前分类 + 搜索关键词过滤，再按名称聚合 */
   _refreshGroups() {
-    /** 配饰/吊坠：素材待后端提供，直接空列表并给出对应空态文案 */
-    if (this.data.activeMaterialType !== 'beads') {
-      const typeLabel = this.data.activeMaterialType === 'accessories' ? '配饰' : '吊坠'
-      this.setData({ groups: [], gridEmptyText: `${typeLabel}素材待后端提供，敬请期待` })
+    const activeType = this.data.activeMaterialType
+    const typeLabel = MATERIAL_TYPE_LABELS[activeType] || '素材'
+    /** 第一层过滤：素材大类（后端 item_type，缺省归入珠子） */
+    const typeBeads = this._allBeads.filter((b: any) => (b.item_type || 'beads') === activeType)
+    if (typeBeads.length === 0) {
+      /** 该大类暂无素材：如实空态（素材由运营在管理台录入后自动出现），绝不用假素材填充 */
+      this.setData({ groups: [], gridEmptyText: `暂无${typeLabel}素材，运营上架后即可选用` })
       return
     }
     const kw = this.data.keyword.trim()
-    let list = this._allBeads.filter((b: any) => b.category === this.data.activeCategory)
+    let list = typeBeads.filter((b: any) => b.category === this.data.activeCategory)
     if (kw) {
-      /** 搜索跨分类：关键词匹配名称 */
-      list = this._allBeads.filter((b: any) => b.name.indexOf(kw) >= 0)
+      /** 搜索跨分类（限当前大类）：关键词匹配名称 */
+      list = typeBeads.filter((b: any) => b.name.indexOf(kw) >= 0)
     }
     /** 镶嵌模式：按激活槽位约束标记不可选（对齐 diy-design 的 _applyBeadFilter） */
     if (this.data.isSlotMode) {
@@ -959,7 +1342,7 @@ Page({
         return { ...b, _disabled: disabled }
       })
     }
-    this.setData({ groups: buildBeadGroups(list), gridEmptyText: '没有匹配的珠子' }, () =>
+    this.setData({ groups: buildBeadGroups(list), gridEmptyText: `没有匹配的${typeLabel}` }, () =>
       this._refreshGroupCounts(this.data.usedCountMap)
     )
   },
@@ -1023,12 +1406,12 @@ Page({
   },
 
   /**
-   * 尝试添加一颗珠子：库存/允许直径/最大颗数/容量四重校验（对齐 diyStore.addBead），
+   * 尝试添加一颗珠子：库存/允许直径/最大颗数/尺码颗数容量四重校验（拍板①颗数制），
    * 满容量弹框引导「更换尺码」或删珠。
    * @returns 是否添加成功
    */
   _tryAddBead(sku: any): boolean {
-    /** 校验1: 库存（后端 stock，0=售罄；-1=无限） */
+    /** 校验1: 库存（后端掩码三值：0=售罄；-1=无限；1=有货，拍板③） */
     if (sku.stock === 0) {
       wx.showToast({ title: '该珠子已售罄', icon: 'none' })
       return false
@@ -1040,31 +1423,28 @@ Page({
       wx.showToast({ title: '该尺寸不适用于当前款式', icon: 'none' })
       return false
     }
-    /** 校验3: 最大颗数（capacity_rules.max_beads，0=不限） */
+    /** 校验3: 全局最大颗数（capacity_rules.max_beads，0=不限） */
     const maxBeads = template?.capacity_rules?.max_beads || 0
     if (maxBeads > 0 && this.data.selectedBeads.length >= maxBeads) {
       wx.showToast({ title: `最多可放 ${maxBeads} 颗珠子`, icon: 'none' })
       return false
     }
-    /** 校验4: 容量（直径累加 ≤ 容量 mm；capacityMm=0 表示后端未给规则，不限容） */
-    if (this.data.capacityLimited) {
-      const used = this._usedLengthMm(this.data.selectedBeads)
-      if (used + sku.diameter > this.data.capacityMm) {
-        wx.vibrateShort({ type: 'heavy' })
-        wx.showModal({
-          title: '当前尺码已排满',
-          content: '这个尺码放不下更多珠子了。可以换大一号尺码，或删除已有珠子后再添加。',
-          confirmText: '更换尺码',
-          cancelText: '知道了',
-          confirmColor: '#8b7355',
-          success: (res: any) => {
-            if (res.confirm) {
-              this.setData({ sizeVisible: true })
-            }
+    /** 校验4: 尺码颗数容量（已选颗数 < 当前尺码 bead_count；capacityBeads=0 表示后端未给规则，不限容） */
+    if (this.data.capacityLimited && this.data.selectedBeads.length >= this.data.capacityBeads) {
+      wx.vibrateShort({ type: 'heavy' })
+      wx.showModal({
+        title: '当前尺码已排满',
+        content: '这个尺码放不下更多珠子了。可以换大一号尺码，或删除已有珠子后再添加。',
+        confirmText: '更换尺码',
+        cancelText: '知道了',
+        confirmColor: '#8b7355',
+        success: (res: any) => {
+          if (res.confirm) {
+            this.setData({ sizeVisible: true })
           }
-        })
-        return false
-      }
+        }
+      })
+      return false
     }
     this._applySelection(this.data.selectedBeads.concat({ ...sku }))
     wx.vibrateShort({ type: 'light' })
@@ -1216,29 +1596,34 @@ Page({
   // ===== 舞台工具 =====
 
   /**
-   * 一键成串（随机搭配）：从可售珠子里随机挑，累加到接近容量为止。
-   * 空态引导用，降低新用户上手门槛。随机为 UX 逻辑，价格/容量均为后端数据。
+   * 一键成串（随机搭配）：从可售珠子里随机挑，凑满当前尺码颗数为止（颗数制）。
+   * 空态引导用，降低新用户上手门槛。随机为 UX 逻辑，价格/颗数容量均为后端数据；
+   * 后端未给颗数规则（不限容）时用前端渲染兜底颗数 12（纯 UX 数量，非业务数据）。
    */
   onRandomFill() {
-    const pool = this._allBeads.filter((b: any) => b.stock !== 0)
+    const pool = this._allBeads.filter(
+      (b: any) => b.stock !== 0 && (b.item_type || 'beads') === 'beads'
+    )
     if (pool.length === 0) {
       return
     }
-    const capacityMm = this.data.capacityLimited ? this.data.capacityMm : 150
     const maxBeads = this._template?.capacity_rules?.max_beads || 0
+    /** 自定义手围模式：优先用后端 estimate 的参考颗数（recommend_bead_count） */
+    const recommendCount =
+      this._selectedSizeLabel === 'custom' && this._customSize
+        ? Number(this._customSize.recommend_bead_count) || 0
+        : 0
+    /** 目标颗数：尺码 bead_count → estimate 参考颗数 → 全局 max_beads → UX 兜底 12 颗 */
+    let targetCount = this.data.capacityLimited
+      ? this.data.capacityBeads
+      : recommendCount || maxBeads || 12
+    if (maxBeads > 0 && maxBeads < targetCount) {
+      targetCount = maxBeads
+    }
     const picked: any[] = []
-    let used = 0
-    /** 最多尝试 60 次，凑到 ≥90% 容量或放不下为止 */
-    for (let i = 0; i < 60 && used < capacityMm * 0.9; i++) {
-      if (maxBeads > 0 && picked.length >= maxBeads) {
-        break
-      }
+    for (let i = 0; i < targetCount; i++) {
       const sku = pool[Math.floor(Math.random() * pool.length)]
-      if (used + sku.diameter > capacityMm) {
-        continue
-      }
       picked.push({ ...sku })
-      used += sku.diameter
     }
     if (picked.length > 0) {
       this._applySelection(picked)
@@ -1325,6 +1710,11 @@ Page({
   /** 打开教程引导（默认回到第一个 Tab） */
   onOpenGuide() {
     this.setData({ guideVisible: true, guideTabIndex: 0 })
+  },
+
+  /** 尺码弹窗内"查看测量方法"：关弹窗并打开教程的「量手围」Tab（前端静态图文，§3.1 测量引导） */
+  onOpenMeasureGuide() {
+    this.setData({ sizeVisible: false, guideVisible: true, guideTabIndex: 1 })
   },
 
   /** 关闭教程引导 */
@@ -1527,7 +1917,19 @@ Page({
         material_code: b.material_code,
         diameter: b.diameter
       }))
-      workData.design_data = { mode: 'beading', selected_size: this._selectedSizeLabel, beads }
+      workData.design_data = { mode: 'beading', beads }
+      /**
+       * 手围档位契约（§11.4/§16.3-4）：size: { label, wrist_size_mm } 是后端 confirm 长度硬校验依据；
+       * 项链品类 wrist_size_mm 已在 _currentSizeInfo 中按佩戴长度口径填充。
+       * 档位未配置毫米数据（wristSizeMm=0）时不携带 size，后端按契约跳过长度校验、仅颗数兜底
+       */
+      const sizeInfo = this._currentSizeInfo()
+      if (sizeInfo.wristSizeMm > 0) {
+        workData.design_data.size = {
+          label: sizeInfo.label,
+          wrist_size_mm: sizeInfo.wristSizeMm
+        }
+      }
     }
     return workData
   },
@@ -1685,17 +2087,18 @@ Page({
           : breakdown.map((i: any) => `${i.amount} ${i.asset_name}`).join(' + ')
     }
 
-    const usedMm = this._usedLengthMm(nextSelected)
-    const capacityMm = this.data.capacityMm
+    /** 颗数兜底容量占用（拍板 Q1 长度为主、颗数兜底）：进度/满/快满按"已选颗数 / 尺码 bead_count"计算 */
+    const count = nextSelected.length
+    const capacityBeads = this.data.capacityBeads
     const capacityLimited = this.data.capacityLimited
-    const percent = capacityLimited ? Math.min(100, Math.round((usedMm / capacityMm) * 100)) : 0
-    const isFull = capacityLimited && usedMm >= capacityMm
+    const percent = capacityLimited ? Math.min(100, Math.round((count / capacityBeads) * 100)) : 0
+    const isFull = capacityLimited && count >= capacityBeads
     /** 快满阈值：占用 ≥85% 且未满时，容量条变警示色 */
     const nearFull = capacityLimited && !isFull && percent >= 85
 
     /** 可提交：颗数 ≥ capacity_rules.min_beads（对齐 diyStore.canSubmit） */
     const minBeads = this._template?.capacity_rules?.min_beads || 1
-    const canSubmit = nextSelected.length >= minBeads
+    const canSubmit = count >= minBeads
 
     /** 统计每个珠子 id 的已选数量（网格角标） */
     const countMap: Record<string, number> = {}
@@ -1703,46 +2106,100 @@ Page({
       countMap[b.id] = (countMap[b.id] || 0) + 1
     })
 
+    /**
+     * 长度实时联动（§3.3 三段：已排长度 / 目标长度 / 差值）:
+     * 已排 = 累加后端 cord_occupy_mm；目标 = 当前档位 target_length_mm（或自定义估算值）；
+     * 所有文案带"约"（估算值，§7-1），mm ÷10 保留 1 位小数展示 cm（§10.5-3）
+     */
+    const lengthStats = this._lengthStats(nextSelected)
+    const usedMm = lengthStats.totalMm
+    const sizeInfo = this._currentSizeInfo()
+    const targetLengthMm = sizeInfo.targetLengthMm
+    let lengthDiffText = ''
+    let lengthOver = false
+    if (targetLengthMm > 0 && count > 0) {
+      const diffMm = targetLengthMm - usedMm
+      if (diffMm >= 0) {
+        lengthDiffText = `还差约${(diffMm / 10).toFixed(1)}cm`
+      } else {
+        lengthDiffText = `已超出约${(-diffMm / 10).toFixed(1)}cm`
+        lengthOver = true
+      }
+    }
+
+    /** 重量实时联动（§3.4）：累加后端 weight，缺失素材不计入并如实标注 */
+    const weightStats = this._weightStats(nextSelected)
+
+    /** 物理数据不完整标注文案（TS 预计算，避免 WXML 跨行表达式） */
+    const noteParts: string[] = []
+    if (lengthStats.missingCount > 0) {
+      noteParts.push('部分素材信息完善中，未计入串长')
+    }
+    if (count > 0 && weightStats.missingCount > 0) {
+      noteParts.push('部分素材暂无克重')
+    }
+
+    /** 超出可戴上限（target + elastic_margin）的前置友好提示：不硬拦截（§7-3），最终以后端校验为准 */
+    if (sizeInfo.maxLengthMm > 0 && usedMm > sizeInfo.maxLengthMm) {
+      if (!this._overLimitNotified) {
+        this._overLimitNotified = true
+        wx.showToast({
+          title: `当前偏长，建议换大${this.data.sizeTermLabel}或减珠`,
+          icon: 'none',
+          duration: 2500
+        })
+      }
+    } else {
+      this._overLimitNotified = false
+    }
+
+    /** 绳圈渲染周长（纯渲染几何，非业务校验）：优先目标周长，随已排长度自适应放大 */
+    const defaultDiameter = this._template?.bead_rules?.default_diameter || 8
+    let trayCapacityMm: number
+    if (targetLengthMm > 0) {
+      trayCapacityMm = Math.max(targetLengthMm, Math.round(usedMm) + 10)
+    } else if (capacityLimited) {
+      trayCapacityMm = Math.max(capacityBeads * defaultDiameter, Math.round(usedMm) + 10)
+    } else {
+      trayCapacityMm = Math.max(150, Math.round(usedMm) + 20)
+    }
+
     this.setData({
       selectedBeads: nextSelected,
       costText,
-      beadCount: nextSelected.length,
-      lengthText: String(Math.round(usedMm)),
+      beadCount: count,
       capacityPercent: percent,
       isFull,
       nearFull,
       canSubmit,
       usedCountMap: countMap,
       capacityTip: isFull ? '已排满，删除珠子或换大尺码可继续' : '',
-      fillHint: this._buildFillHint(nextSelected, usedMm, capacityMm, isFull, percent),
+      fillHint: this._buildFillHint(nextSelected, capacityBeads, isFull),
       canUndo: this._histIndex > 0,
       canRedo: this._histIndex < this._history.length - 1,
       /** 数据源变化时组件会清空多选，这里同步复位批量删除栏 */
       selectedCount: 0,
-      /** 绳圈渲染周长：无容量规则时用渲染兜底值（纯 UI，不影响业务校验） */
-      trayCapacityMm: this.data.capacityLimited
-        ? this.data.capacityMm
-        : Math.max(150, Math.round(usedMm) + 20)
+      trayCapacityMm,
+      /* 长度/重量联动展示（估算值文案统一带"约"） */
+      showLengthRow: count > 0,
+      usedLengthText: count > 0 ? `约${(usedMm / 10).toFixed(1)}cm` : '',
+      targetLengthText: targetLengthMm > 0 ? `约${(targetLengthMm / 10).toFixed(1)}cm` : '',
+      lengthDiffText,
+      lengthOver,
+      weightText: weightStats.totalG > 0 ? `约${weightStats.totalG.toFixed(1)}g` : '',
+      physicalNote: noteParts.join('；')
     })
     this._refreshGroupCounts(countMap)
   },
 
   /**
-   * 生成实时数量反馈文案（结合后端 min_beads 规则与剩余容量的引导）。
+   * 生成实时数量反馈文案（结合后端 min_beads 规则与剩余可加颗数的引导，颗数制）。
    * @param beads 已选珠子
-   * @param usedMm 已用长度(mm)
-   * @param capacityMm 容量(mm)
+   * @param capacityBeads 当前尺码颗数容量（0=不限容）
    * @param isFull 是否已满
-   * @param percent 容量占用百分比
    * @returns 引导文案(空态/未达最少颗数/快满/已满各不同)
    */
-  _buildFillHint(
-    beads: any[],
-    usedMm: number,
-    capacityMm: number,
-    isFull: boolean,
-    percent: number
-  ): string {
+  _buildFillHint(beads: any[], capacityBeads: number, isFull: boolean): string {
     if (beads.length === 0) {
       return '从下方挑一颗珠子开始吧'
     }
@@ -1757,17 +2214,11 @@ Page({
     if (!this.data.capacityLimited) {
       return `已选 ${beads.length} 颗`
     }
-    if (percent >= 85) {
-      return '就快满了，再加一两颗即可'
+    const remainCount = capacityBeads - beads.length
+    if (remainCount <= 2) {
+      return `就快满了，还能再加 ${remainCount} 颗`
     }
-    const remainMm = capacityMm - usedMm
-    /** 用已选珠子平均直径估算还能放几颗(纯展示引导，非业务定量) */
-    const avgMm = usedMm / beads.length || 10
-    const remainCount = Math.floor(remainMm / avgMm)
-    if (remainCount <= 0) {
-      return '✓ 数量差不多了'
-    }
-    return `约还能再加 ${remainCount} 颗`
+    return `还能再加 ${remainCount} 颗`
   },
 
   /** 把已选数量写回当前 groups（供网格卡角标显示） */
@@ -1796,7 +2247,7 @@ Page({
   // ===== 本地草稿（编辑现场保护，与 diy-design 的 diyStore 本地缓存同策略） =====
 
   /**
-   * 保存草稿到本地（按模板隔离 + 7天TTL；存 material_code 列表 + 尺码）
+   * 保存草稿到本地（按模板隔离 + 7天TTL；存 material_code 列表 + 尺码 + 自定义手围毫米值）
    * 正式提交后由 _clearDraft 清除。
    */
   _saveDraft() {
@@ -1809,6 +2260,11 @@ Page({
       wx.setStorageSync(`${DRAFT_KEY_PREFIX}${this.data.templateId}`, {
         materialCodes: this.data.selectedBeads.map((b: any) => b.material_code),
         sizeLabel: this._selectedSizeLabel,
+        /** 自定义手围模式（label='custom'）需额外记手围毫米值，还原时重调 estimate 补齐口径 */
+        customWristMm:
+          this._selectedSizeLabel === 'custom' && this._customSize
+            ? Number(this._customSize.wrist_size_mm) || 0
+            : 0,
         updatedAt: now,
         expiresAt: now + DRAFT_TTL
       })
@@ -1836,7 +2292,10 @@ Page({
       if (restored.length === 0) {
         return
       }
-      if (draft.sizeLabel) {
+      if (draft.sizeLabel === 'custom' && Number(draft.customWristMm) > 0) {
+        /** 自定义手围草稿：异步重调 estimate 补齐目标长度（失败降级只展示已排长度，不阻塞还原） */
+        this._restoreCustomSize(Number(draft.customWristMm))
+      } else if (draft.sizeLabel) {
         this._selectedSizeLabel = draft.sizeLabel
         this._setupSizing()
       }
@@ -1875,8 +2334,46 @@ Page({
     }
   },
 
-  /** 已选珠子长度之和（mm，圆珠按直径累加，对齐 diyStore.totalDiameter） */
-  _usedLengthMm(beads: any[]): number {
-    return beads.reduce((sum, b) => sum + b.diameter, 0)
+  /**
+   * 已排长度统计（mm，长度联动权威口径，§11.8-3）:
+   * 直接累加后端 beads 接口下发的 cord_occupy_mm 派生字段（拍板 Q3），
+   * 前端不按形状分支推算（消除业务逻辑下沉，§13-3）；
+   * cord_occupy_mm 为 null 的素材不计入累加并计数（提示"部分素材信息完善中"，§10.5-2）。
+   * @param beads 已选珠子
+   * @returns totalMm 已排长度合计 / missingCount 缺沿绳占用数据的颗数
+   */
+  _lengthStats(beads: any[]): { totalMm: number; missingCount: number } {
+    let totalMm = 0
+    let missingCount = 0
+    beads.forEach(bead => {
+      const occupy = bead.cord_occupy_mm
+      if (typeof occupy === 'number' && occupy > 0) {
+        totalMm += occupy
+      } else {
+        missingCount += 1
+      }
+    })
+    return { totalMm, missingCount }
+  },
+
+  /**
+   * 累计重量统计（g，重量联动 §3.4）:
+   * 累加后端 weight 字段；weight 为 null 的素材不计入并计数（提示"部分素材暂无克重"），
+   * 前端不按体积估算兜底（避免与实物出入，§3.4）。
+   * @param beads 已选珠子
+   * @returns totalG 克重合计（1位小数原始值） / missingCount 缺克重的颗数
+   */
+  _weightStats(beads: any[]): { totalG: number; missingCount: number } {
+    let totalG = 0
+    let missingCount = 0
+    beads.forEach(bead => {
+      const beadWeight = bead.weight
+      if (typeof beadWeight === 'number' && beadWeight > 0) {
+        totalG += beadWeight
+      } else {
+        missingCount += 1
+      }
+    })
+    return { totalG, missingCount }
   }
 })

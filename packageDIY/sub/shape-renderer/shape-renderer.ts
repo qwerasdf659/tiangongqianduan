@@ -219,20 +219,21 @@ function drawGem(ctx: any, x: number, y: number, radius: number, color: string, 
   ctx.restore()
 }
 
-/** 绘制槽位轮廓（circle/oval/square/rectangle） */
-function drawSlotOutline(ctx: any, shape: string, x: number, y: number, w: number, h: number) {
+/**
+ * 绘制槽位轮廓（对接文档 11.7-4: 后端标注器无 slot_shape 字段，
+ * 按 width/height 像素比例画椭圆——两值相等即为正圆，支持绕中心旋转）
+ * @param rotationRad 槽位旋转弧度（slot_definitions[].rotation 度数换算，0 不旋转）
+ */
+function drawSlotOutline(
+  ctx: any,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  rotationRad: number = 0
+) {
   ctx.beginPath()
-  switch (shape) {
-    case 'oval':
-      ctx.ellipse(x, y, w / 2, h / 2, 0, 0, Math.PI * 2)
-      break
-    case 'square':
-    case 'rectangle':
-      ctx.rect(x - w / 2, y - h / 2, w, h)
-      break
-    default:
-      ctx.arc(x, y, Math.min(w, h) / 2, 0, Math.PI * 2)
-  }
+  ctx.ellipse(x, y, w / 2, h / 2, rotationRad, 0, Math.PI * 2)
   ctx.stroke()
 }
 
@@ -541,24 +542,27 @@ Component({
 
     /**
      * 从模板数据中提取底图 URL
-     * 降级链: base_image_media.thumbnails.large → base_image_media.public_url → 空
+     * 降级链（对接文档 11.7-1，后端衍生图档位 w375/w750/w1080）:
+     *   base_image_media.thumbnails.w750 → base_image_media.public_url → 空
      */
     _getBaseImageUrl(template: API.DiyTemplate): string {
       const media = (template as any).base_image_media
       if (media) {
-        return media.thumbnails?.large || media.public_url || ''
+        return media.thumbnails?.w750 || media.public_url || ''
       }
       return ''
     },
 
     /**
-     * 获取珠子图片 URL
-     * 降级链: image_media.thumbnails.medium → image_media.public_url → 空
+     * 获取珠子/宝石图片 URL
+     * 降级链（对接文档 11.7-1）: 镶嵌宝石图 thumbnails.w750 → public_url；
+     * 串珠珠子小图 thumbnails.w375 → public_url（画布上直径仅数十px，w375 足够清晰）
+     * @param variant 档位: 'w750'（镶嵌宝石）/ 'w375'（串珠珠子）
      */
-    _getBeadImageUrl(bead: any): string {
+    _getBeadImageUrl(bead: any, variant: 'w375' | 'w750' = 'w375'): string {
       const media = bead.image_media
       if (media) {
-        return media.thumbnails?.medium || media.public_url || ''
+        return (media.thumbnails && media.thumbnails[variant]) || media.public_url || ''
       }
       return ''
     },
@@ -605,7 +609,8 @@ Component({
       slotW?: number,
       slotH?: number
     ): boolean {
-      const url = this._getBeadImageUrl(bead)
+      /** 档位选择：镶嵌宝石图（有槽位尺寸）用 w750，串珠珠子小图用 w375（对接文档 11.7-1） */
+      const url = this._getBeadImageUrl(bead, slotW && slotH ? 'w750' : 'w375')
       if (!url) {
         return false
       }
@@ -841,9 +846,12 @@ Component({
     /**
      * 绘制槽位覆盖层（空槽位轮廓 / 已填宝石 / 激活高亮）
      *
-     * 后端坐标语义（归一化 0~1，相对于底图原始尺寸）:
+     * 后端坐标语义（归一化 0~1，相对于底图原始尺寸，对接文档 10.3.1/11.7-4）:
      *   slot.x / slot.y   — 槽位【中心点】坐标
-     *   slot.width / slot.height — 槽位宽高
+     *   slot.width / slot.height — 槽位宽高（分母分别为底图宽/高）
+     *   slot.rotation     — 旋转角度（度，绕槽位中心），标注器输出
+     *   slot.render_diameter — 渲染直径(mm)：有值时宝石按"素材直径/render_diameter"等比渲染
+     *                          （render_diameter 即恰好填满槽位的毫米直径）；null 拉伸填满槽位
      *
      * 像素坐标转换:
      *   中心点 = (ox + slot.x * drawW, oy + slot.y * drawH)
@@ -868,22 +876,46 @@ Component({
         /* 槽位像素尺寸 */
         const sw = slot.width * drawW
         const sh = slot.height * drawH
+        /* 槽位旋转（度 → 弧度，绕槽位中心；标注器未设置时为 0 不旋转） */
+        const rotationRad = slot.rotation ? (slot.rotation * Math.PI) / 180 : 0
         const gem = fillings[slot.slot_id]
         if (gem) {
-          /* 已填入宝石 — 以中心点为基准绘制 */
-          const fillRadius = Math.min(sw, sh) / 2
-          const drawnImage = this._drawBeadImage(ctx, gem, centerX, centerY, fillRadius, sw, sh)
+          /**
+           * 宝石绘制尺寸（render_diameter 等比模式，对接文档 11.7-4）:
+           * render_diameter 有值且宝石有直径时，按 mm 比例缩放（素材直径/render_diameter），
+           * 宝石居中放置在槽位区域内；否则拉伸填满整个槽位
+           */
+          let gemW = sw
+          let gemH = sh
+          if (slot.render_diameter && slot.render_diameter > 0 && gem.diameter > 0) {
+            const scaleRatio = gem.diameter / slot.render_diameter
+            gemW = sw * scaleRatio
+            gemH = sh * scaleRatio
+          }
+
+          /* 旋转槽位：绕中心旋转画布后绘制宝石，保持与底图上的斜向槽位对齐 */
+          if (rotationRad) {
+            ctx.save()
+            ctx.translate(centerX, centerY)
+            ctx.rotate(rotationRad)
+            ctx.translate(-centerX, -centerY)
+          }
+          const fillRadius = Math.min(gemW, gemH) / 2
+          const drawnImage = this._drawBeadImage(ctx, gem, centerX, centerY, fillRadius, gemW, gemH)
           if (!drawnImage) {
             const color = getGemColor(gem)
             drawGem(ctx, centerX, centerY, fillRadius, color, gem.shape || 'circle')
           }
+          if (rotationRad) {
+            ctx.restore()
+          }
         } else {
-          /* 空槽位: 虚线轮廓 + "+" 提示 */
+          /* 空槽位: 虚线椭圆轮廓（按 width/height 比例，含旋转）+ "+" 提示 */
           ctx.save()
           ctx.setLineDash([4, 4])
           ctx.strokeStyle = '#9CA3AF'
           ctx.lineWidth = 1.5
-          drawSlotOutline(ctx, slot.slot_shape || 'circle', centerX, centerY, sw, sh)
+          drawSlotOutline(ctx, centerX, centerY, sw, sh, rotationRad)
           ctx.restore()
           ctx.fillStyle = '#9CA3AF'
           ctx.font = `${Math.min(sw, sh) * 0.4}px sans-serif`
@@ -892,13 +924,13 @@ Component({
           ctx.fillText('+', centerX, centerY)
         }
 
-        /* 激活槽位高亮（品牌橙色实线边框） */
+        /* 激活槽位高亮（品牌绿色实线边框，含旋转） */
         if (slot.slot_id === activeId) {
           ctx.save()
           ctx.strokeStyle = '#5B7A5E'
           ctx.lineWidth = 2.5
           ctx.setLineDash([])
-          drawSlotOutline(ctx, slot.slot_shape || 'circle', centerX, centerY, sw + 4, sh + 4)
+          drawSlotOutline(ctx, centerX, centerY, sw + 4, sh + 4, rotationRad)
           ctx.restore()
         }
         slotPositions.push({ x: centerX, y: centerY, w: sw, h: sh, slotId: slot.slot_id })

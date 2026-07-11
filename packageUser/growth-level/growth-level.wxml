@@ -30,45 +30,126 @@
 
     <!-- 成长等级内容 -->
     <block wx:else>
-      <!-- 当前等级卡片 -->
-      <view class="current-card">
-        <view class="current-badge">
-          <t-icon name="star-filled" size="64rpx" color="#C5A572" />
+      <!-- 当前等级卡片（hero-{level_key} 按等级主题化配色，v1~v9 各有材质色） -->
+      <view class="current-card hero-{{currentLevelKey}}">
+        <!-- 装饰光斑（Skyline 不支持伪元素，用真实节点实现） -->
+        <view class="hero-decor hero-decor-top"></view>
+        <view class="hero-decor hero-decor-bottom"></view>
+        <view class="current-badge badge-{{currentLevelKey}}">
+          <t-icon name="user-vip-filled" size="60rpx" color="#FFFFFF" />
         </view>
         <text class="current-level-name">{{currentLevelName || '暂无等级'}}</text>
+        <!-- 等级序号（来自后端 levels[] 数组位置，纯展示） -->
+        <text class="current-level-index" wx:if="{{currentLevelIndex > 0}}"
+          >第 {{currentLevelIndex}} 级 · 共 {{levels.length}} 级</text
+        >
+        <!-- 等级位置指示点：filled 数量 = 当前序号 -->
+        <view class="level-dots" wx:if="{{levels.length > 0}}">
+          <view
+            class="level-dot {{index < currentLevelIndex ? 'level-dot-filled' : ''}}"
+            wx:for="{{levels}}"
+            wx:key="levelKey"
+          ></view>
+        </view>
         <view class="current-points">
           <text class="current-points-num">{{historyTotalPoints}}</text>
           <text class="current-points-unit">累计积分</text>
+        </view>
+        <!-- 升级进度条（仅 UI 可视化，数字文案以后端 next_level 差值为准） -->
+        <view class="progress-track" wx:if="{{progressPercent >= 0}}">
+          <view class="progress-fill" style="width: {{progressPercent}}%"></view>
         </view>
         <!-- 升级提示（后端 next_level 差值字段，顶档不下发则不展示） -->
         <view class="next-level-hint" wx:if="{{nextLevelText}}">
           <t-icon name="arrow-up-circle" size="28rpx" color="#C5A572" />
           <text class="next-level-hint-text">{{nextLevelText}}</text>
         </view>
+        <!-- 顶档荣耀提示（levels[] 末位即当前等级时展示） -->
+        <view class="next-level-hint top-level-hint" wx:if="{{isTopLevel}}">
+          <t-icon name="verified-filled" size="28rpx" color="#B8860B" />
+          <text class="next-level-hint-text top-level-hint-text">已达最高等级</text>
+        </view>
       </view>
 
-      <!-- 等级阶梯 -->
+      <!-- 等级阶梯（奖章时间轴：medal-{level_key} 按等级材质配色，未达档位锁定置灰） -->
       <view class="ladder-section" wx:if="{{levels.length > 0}}">
-        <text class="section-title">等级阶梯</text>
+        <view class="section-title-row">
+          <text class="section-title">等级阶梯</text>
+          <text class="section-subtitle">共 {{levels.length}} 级</text>
+        </view>
         <view class="ladder-list">
           <view
             class="ladder-item {{item.isCurrent ? 'ladder-current' : ''}} {{item.isReached ? 'ladder-reached' : ''}}"
             wx:for="{{levels}}"
             wx:key="levelKey"
           >
-            <view class="ladder-dot-wrap">
-              <view class="ladder-dot"></view>
+            <view class="ladder-rail">
+              <view
+                class="ladder-medal medal-{{item.levelKey}} {{item.isReached ? '' : 'medal-locked'}}"
+              >
+                <t-icon
+                  wx:if="{{item.isReached}}"
+                  name="user-vip-filled"
+                  size="26rpx"
+                  color="#FFFFFF"
+                />
+                <t-icon wx:else name="lock-on-filled" size="22rpx" color="#BBBBBB" />
+              </view>
               <view class="ladder-line" wx:if="{{index < levels.length - 1}}"></view>
             </view>
             <view class="ladder-body">
-              <view class="ladder-name-row">
-                <text class="ladder-name">{{item.levelName}}</text>
-                <text class="ladder-current-tag" wx:if="{{item.isCurrent}}">当前等级</text>
+              <view class="ladder-row-card">
+                <view class="ladder-text-col">
+                  <view class="ladder-name-row">
+                    <text class="ladder-name">{{item.levelName}}</text>
+                    <text class="ladder-current-tag" wx:if="{{item.isCurrent}}">当前等级</text>
+                  </view>
+                  <text class="ladder-threshold" wx:if="{{item.thresholdText}}"
+                    >{{item.thresholdText}}</text
+                  >
+                </view>
+                <t-icon
+                  wx:if="{{item.isReached && !item.isCurrent}}"
+                  name="check-circle-filled"
+                  size="32rpx"
+                  color="#C5A572"
+                />
               </view>
-              <text class="ladder-threshold" wx:if="{{item.thresholdText}}"
-                >{{item.thresholdText}}</text
-              >
             </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 成长规则说明（文案依据已拍板业务决议：拍板① 1元≈1积分、拍板⑦ 等级终身有效只增不减） -->
+      <view class="rules-section">
+        <view class="section-title-row">
+          <text class="section-title">成长规则</text>
+        </view>
+        <view class="rule-item">
+          <view class="rule-icon-wrap">
+            <t-icon name="wallet" size="32rpx" color="#C5A572" />
+          </view>
+          <view class="rule-text-col">
+            <text class="rule-title">消费积累成长值</text>
+            <text class="rule-desc">在店内消费即可累计积分，1 元约等于 1 积分</text>
+          </view>
+        </view>
+        <view class="rule-item">
+          <view class="rule-icon-wrap">
+            <t-icon name="chart-bar" size="32rpx" color="#C5A572" />
+          </view>
+          <view class="rule-text-col">
+            <text class="rule-title">等级只升不降</text>
+            <text class="rule-desc">成长等级由累计积分决定，终身有效、只增不减</text>
+          </view>
+        </view>
+        <view class="rule-item">
+          <view class="rule-icon-wrap">
+            <t-icon name="gift" size="32rpx" color="#C5A572" />
+          </view>
+          <view class="rule-text-col">
+            <text class="rule-title">等级越高权益越多</text>
+            <text class="rule-desc">升级解锁更多会员权益，详情以平台公示为准</text>
           </view>
         </view>
       </view>

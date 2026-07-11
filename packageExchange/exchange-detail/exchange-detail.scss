@@ -1,6 +1,8 @@
 /* Skyline 页面级滚动容器 — 必须在 flex-column 父容器中占满剩余高度 */
 .page-scroll-view {
   flex: 1;
+  /* Skyline: 缺 min-height:0 时 scroll-view 被内容撑高超出屏幕，内部无溢出而无法滚动 */
+  min-height: 0;
   overflow: hidden;
 }
 

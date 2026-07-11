@@ -25,6 +25,14 @@ const log = Logger.createLogger('diy-result')
 
 /* ===== 海报 UI 常量（代码写死，无需后端提供） ===== */
 
+/**
+ * DIY 小程序码功能开关（拍板⑦，对接文档 13.1-C/13.3-6）:
+ * 后端 GET /diy/works/:id/qrcode 已实现，但 wxacode.getUnlimited 依赖小程序首次提审
+ * 发布 diy-lite 页面路径后才能生成——提审前隐藏二维码入口（海报底部画降级占位，
+ * 不请求接口）；提审通过后置 true 即启用，其余代码零改动。
+ */
+const DIY_QRCODE_ENABLED = false
+
 /** 海报尺寸（px，@2x 高清） */
 const POSTER_WIDTH = 750
 const POSTER_HEIGHT = 1334
@@ -464,6 +472,7 @@ Page({
    * 支付面板确认回调 — 执行冻结操作（draft → frozen）
    * 后端API: POST /api/v4/diy/works/:id/confirm
    * 携带 payments 数组（从支付面板组件 triggerEvent 传入）
+   * 失败时按后端业务错误码（响应顶层 code）做引导（手围驱动方案 §11.4/§16.3-5 四个校验错误码）
    */
   async onPaymentConfirm(e: WechatMiniprogram.CustomEvent) {
     const payments = e.detail.payments as API.DiyTotalCostItem[]
@@ -483,11 +492,76 @@ Page({
         this.setData({ processing: false })
         wx.showToast({ title: res.message || '确认失败', icon: 'none' })
       }
-    } catch (_err) {
+    } catch (confirmError: any) {
       wx.hideLoading()
       this.setData({ processing: false })
-      wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+      this._handleConfirmError(confirmError)
     }
+  },
+
+  /**
+   * confirm 硬校验错误码引导（拍板 Q4：后端拦截 + 前端错误码引导，§11.4/§16.3-5）
+   *
+   * 错误码位于响应顶层 code（apiClient 已映射到 error.code），毫米/颗数明细在 error.data，
+   * 前端用其拼引导文案（单位 mm ÷10 展示 cm，估算文案带"约"，§7-1）：
+   *   DIY_LENGTH_EXCEED_LIMIT    → 偏长，建议换大手围或减珠
+   *   DIY_LENGTH_BELOW_MIN       → 偏短，建议加珠或换小手围
+   *   DIY_BEAD_COUNT_OUT_OF_RANGE → 颗数超出允许范围
+   *   DIY_MATERIAL_SIZE_MISSING  → 素材信息完善中，暂不可用
+   * 其余错误按后端 message 如实提示。
+   *
+   * @param confirmError - apiClient 抛出的 ApiError（含 code/statusCode/data）
+   */
+  _handleConfirmError(confirmError: any) {
+    const errorCode: string = confirmError?.code || ''
+    const errorData: any = confirmError?.data || {}
+    /** mm → "约X.Xcm" 文案（明细缺失时返回空串，不编造数值） */
+    const toCm = (mm: any): string => (Number(mm) > 0 ? `约${(Number(mm) / 10).toFixed(1)}cm` : '')
+
+    let guideContent = ''
+    if (errorCode === 'DIY_LENGTH_EXCEED_LIMIT') {
+      const current = toCm(errorData.current_length_mm)
+      const max = toCm(errorData.max_length_mm)
+      guideContent =
+        current && max
+          ? `当前串长${current}，超出该手围可制作上限（${max}）。建议换大一号手围，或减少珠子后重试。`
+          : '成品长度超出该手围可制作上限。建议换大一号手围，或减少珠子后重试。'
+    } else if (errorCode === 'DIY_LENGTH_BELOW_MIN') {
+      const current = toCm(errorData.current_length_mm)
+      const min = toCm(errorData.min_length_mm)
+      guideContent =
+        current && min
+          ? `当前串长${current}，低于最小可制作长度（${min}）。建议增加珠子，或换小一号手围后重试。`
+          : '成品长度低于最小可制作长度。建议增加珠子，或换小一号手围后重试。'
+    } else if (errorCode === 'DIY_BEAD_COUNT_OUT_OF_RANGE') {
+      const { bead_count: beadCount, min_beads: minBeads, max_beads: maxBeads } = errorData
+      guideContent =
+        beadCount && (minBeads || maxBeads)
+          ? `当前 ${beadCount} 颗珠子超出该款式允许范围（${minBeads || 1}~${maxBeads || '不限'} 颗），请返回调整数量。`
+          : '珠子颗数超出该款式允许范围，请返回调整数量。'
+    } else if (errorCode === 'DIY_MATERIAL_SIZE_MISSING') {
+      guideContent =
+        '部分素材的尺寸信息正在完善中，暂时无法精确校验成品长度。请更换这些素材后重试。'
+    }
+
+    if (guideContent) {
+      wx.showModal({
+        title: '设计需要调整',
+        content: guideContent,
+        confirmText: '返回调整',
+        cancelText: '知道了',
+        confirmColor: '#5B7A5E',
+        success: modalRes => {
+          if (modalRes.confirm) {
+            /** 返回设计页调整（diy-lite/diy-design 均为上一页） */
+            wx.navigateBack()
+          }
+        }
+      })
+      return
+    }
+    /** 非校验类错误：按后端 message 如实提示（confirmDiyWork 已关闭客户端通用 toast） */
+    wx.showToast({ title: confirmError?.message || '网络异常，请重试', icon: 'none' })
   },
 
   /**
@@ -767,11 +841,17 @@ Page({
 
         /*
          * 小程序码（200x200）
-         * 调用 GET /api/v4/diy/works/:id/qrcode 获取小程序码图片URL
-         * 若后端接口未开通，前端明确提示并显示占位区，不生成伪二维码
+         * 调用 GET /api/v4/diy/works/:id/qrcode 获取小程序码图片URL（后端已实现，13.1-C）
+         * DIY_QRCODE_ENABLED=false（提审前，拍板⑦）时不请求接口、直接画降级占位；
+         * 接口异常时也不生成伪二维码，占位区如实提示
          */
         let qrcodeDrawn = false
         try {
+          if (!DIY_QRCODE_ENABLED) {
+            throw Object.assign(new Error('小程序码待小程序提审后启用'), {
+              code: 'DIY_QRCODE_DISABLED_BEFORE_REVIEW'
+            })
+          }
           const qrcodeRes = await API.getDiyWorkQrcode(this.data.workId)
           if (qrcodeRes?.data?.qrcode_url) {
             /* 下载小程序码图片到本地临时路径 */
@@ -805,8 +885,10 @@ Page({
             }
           }
         } catch (qrcodeError: any) {
-          /* 小程序码获取失败不阻塞海报生成，明确区分接口未开通与普通下载失败 */
-          if (qrcodeError?.code === 'DIY_QRCODE_API_UNAVAILABLE') {
+          /* 小程序码获取失败不阻塞海报生成，明确区分提审前禁用/接口未开通/普通下载失败 */
+          if (qrcodeError?.code === 'DIY_QRCODE_DISABLED_BEFORE_REVIEW') {
+            log.info('小程序码入口提审前隐藏（拍板⑦），海报使用占位提示')
+          } else if (qrcodeError?.code === 'DIY_QRCODE_API_UNAVAILABLE') {
             wx.showToast({ title: '小程序码接口未开通', icon: 'none' })
           } else {
             log.warn('海报小程序码获取失败，使用占位提示')

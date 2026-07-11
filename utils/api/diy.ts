@@ -5,8 +5,8 @@
  * 后端服务: DIYService.js (1345行)
  * 后端表: diy_templates(7条) + diy_works(0条) + diy_materials(61条)
  *
- * 接口清单（用户端12个 + 海报1个）:
- *   模板: GET templates / GET templates/:id
+ * 接口清单（用户端13个 + 海报1个）:
+ *   模板: GET templates / GET templates/:id / GET templates/:id/estimate（手围算珠）
  *   材料: GET templates/:id/payment-assets / GET templates/:id/beads / GET material-groups
  *   作品: GET works / GET works/:id / POST works / DELETE works/:id
  *   流程: POST works/:id/confirm / POST works/:id/complete / POST works/:id/cancel
@@ -34,7 +34,11 @@ const DIY_QRCODE_UNAVAILABLE_MESSAGE =
  * GET /api/v4/diy/templates?category_id=xxx
  *
  * 后端逻辑: DiyTemplate.findAll({ where: { status: 'published', is_enabled: 1 } })
- * 支持按 category_id 筛选（手链191/项链192/戒指193/吊坠194）
+ * 支持按 category_id 筛选（手链191/项链192/戒指193/吊坠194/耳饰291/手机链包挂292/108佛珠293，
+ * 291~293 为 seeder 实际落库 ID，对接文档 13.1-F）
+ *
+ * 媒体字段（preview_media/base_image_media）经后端 toSafeJSON 收敛为 5 字段最小集
+ * { media_id, width, height, public_url, thumbnails:{w375,w750,w1080} }（对接文档 13.1-D）
  *
  * @param categoryId - 可选，分类ID用于筛选（对应categories表的DIY子分类）
  * @returns 模板列表（含layout/bead_rules/sizing_rules/capacity_rules等完整配置）
@@ -63,6 +67,35 @@ async function getDiyTemplateById(templateId: number): Promise<API.ApiResponse<A
 // ========== 材料相关 ==========
 
 /**
+ * 手围算珠估算（后端权威换算，拍板 Q2 方案甲，手围驱动方案 §11.3）
+ * GET /api/v4/diy/templates/:id/estimate?wrist_size_mm=150&diameter=8
+ *
+ * 后端逻辑: TemplateService.estimateBeadCount —
+ *   target_length_mm 优先取 size_options 中 wrist_size_mm 完全匹配档位的配置值，
+ *   否则 = wrist_size_mm + elastic_margin_mm；
+ *   recommend_bead_count = round(target_length_mm / diameter)，并按 capacity_rules 收敛。
+ * 换算规则收敛在后端一处，前端不写换算公式（§11.8-2）。
+ *
+ * 公开接口（与模板查询一致无需登录）；所有长度字段单位为毫米，展示层 ÷10 保留 1 位小数。
+ * 项链模板: 把用户所选佩戴长度毫米值作为 wrist_size_mm 传入（后端按 target_length_mm 命中档位，§16.3-4）。
+ *
+ * 业务错误码（响应顶层 code）: DIY_TEMPLATE_NOT_BEADING / DIY_SIZING_RULES_MISSING
+ *
+ * @param templateId - 模板主键 diy_template_id
+ * @param params - 估算参数（wrist_size_mm 手围毫米值 / diameter 主珠径毫米值）
+ */
+async function getDiyEstimate(
+  templateId: number,
+  params: { wrist_size_mm: number; diameter: number }
+): Promise<API.ApiResponse<API.DiyEstimateResult>> {
+  const query = `wrist_size_mm=${params.wrist_size_mm}&diameter=${params.diameter}`
+  return apiClient.request(`/diy/templates/${templateId}/estimate?${query}`, {
+    method: 'GET',
+    needAuth: false
+  })
+}
+
+/**
  * 获取用户支付资产余额（需登录）
  * GET /api/v4/diy/templates/:id/payment-assets
  *
@@ -82,28 +115,44 @@ async function getDiyPaymentAssets(
 }
 
 /**
- * 获取模板可用的实物珠子/宝石素材列表
+ * 获取模板可用的实物珠子/宝石/配饰/吊坠素材列表
  * GET /api/v4/diy/templates/:id/beads
  *
- * 后端逻辑: 按模板的 material_group_codes 过滤 diy_materials 表
- * 返回实物珠子商品信息: material_code, display_name, group_code, diameter, shape, price等
+ * 后端逻辑: 按模板的 material_group_codes 过滤 diy_materials 表（返回数组、无分页、上限 200 条）
+ * 返回实物素材商品信息（对接文档 13.1-A/D）:
+ *   基础: material_code / display_name / group_code / diameter / shape / price / price_asset_code
+ *   库存: stock 掩码三值 -1无限 / 0售罄 / 1有货（拍板③，勿依赖精确数量）
+ *   大类: item_type（beads珠子/accessories配饰/pendants吊坠，素材类型 Tab 数据源）
+ *   展示: material_type / five_elements / weight / meaning / energy / pairing
+ *   异形珠几何: size_length_mm / size_width_mm / bore_orientation
+ *   图片: image_media 经 toSafeJSON 收敛为 5 字段最小集（降级链 thumbnails.w750/w375 → public_url）
  *
  * 查询参数:
+ *   item_type  — 素材大类过滤：beads / accessories / pendants（默认不传返回全部大类，11.5-B）
  *   slot_id    — 传入槽位 ID 后，后端自动按该槽位的 allowed_diameters 过滤
  *   group_code — 按颜色分组筛选：red/orange/yellow/green/blue/purple
  *   diameter   — 按直径筛选（mm）
  *   keyword    — 关键词搜索
  *
  * @param templateId - 模板主键 diy_template_id
- * @param params - 可选查询参数（slot_id / group_code / diameter / keyword）
+ * @param params - 可选查询参数（item_type / slot_id / group_code / diameter / keyword）
  */
 async function getDiyTemplateBeads(
   templateId: number,
-  params?: { slot_id?: string; group_code?: string; diameter?: number; keyword?: string }
+  params?: {
+    item_type?: string
+    slot_id?: string
+    group_code?: string
+    diameter?: number
+    keyword?: string
+  }
 ): Promise<API.ApiResponse<API.DiyBead[]>> {
   let url = `/diy/templates/${templateId}/beads`
   if (params) {
     const queryParts: string[] = []
+    if (params.item_type) {
+      queryParts.push(`item_type=${encodeURIComponent(params.item_type)}`)
+    }
     if (params.slot_id) {
       queryParts.push(`slot_id=${encodeURIComponent(params.slot_id)}`)
     }
@@ -161,7 +210,12 @@ async function getDiyWorks(): Promise<API.ApiResponse<API.DiyWork[]>> {
  * GET /api/v4/diy/works/:id
  *
  * 返回完整作品数据: 含 template（完整layout/rules）+ design_data + total_cost + preview_media
- * 分享还原时他人打开可直接加载设计方案
+ *
+ * 非作者只读（拍板②，对接文档 13.1-E）:
+ *   仅 status IN ('frozen','completed') 的作品可被非作者读取（草稿/已取消返回 403），仍要求登录；
+ *   非作者拿到的是脱敏版（去 account_id / idempotency_key / total_cost.price_snapshot，
+ *   保留 payments 汇总 + design_data / work_name / template，媒体字段 toSafeJSON 5 字段最小集）
+ *   → 分享还原场景：好友打开 workId 链接可直接加载设计方案；草稿分享仍 403，落地页兜底
  *
  * @param workId - 作品主键 diy_work_id
  */
@@ -210,15 +264,15 @@ async function deleteDiyWork(workId: number): Promise<API.ApiResponse<void>> {
  * 获取作品小程序码图片URL（海报生成用）
  * GET /api/v4/diy/works/:id/qrcode
  *
- * 后端逻辑: 调用微信 wxacode.getUnlimited 生成小程序码
- *          → 上传 Sealos 对象存储 → 返回图片URL
- *
- * 小程序码扫码后路径: /packageDIY/diy-lite/diy-lite?workId={diy_work_id}
- * ⚠️ 路径约定已从 diy-design 切换为 diy-lite（2026-07-10），需后端生成小程序码时同步使用新路径
+ * 后端逻辑（对接文档 13.1-C，已实现）: 作者校验 → Sealos 确定性路径缓存命中检查 →
+ *   未命中调微信 wxacode.getUnlimited（scene=diy_work_id={id}，page=packageDIY/diy-lite/diy-lite）
+ *   → 上传 Sealos 回 URL。仅 frozen/completed 作品可生成。
  *
  * 返回: { qrcode_url: string }
  *
- * ⚠️ 此接口需后端实现（当前后端尚未提供，前端已对接调用逻辑）
+ * ⚠️ 可用性依赖小程序首次提审发布页面路径（拍板⑦）:
+ *   提审前 wxacode 生成会失败，前端按 DIY_QRCODE_ENABLED 常量隐藏二维码入口（diy-result），
+ *   提审通过后置 true 即启用，本方法零改动
  *
  * @param workId - 作品主键 diy_work_id
  */
@@ -248,12 +302,20 @@ async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcod
  * POST /api/v4/diy/works/:id/confirm
  *
  * 后端逻辑:
+ *   0. 冻结前设计约束硬校验 _validateDesignConstraints（颗数兜底 + 长度校验，拍板 Q4，§11.4）
  *   1. 根据 design_data 查 diy_materials 当前价格计算 total_price
  *   2. 校验 payments 总额覆盖 total_price
  *   3. 事务内逐项 BalanceService.freeze → 更新状态为 frozen
  *   4. 生成 total_cost 快照保存到 diy_works
  *
  * 返回: { diy_work_id, status: 'frozen', frozen_at }
+ *
+ * 业务错误码（HTTP 400，错误码在响应顶层 code 字段，data 内带毫米/颗数明细，§16.3-5）:
+ *   DIY_BEAD_COUNT_OUT_OF_RANGE — 颗数超出 capacity_rules 范围，data: { bead_count, min_beads, max_beads }
+ *   DIY_LENGTH_EXCEED_LIMIT    — 成品长度超上限，data: { current_length_mm, target_length_mm, max_length_mm }
+ *   DIY_LENGTH_BELOW_MIN       — 成品长度低于下限，data: { current_length_mm, min_length_mm }
+ *   DIY_MATERIAL_SIZE_MISSING  — 素材物理数据不完整无法精确校验，data: { material_codes: [...] }
+ * showError:false — 错误展示由调用方（diy-result 页）按错误码做引导文案，不走客户端通用 toast
  *
  * @param workId - 作品主键 diy_work_id
  * @param payments - 支付明细（按 asset_code 分组，每项指定用哪种资产支付多少）
@@ -264,7 +326,8 @@ async function confirmDiyWork(
 ): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
   return apiClient.request(`/diy/works/${workId}/confirm`, {
     method: 'POST',
-    data: { payments }
+    data: { payments },
+    showError: false
   })
 }
 
@@ -315,6 +378,7 @@ module.exports = {
   /* 模板 */
   getDiyTemplates,
   getDiyTemplateById,
+  getDiyEstimate,
   /* 材料 */
   getDiyPaymentAssets,
   getDiyTemplateBeads,

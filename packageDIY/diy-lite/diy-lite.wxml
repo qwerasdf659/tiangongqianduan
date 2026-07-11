@@ -38,6 +38,7 @@
           </view>
         </view>
       </view>
+      <!-- 容量进度条（颗数兜底防呆，拍板 Q1：已选颗数 / 当前尺码 bead_count） -->
       <block wx:if="{{capacityLimited}}">
         <view class="capacity-bar {{isFull ? 'capacity-bar-shake' : ''}}">
           <view
@@ -46,10 +47,23 @@
           ></view>
         </view>
         <text class="capacity-text"
-          >已排 {{lengthText}}/{{capacityMm}}mm{{capacityTip ? ' · ' + capacityTip : ''}}</text
+          >已排 {{beadCount}}/{{capacityBeads}} 颗{{capacityTip ? ' · ' + capacityTip : ''}}</text
         >
       </block>
-      <!-- 实时数量引导文案（结合后端 min_beads 与剩余容量） -->
+      <!-- 长度/重量实时联动（手围驱动 §3.3/§3.4：已排/目标/差值 + 累计克重，估算值统一带"约"） -->
+      <view class="length-row" wx:if="{{!isSlotMode && showLengthRow}}">
+        <text class="length-item">已排 {{usedLengthText}}</text>
+        <text class="length-item" wx:if="{{targetLengthText}}">目标 {{targetLengthText}}</text>
+        <text
+          class="length-item {{lengthOver ? 'length-item-over' : 'length-item-diff'}}"
+          wx:if="{{lengthDiffText}}"
+          >{{lengthDiffText}}</text
+        >
+        <text class="length-item" wx:if="{{weightText}}">{{weightText}}</text>
+      </view>
+      <!-- 物理数据不完整的如实标注（§7-4：不编造默认值、不参与精确计算，文案由 TS 预计算） -->
+      <text class="length-note" wx:if="{{!isSlotMode && physicalNote}}">{{physicalNote}}</text>
+      <!-- 实时数量引导文案（结合后端 min_beads 与剩余可加颗数） -->
       <text class="fill-hint {{isFull || nearFull ? 'fill-hint-highlight' : ''}}"
         >{{fillHint}}</text
       >
@@ -184,16 +198,16 @@
         </view>
       </view>
       <!-- 素材提示条（可关闭，对齐旧版工作台"长按材料可查看实拍图"） -->
-      <view class="material-tip" wx:if="{{showMaterialTip && activeMaterialType === 'beads'}}">
-        <text class="material-tip-text">💡 长按珠子可查看详情大图</text>
+      <view class="material-tip" wx:if="{{showMaterialTip}}">
+        <text class="material-tip-text">💡 长按素材可查看详情大图</text>
         <view class="material-tip-close" bindtap="onCloseMaterialTip">
           <text class="material-tip-close-text">×</text>
         </view>
       </view>
-      <view class="search-bar" wx:if="{{activeMaterialType === 'beads'}}">
+      <view class="search-bar">
         <input
           class="search-input"
-          placeholder="搜索珠子名称"
+          placeholder="搜索素材名称"
           value="{{keyword}}"
           bindinput="onSearchInput"
           confirm-type="search"
@@ -204,13 +218,13 @@
       </view>
 
       <view class="panel-body">
-        <!-- 左侧竖分类（仅饰品Tab有分类，来自后端珠子 group_code 聚合） -->
+        <!-- 左侧竖分类（按当前素材大类下的 group_code 聚合，来自后端素材数据） -->
         <scroll-view
           class="cat-side"
           scroll-y
           enhanced
           show-scrollbar="{{false}}"
-          wx:if="{{activeMaterialType === 'beads'}}"
+          wx:if="{{categories.length > 0}}"
         >
           <view
             wx:for="{{categories}}"
@@ -340,7 +354,7 @@
     </view>
   </view>
 
-  <!-- 尺码选择弹窗（底部半屏，选项来自后端 sizing_rules.size_options） -->
+  <!-- 尺码/手围选择弹窗（底部半屏；档位来自后端 sizing_rules.size_options，手围驱动 §3.1） -->
   <view
     class="sheet-mask"
     wx:if="{{sizeVisible}}"
@@ -348,20 +362,73 @@
     catchtouchmove="onCloseSize"
   >
     <view class="wrist-card wrist-card-sheet" catchtap="">
-      <text class="wrist-title">选择尺码</text>
+      <text class="wrist-title">选择{{sizeTermLabel}}尺码</text>
+      <!-- 测量引导入口（前端静态图文，跳转教程"量手围"Tab，§3.1） -->
+      <view class="wrist-measure-link" catchtap="onOpenMeasureGuide">
+        <text class="wrist-measure-link-text">不确定{{sizeTermLabel}}？查看测量方法 ›</text>
+      </view>
       <view class="wear-options size-options">
         <view
           wx:for="{{sizeOptions}}"
           wx:key="label"
-          class="wear-item {{sizeIndex === index ? 'wear-item-active' : ''}}"
+          class="wear-item wear-item-column {{!customSizeActive && sizeIndex === index ? 'wear-item-active' : ''}}"
           data-index="{{index}}"
           bindtap="onSelectSize"
         >
           <text class="wear-item-text">{{item.display}}</text>
+          <!-- 档位手围/目标串长（后端毫米字段换算展示，未配置时该行隐藏） -->
+          <text class="wear-item-meta" wx:if="{{item.metaText}}">{{item.metaText}}</text>
         </view>
       </view>
+
+      <!-- 自定义手围估算（§3.2 珠径智能算珠：输入 cm + 选珠径 → 后端 estimate 返回参考颗数；
+           本地演示模式无后端接口，隐藏该区域） -->
+      <block wx:if="{{!localMode && customDiameterOptions.length > 0}}">
+        <view class="custom-wrist">
+          <text class="custom-wrist-label">自定义{{sizeTermLabel}}</text>
+          <view class="custom-wrist-row">
+            <input
+              class="custom-wrist-input"
+              type="digit"
+              placeholder="如 15.5"
+              value="{{customWristInput}}"
+              bindinput="onCustomWristInput"
+            />
+            <text class="custom-wrist-unit">cm</text>
+          </view>
+          <view class="custom-diameter-row">
+            <text class="custom-diameter-label">主珠径</text>
+            <view class="custom-diameter-options">
+              <view
+                wx:for="{{customDiameterOptions}}"
+                wx:key="*this"
+                class="custom-diameter-item {{customDiameterIndex === index ? 'custom-diameter-item-active' : ''}}"
+                data-index="{{index}}"
+                catchtap="onSelectCustomDiameter"
+              >
+                <text class="custom-diameter-item-text">{{item}}mm</text>
+              </view>
+            </view>
+          </view>
+          <view
+            class="custom-estimate-btn {{estimating ? 'custom-estimate-btn-disabled' : ''}}"
+            catchtap="onEstimateSize"
+          >
+            <text class="custom-estimate-btn-text"
+              >{{estimating ? '估算中...' : '算一算参考颗数'}}</text
+            >
+          </view>
+          <!-- 估算结果（后端权威换算，展示带"约"） -->
+          <text class="custom-estimate-result" wx:if="{{estimateText}}">{{estimateText}}</text>
+          <view class="custom-use-btn" wx:if="{{estimateReady}}" catchtap="onUseEstimate">
+            <text class="custom-use-btn-text">使用该{{sizeTermLabel}}</text>
+          </view>
+        </view>
+      </block>
+
       <text class="wrist-note" wx:if="{{capacityLimited}}"
-        >当前尺码容量 {{capacityMm}}mm（由款式规则计算）。排满后需删除珠子或换大尺码。</text
+        >当前尺码最多可放 {{capacityBeads}}
+        颗（兜底防呆，由款式规则规定）。串长以"目标长度"为准，超出会提示调整。</text
       >
       <view class="wrist-confirm" catchtap="onCloseSize">
         <text class="wrist-confirm-text">确定</text>
