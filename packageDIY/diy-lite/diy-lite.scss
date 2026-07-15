@@ -170,31 +170,6 @@
   gap: var(--tg-spacing-sm);
 }
 
-/* 缩放控制（右下角＋/－，不加长右上工具列；双指捏合为主，按钮为辅） */
-.zoom-ctrl {
-  position: absolute;
-  right: var(--tg-spacing-sm);
-  bottom: var(--tg-spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--tg-spacing-xs);
-}
-
-.zoom-btn {
-  @include flex-center;
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: var(--td-radius-circle);
-  background: var(--tg-card-bg);
-  box-shadow: var(--tg-shadow-card);
-}
-
-.zoom-btn-text {
-  font-size: var(--tg-font-size-title);
-  color: var(--tg-text-secondary);
-  line-height: 1;
-}
-
 .bg-dot {
   width: 44rpx;
   height: 44rpx;
@@ -214,7 +189,9 @@
   @include flex-center;
 }
 
-/* 悬浮工具钮（紧凑小圆钮，避免挤占舞台展示区） */
+/* 悬浮工具钮（紧凑小圆钮，避免挤占舞台展示区）
+   撤销/重做/3D/散开/旋转/拍照/五行/教程/清空/＋/－ 全部并入这一列，统一 top 定位、
+   从顶部按自然高度连续排列，固定 gap 间距恒定绝不重叠；不强制贴底，避免整列超高时末位按钮被舞台裁切。 */
 .stage-tools {
   position: absolute;
   right: var(--tg-spacing-sm);
@@ -231,6 +208,8 @@
   border-radius: var(--td-radius-circle);
   background: var(--tg-card-bg);
   box-shadow: var(--tg-shadow-card);
+  /* 固定高度列内不被压缩变形（配合 stage-tools 的 overflow 滚动兜底） */
+  flex-shrink: 0;
 }
 
 .tool-btn-active {

@@ -524,18 +524,18 @@ Component({
           this.render()
         }
         img.onerror = () => {
-          /* 底图加载失败，使用几何占位 */
+          /* 底图加载失败：画中性占位空框 + 提示（不再画金色几何饰品） */
           this.data._bgImage = null
-          this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, template.category_id)
+          this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, '底图待配置')
           this._drawSlotOverlay(ctx, slotDefs, drawW, drawH, ox, oy)
         }
         img.src = bgMediaUrl
-        /* 加载中先画占位 */
-        this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, template.category_id)
+        /* 加载中先画占位空框 + "加载中"提示 */
+        this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, '加载中…')
         this._drawSlotOverlay(ctx, slotDefs, drawW, drawH, ox, oy)
       } else {
-        /* 无底图 URL，使用几何占位 */
-        this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, template.category_id)
+        /* 无底图 URL：画中性占位空框 + "底图待配置"提示 */
+        this._drawFallbackBackground(ctx, drawW, drawH, ox, oy, '底图待配置')
         this._drawSlotOverlay(ctx, slotDefs, drawW, drawH, ox, oy)
       }
     },
@@ -565,6 +565,24 @@ Component({
         return (media.thumbnails && media.thumbnails[variant]) || media.public_url || ''
       }
       return ''
+    },
+
+    /**
+     * 预下载全量素材宝石图到缓存（外部在素材加载完成后调用）
+     * 目的：用户点击填槽前图片已就绪，避免"先闪彩色占位、图片到位再覆盖"的过渡观感。
+     * 复用 _loadBeadImage 的去重与缓存逻辑；镶嵌宝石用 w750 档，与填槽绘制档位一致。
+     * @param beads diyStore 全量珠子原始对象数组（含 image_media）
+     */
+    prefetchBeadImages(beads: any[]) {
+      if (!this.data._canvas || !Array.isArray(beads)) {
+        return
+      }
+      for (const bead of beads) {
+        const url = this._getBeadImageUrl(bead, 'w750')
+        if (url) {
+          this._loadBeadImage(url)
+        }
+      }
     },
 
     /**
@@ -643,9 +661,30 @@ Component({
     },
 
     /**
-     * 绘制几何占位底图（后端未上传底图时的 fallback）
-     * 吊坠: 挂环 + 双层水滴托（外层金属渐变 + 内层凹槽制造包边深度）+ 高光
-     * 戒指: 真正的环形指圈（挖空内圆）+ 金属光带 + 顶部戒托
+     * 绘制宝石中性占位（图片异步加载未就绪时的过渡态）
+     * 用中性浅灰圆填充 + 稍深描边，不使用宝石分组色，避免"先闪彩色再被真实图覆盖"的突兀观感。
+     * 预下载（prefetchBeadImages）通常使点击时已缓存，本占位仅极短暂或弱网时出现。
+     */
+    _drawGemPlaceholder(ctx: any, cx: number, cy: number, radius: number) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+      ctx.fillStyle = '#ECECEC'
+      ctx.fill()
+      ctx.lineWidth = 1
+      ctx.strokeStyle = '#D9D9D9'
+      ctx.stroke()
+      ctx.restore()
+    },
+
+    /**
+     * 绘制底图占位（后端未上传底图 / 底图加载中或失败时的 fallback）
+     *
+     * 表现：干净的浅灰色圆角空框 + 居中状态文字，不再画金色几何饰品图形
+     * （几何占位与真实底图槽位坐标对不上、观感突兀，故统一为中性占位）。
+     * 真实底图（base_image_media）上传后走 drawImage 分支，本占位不再出现。
+     *
+     * @param statusText 占位区状态文案（加载中 / 底图待配置，由调用方按场景传入）
      */
     _drawFallbackBackground(
       ctx: any,
@@ -653,194 +692,36 @@ Component({
       drawH: number,
       ox: number,
       oy: number,
-      categoryId: number
+      statusText: string
     ) {
-      const cxBg = ox + drawW / 2
-      const cyBg = oy + drawH / 2
-      if (categoryId === 193) {
-        this._drawFallbackRing(ctx, cxBg, cyBg, drawW, drawH, ox, oy)
-      } else {
-        this._drawFallbackPendant(ctx, cxBg, drawW, drawH, ox, oy)
-      }
-    },
-
-    /** 占位戒指: 环形指圈（evenodd 挖空）+ 斜向金属光带 + 顶部四爪戒托（_ox/_oy 保留签名对称，绘制按中心坐标定位无需偏移量） */
-    _drawFallbackRing(
-      ctx: any,
-      cxBg: number,
-      cyBg: number,
-      drawW: number,
-      drawH: number,
-      _ox: number,
-      _oy: number
-    ) {
-      const ringCy = cyBg + drawH * 0.08
-      const outerRx = drawW * 0.36
-      const outerRy = drawH * 0.34
-      const bandRatio = 0.78
-
-      /* 底部软投影 */
-      ctx.beginPath()
-      ctx.ellipse(cxBg, ringCy + outerRy * 1.02, outerRx * 0.9, outerRy * 0.08, 0, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(30,20,10,0.12)'
-      ctx.fill()
-
-      /* 环形指圈: 外椭圆 - 内椭圆（evenodd 填充） */
-      ctx.beginPath()
-      ctx.ellipse(cxBg, ringCy, outerRx, outerRy, 0, 0, Math.PI * 2)
-      ctx.ellipse(cxBg, ringCy, outerRx * bandRatio, outerRy * bandRatio, 0, 0, Math.PI * 2)
-      const g = ctx.createLinearGradient(
-        cxBg - outerRx,
-        ringCy - outerRy,
-        cxBg + outerRx,
-        ringCy + outerRy
-      )
-      g.addColorStop(0, '#F4F4F4')
-      g.addColorStop(0.3, '#D8D8D8')
-      g.addColorStop(0.5, '#B8B8B8')
-      g.addColorStop(0.7, '#E6E6E6')
-      g.addColorStop(1, '#9E9E9E')
-      ctx.fillStyle = g
-      ctx.fill('evenodd')
-      /* 内外收边 */
-      ctx.strokeStyle = '#8A8A8A'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.ellipse(cxBg, ringCy, outerRx, outerRy, 0, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.ellipse(cxBg, ringCy, outerRx * bandRatio, outerRy * bandRatio, 0, 0, Math.PI * 2)
-      ctx.stroke()
-
-      /* 左上弧形高光带（金属反光） */
+      const radius = Math.min(drawW, drawH) * 0.04
+      /* 浅灰底 + 更浅描边的圆角空框 */
       ctx.save()
       ctx.beginPath()
-      const midRx = outerRx * (1 + bandRatio) * 0.5
-      const midRy = outerRy * (1 + bandRatio) * 0.5
-      ctx.ellipse(cxBg, ringCy, midRx, midRy, 0, Math.PI * 0.85, Math.PI * 1.45)
-      ctx.strokeStyle = 'rgba(255,255,255,0.75)'
-      ctx.lineWidth = (outerRx - outerRx * bandRatio) * 0.45
-      ctx.lineCap = 'round'
+      this._roundRectPath(ctx, ox, oy, drawW, drawH, radius)
+      ctx.fillStyle = '#F5F5F5'
+      ctx.fill()
+      ctx.strokeStyle = '#E0E0E0'
+      ctx.lineWidth = 1
       ctx.stroke()
+      /* 居中状态文字 */
+      ctx.fillStyle = '#9CA3AF'
+      ctx.font = `${Math.max(12, Math.round(drawW * 0.045))}px sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(statusText, ox + drawW / 2, oy + drawH / 2)
       ctx.restore()
+    },
 
-      /* 顶部戒托（梯形座 + 两只可见爪） */
-      const headY = ringCy - outerRy
-      const headW = drawW * 0.16
-      ctx.beginPath()
-      ctx.moveTo(cxBg - headW * 0.5, headY + drawH * 0.015)
-      ctx.lineTo(cxBg + headW * 0.5, headY + drawH * 0.015)
-      ctx.lineTo(cxBg + headW * 0.34, headY - drawH * 0.05)
-      ctx.lineTo(cxBg - headW * 0.34, headY - drawH * 0.05)
+    /** 画圆角矩形路径（占位空框用，兼容无原生 roundRect 的 Canvas 环境） */
+    _roundRectPath(ctx: any, x: number, y: number, w: number, h: number, r: number) {
+      const rr = Math.min(r, w / 2, h / 2)
+      ctx.moveTo(x + rr, y)
+      ctx.arcTo(x + w, y, x + w, y + h, rr)
+      ctx.arcTo(x + w, y + h, x, y + h, rr)
+      ctx.arcTo(x, y + h, x, y, rr)
+      ctx.arcTo(x, y, x + w, y, rr)
       ctx.closePath()
-      const hg = ctx.createLinearGradient(cxBg, headY - drawH * 0.05, cxBg, headY + drawH * 0.015)
-      hg.addColorStop(0, '#EDEDED')
-      hg.addColorStop(1, '#ABABAB')
-      ctx.fillStyle = hg
-      ctx.fill()
-      ctx.strokeStyle = '#8A8A8A'
-      ctx.lineWidth = 1
-      ctx.stroke()
-    },
-
-    /** 占位吊坠: 挂环 + 外层金托 + 内层凹槽（包边深度）+ 弧形高光 */
-    _drawFallbackPendant(
-      ctx: any,
-      cxBg: number,
-      drawW: number,
-      drawH: number,
-      ox: number,
-      oy: number
-    ) {
-      /** 水滴路径（scale 控制内外层，1 = 外层原始大小） */
-      const teardrop = (scale: number) => {
-        const topY = oy + drawH * (0.05 + 0.435 * (1 - scale))
-        const bottomY = oy + drawH * (0.92 - 0.435 * (1 - scale))
-        const wx45 = drawW * 0.45 * scale
-        const wx40 = drawW * 0.4 * scale
-        const y25 = oy + drawH * 0.25
-        const y75 = oy + drawH * 0.75
-        ctx.beginPath()
-        ctx.moveTo(cxBg, topY)
-        ctx.bezierCurveTo(cxBg + wx45, y25, cxBg + wx40, y75, cxBg, bottomY)
-        ctx.bezierCurveTo(cxBg - wx40, y75, cxBg - wx45, y25, cxBg, topY)
-        ctx.closePath()
-      }
-
-      /* 底部软投影 */
-      ctx.beginPath()
-      ctx.ellipse(cxBg, oy + drawH * 0.94, drawW * 0.3, drawH * 0.025, 0, 0, Math.PI * 2)
-      ctx.fillStyle = 'rgba(30,20,10,0.12)'
-      ctx.fill()
-
-      /* 顶部挂环（金色圆环，evenodd 挖空） */
-      const bailCy = oy + drawH * 0.045
-      const bailR = drawW * 0.055
-      ctx.beginPath()
-      ctx.arc(cxBg, bailCy, bailR, 0, Math.PI * 2)
-      ctx.arc(cxBg, bailCy, bailR * 0.55, 0, Math.PI * 2)
-      const bailG = ctx.createLinearGradient(
-        cxBg - bailR,
-        bailCy - bailR,
-        cxBg + bailR,
-        bailCy + bailR
-      )
-      bailG.addColorStop(0, '#F5E6CC')
-      bailG.addColorStop(0.5, '#D4AF37')
-      bailG.addColorStop(1, '#A67C1B')
-      ctx.fillStyle = bailG
-      ctx.fill('evenodd')
-      ctx.strokeStyle = '#8B6914'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.arc(cxBg, bailCy, bailR, 0, Math.PI * 2)
-      ctx.stroke()
-
-      /* 外层金托: 多段渐变模拟金属反射带 */
-      teardrop(1)
-      const gradient = ctx.createLinearGradient(ox, oy, ox + drawW * 0.3, oy + drawH)
-      gradient.addColorStop(0, '#F8ECD4')
-      gradient.addColorStop(0.25, '#E6C860')
-      gradient.addColorStop(0.5, '#D4AF37')
-      gradient.addColorStop(0.72, '#B8860B')
-      gradient.addColorStop(0.88, '#D9B845')
-      gradient.addColorStop(1, '#9A7010')
-      ctx.fillStyle = gradient
-      ctx.fill()
-      ctx.strokeStyle = '#8B6914'
-      ctx.lineWidth = 1.5
-      ctx.stroke()
-
-      /* 内层凹槽（暗金渐变，制造包边纵深，宝石落在其中） */
-      teardrop(0.86)
-      const innerG = ctx.createLinearGradient(cxBg, oy + drawH * 0.1, cxBg, oy + drawH * 0.88)
-      innerG.addColorStop(0, '#8F6A12')
-      innerG.addColorStop(0.5, '#B08D24')
-      innerG.addColorStop(1, '#7A5A0E')
-      ctx.fillStyle = innerG
-      ctx.fill()
-      /* 凹槽上缘亮边（内凹的光学暗示） */
-      ctx.strokeStyle = 'rgba(255, 240, 200, 0.55)'
-      ctx.lineWidth = 1
-      ctx.stroke()
-
-      /* 左侧弧形高光带（沿外托左缘扫过） */
-      ctx.save()
-      teardrop(1)
-      ctx.clip()
-      ctx.beginPath()
-      ctx.moveTo(cxBg - drawW * 0.3, oy + drawH * 0.12)
-      ctx.quadraticCurveTo(
-        cxBg - drawW * 0.44,
-        oy + drawH * 0.42,
-        cxBg - drawW * 0.24,
-        oy + drawH * 0.78
-      )
-      ctx.strokeStyle = 'rgba(255,250,230,0.5)'
-      ctx.lineWidth = drawW * 0.035
-      ctx.lineCap = 'round'
-      ctx.stroke()
-      ctx.restore()
     },
 
     /**
@@ -903,8 +784,8 @@ Component({
           const fillRadius = Math.min(gemW, gemH) / 2
           const drawnImage = this._drawBeadImage(ctx, gem, centerX, centerY, fillRadius, gemW, gemH)
           if (!drawnImage) {
-            const color = getGemColor(gem)
-            drawGem(ctx, centerX, centerY, fillRadius, color, gem.shape || 'circle')
+            /* 图片尚未就绪：画中性浅灰占位圆而非彩色宝石，避免"先闪一下宝石颜色再被真实图覆盖"的突兀感 */
+            this._drawGemPlaceholder(ctx, centerX, centerY, fillRadius)
           }
           if (rotationRad) {
             ctx.restore()
@@ -938,34 +819,80 @@ Component({
       this.data._slotPositions = slotPositions
     },
 
-    /** Canvas 点击事件（分发到珠子点击或槽位点击） */
+    /**
+     * Canvas 点击事件（分发到珠子点击或槽位点击）
+     *
+     * 坐标系换算（关键）：canvas 的 bindtap 事件 e.detail.x/y 是相对【页面文档】的坐标，
+     * 而 _slotPositions / _beadPositions 存的是相对【画布自身左上角】的坐标；
+     * 两者原点不同（差画布上方所有元素的高度），必须换算否则命中检测永远落空。
+     * 用画布 boundingClientRect 与触点 clientX/clientY（同为可视区坐标，滚动也一致）相减，
+     * 得到相对画布左上角的本地坐标。
+     */
     onCanvasTap(e: WechatMiniprogram.TouchEvent) {
-      const touch = e.detail || e.touches?.[0]
-      if (!touch) {
-        return
-      }
-      const tx = touch.x
-      const ty = touch.y
       const template = diyStore.currentTemplate
       if (!template) {
         return
       }
-      if (template.layout.shape === 'slots') {
-        /* 镶嵌模式: 检测槽位点击 */
-        for (const sp of this.data._slotPositions) {
-          if (Math.abs(tx - sp.x) < sp.w / 2 + 5 && Math.abs(ty - sp.y) < sp.h / 2 + 5) {
-            this.triggerEvent('slottap', { slotId: sp.slotId })
+      /* 触点可视区坐标：tap 源自 touchend，优先 changedTouches，其次 touches */
+      const touch = e.changedTouches?.[0] || e.touches?.[0]
+      this.createSelectorQuery()
+        .select('#diy-canvas')
+        .boundingClientRect((rect: any) => {
+          if (!rect) {
             return
+          }
+          /* 换算为画布本地坐标（CSS px，与绘制坐标同一量纲）；无触点信息时兜底用 detail 直减 */
+          const tx = touch ? touch.clientX - rect.left : (e.detail?.x || 0) - rect.left
+          const ty = touch ? touch.clientY - rect.top : (e.detail?.y || 0) - rect.top
+          this._dispatchCanvasHit(template, tx, ty)
+        })
+        .exec()
+    },
+
+    /** 命中分发：镶嵌模式取最近槽位、串珠模式取最近珠子（坐标已换算为画布本地坐标） */
+    _dispatchCanvasHit(template: API.DiyTemplate, tx: number, ty: number) {
+      if (template.layout.shape === 'slots') {
+        /**
+         * 镶嵌模式命中检测（取"最近"槽位而非遍历命中第一个）:
+         * 槽位归一化尺寸可能很小（如手机链 height=0.097），折算像素后热区仅二三十像素，
+         * 竖排多槽位手指难精准点中、且易误落相邻槽。故：
+         *   1) 每个槽位命中热区在其自身半宽/半高基础上，保底 MIN_HIT_RADIUS（44px 触控友好尺寸的一半）；
+         *   2) 命中候选中取"到点击点最近"的槽位，避免相邻槽误选。
+         */
+        const MIN_HIT_RADIUS = 22
+        let nearest: { slotId: string; dist: number } | null = null
+        for (const sp of this.data._slotPositions) {
+          /* 各方向热区 = 槽位半尺寸与最小热区取较大值（保证小槽位也有足够可点面积） */
+          const hitHalfW = Math.max(sp.w / 2, MIN_HIT_RADIUS)
+          const hitHalfH = Math.max(sp.h / 2, MIN_HIT_RADIUS)
+          if (Math.abs(tx - sp.x) <= hitHalfW && Math.abs(ty - sp.y) <= hitHalfH) {
+            const dist = (tx - sp.x) ** 2 + (ty - sp.y) ** 2
+            if (!nearest || dist < nearest.dist) {
+              nearest = { slotId: sp.slotId, dist }
+            }
           }
         }
+        if (nearest) {
+          this.triggerEvent('slottap', { slotId: nearest.slotId })
+        }
       } else {
-        /* 串珠模式: 检测珠子点击 */
+        /**
+         * 串珠模式命中检测（取"最近"珠子）:
+         * 小直径珠子热区不足时保底 MIN_HIT_RADIUS，避免点不中；
+         * 珠子密排时取最近一颗，避免误选相邻珠。
+         */
+        const MIN_HIT_RADIUS = 22
+        let nearest: { index: number; dist: number } | null = null
         for (const bp of this.data._beadPositions) {
           const dist = Math.sqrt((tx - bp.x) ** 2 + (ty - bp.y) ** 2)
-          if (dist <= bp.radius + 5) {
-            this.triggerEvent('beadtap', { index: bp.index })
-            return
+          if (dist <= Math.max(bp.radius, MIN_HIT_RADIUS)) {
+            if (!nearest || dist < nearest.dist) {
+              nearest = { index: bp.index, dist }
+            }
           }
+        }
+        if (nearest) {
+          this.triggerEvent('beadtap', { index: nearest.index })
         }
       }
     }

@@ -124,6 +124,19 @@ Component({
         // @ts-ignore
         this._onScatterChange()
       }
+    },
+    /**
+     * 是否已排满一圈（父页 isFull：已选颗数 ≥ 当前尺码颗数容量，后端 bead_count 权威判定）。
+     * true 时珠子按彼此沿绳长的相对比例均分整个圆周（首尾相接、无缺口）；
+     * false（未满）时按占容量比例排一段弧，保持"排多少占多少"的真实进度感。
+     */
+    ringFull: {
+      type: Boolean,
+      value: false,
+      observer() {
+        // @ts-ignore
+        this._syncAndRender()
+      }
     }
   },
 
@@ -498,13 +511,16 @@ Component({
       const capacityMm = this.properties.capacityMm || 150
 
       /**
-       * 角度分配基数：正常按容量(周长)分配，保证首尾相切排满一圈。
-       * 兜底缩放：当珠子沿绳总长超过容量(理论上父页已拦截，此处双保险)，
-       * 改用“总长”作分母，使全部珠子仍均匀挤在一圈内而不溢出重叠，
-       * 借鉴 H5 ymBuildNonOccupyingItems 的 scale=周长/总长 思路。
+       * 角度分配基数决定珠子铺满多少圆周：
+       * - 未排满(ringFull=false)：按容量(周长)分配，珠子占"实际长度/容量"的弧，
+       *   保持"排多少占多少、末尾留白提示还能加"的真实进度感。
+       * - 已排满一圈(ringFull=true，父页 isFull 权威判定)：改用珠子总长作分母，
+       *   让 N 颗珠按彼此比例均分整个 360°，首尾相接铺满无缺口 —— 修复"排满却留缺口"。
+       * - 兜底：珠子总长超过容量(父页一般已拦截)时也用总长作分母，避免溢出重叠。
        */
       const totalAlongMm = beads.reduce((sum, b) => sum + b.alongCordMm, 0)
-      const angleBaseMm = totalAlongMm > capacityMm ? totalAlongMm : capacityMm
+      const fillRing = this.properties.ringFull || totalAlongMm > capacityMm
+      const angleBaseMm = fillRing ? totalAlongMm : capacityMm
 
       /** 每颗珠子占角 = 自身沿绳mm / 分配基数 × 2π；从正上方开始顺时针填弧 */
       let accMm = 0
@@ -1594,8 +1610,10 @@ Component({
       const centerY = this._cssHeight / 2
       const capacityMm = this.properties.capacityMm || 150
       const totalAlongMm = beads.reduce((sum, b) => sum + b.alongCordMm, 0)
-      const angleBaseMm = totalAlongMm > capacityMm ? totalAlongMm : capacityMm
-      /** 拖拽落点的角度，决定被拖珠“想插入”的位置 */
+      /** 与 _layout 同口径：满圈时按总长均分整圈，未满按容量比例排弧 */
+      const angleBaseMm =
+        this.properties.ringFull || totalAlongMm > capacityMm ? totalAlongMm : capacityMm
+      /** 拖拽落点的角度，决定被拖珠"想插入"的位置 */
       const dropAngle = Math.atan2(point.y - centerY, point.x - centerX)
       const baseOffset = -Math.PI / 2 + (this._globalRot || 0)
       /** 其余珠子按原顺序重新累加角度，遇到拖珠目标插入点则跳过一个身位 */

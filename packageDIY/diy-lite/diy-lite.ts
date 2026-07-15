@@ -160,8 +160,12 @@ Page({
     canvasWidth: 300,
     canvasHeight: 300,
 
-    /** 素材类型 Tab（饰品/配饰/吊坠，对齐 diy-design） */
-    materialTypeTabs: MATERIAL_TYPE_TABS,
+    /**
+     * 素材类型 Tab（饰品/配饰/吊坠）：仅显示当前款式实际有素材的大类。
+     * 由 _buildMaterialTypeTabs 按 _allBeads 的 item_type 动态生成；
+     * 只有一个大类时整排 Tab 隐藏（无可切换项，直接展示素材区）。
+     */
+    materialTypeTabs: [] as { key: string; label: string }[],
     /** 当前素材类型（beads 有后端素材；accessories/pendants 待后端提供，显示空态） */
     activeMaterialType: 'beads',
     /** 分类清单（左侧竖分类，从后端珠子的 group_code 聚合而来） */
@@ -644,11 +648,32 @@ Page({
     return categories
   },
 
-  /** 把 _allBeads 聚合出左侧分类并刷新网格（后端/本地两种数据源共用，数据重载时回到饰品Tab） */
+  /**
+   * 按 _allBeads 实际存在的 item_type 动态生成素材大类 Tab（只保留有素材的大类）。
+   * 保持 MATERIAL_TYPE_TABS 的固定顺序（饰品→配饰→吊坠）；某大类无素材则不出现，
+   * 避免出现"点进去是空的"摆设标签，解决用户"款式选好了还要再选一次"的困惑。
+   */
+  _buildMaterialTypeTabs(): { key: string; label: string }[] {
+    const existTypes: Record<string, boolean> = {}
+    this._allBeads.forEach((b: any) => {
+      existTypes[b.item_type || 'beads'] = true
+    })
+    return MATERIAL_TYPE_TABS.filter(tab => existTypes[tab.key])
+  },
+
+  /** 把 _allBeads 聚合出左侧分类并刷新网格（后端/本地两种数据源共用，数据重载时回到首个可用大类） */
   _applyBeadsToPanel() {
-    const categories = this._categoriesForType('beads')
+    /** 动态大类 Tab：只显示当前款式有素材的大类；默认选中第一个可用大类（通常是饰品/beads） */
+    const materialTypeTabs = this._buildMaterialTypeTabs()
+    const defaultType = materialTypeTabs[0]?.key || 'beads'
+    const categories = this._categoriesForType(defaultType)
     this.setData(
-      { categories, activeCategory: categories[0]?.key || '', activeMaterialType: 'beads' },
+      {
+        materialTypeTabs,
+        categories,
+        activeCategory: categories[0]?.key || '',
+        activeMaterialType: defaultType
+      },
       () => this._refreshGroups()
     )
   },
@@ -746,6 +771,21 @@ Page({
     diyStore.setTemplate(template)
     diyStore.setAllBeads(this._allBeads.map((b: any) => b.raw))
     this._swapSourceSlotId = ''
+    /** 后台预下载全量宝石图，使用户点击填槽前图片已缓存，避免填槽瞬间闪现占位过渡态 */
+    this._prefetchSlotBeadImages()
+  },
+
+  /**
+   * 触发 shape-renderer 预下载全量宝石图（镶嵌模式）。
+   * 画布组件可能尚未 ready，用 wx.nextTick 延后到组件挂载后再调用，失败静默不影响填槽。
+   */
+  _prefetchSlotBeadImages() {
+    wx.nextTick(() => {
+      const renderer = this.selectComponent('#shapeRenderer') as any
+      if (renderer && typeof renderer.prefetchBeadImages === 'function') {
+        renderer.prefetchBeadImages(diyStore.allBeads)
+      }
+    })
   },
 
   /** 同步 diyStore 槽位状态 → 页面 data（填充数/激活槽位/费用/可提交/撤销重做） */
@@ -772,7 +812,7 @@ Page({
       canSubmit: diyStore.canSubmit,
       fillHint:
         filled >= total
-          ? '✓ 全部槽位已镶好，可以完成了'
+          ? '✓ 全部镶好啦，点某个位置可更换该位置宝石'
           : `已镶 ${filled}/${total} 个槽位，点击空槽位或直接选宝石`
     })
     this._refreshGroups()
@@ -787,35 +827,21 @@ Page({
   },
 
   /**
-   * shape-renderer 槽位点击：
-   *   已填槽位 → 操作菜单（清空/替换/与其他槽位交换，对齐 diy-design.onSlotTap）
-   *   空槽位 → 交换模式则执行交换，否则激活该槽位等待填入
+   * shape-renderer 槽位点击（交互模型：点哪个槽就操作哪个槽，任意位置一致生效）：
+   *   空槽位  —— 点击即选中高亮，随后点素材卡填入【该槽】。
+   *   已填槽位 —— 点击先选中高亮，并弹操作菜单：更换此位置宝石 / 清空此槽位 / 与其他槽位交换。
+   *              选"更换此位置宝石"后该槽已是激活槽，直接去下方点新宝石即替换该位置。
+   *   交换模式 —— 已选"与其他槽位交换"后，点第二个槽位执行交换。
+   *
+   * 为何用菜单而非"点两次弹菜单"：画布命中检测取"最近槽位"，两次点击的落点细微偏移
+   * 可能被判成相邻槽，导致"点两次"模型在真机上菜单出不来；改为已填槽单击即弹菜单，
+   * 并把"选中该位置去替换"做成菜单首项，任何位置都稳定一致，不依赖点击次数与落点精度。
    */
   onSlotTap(e: any) {
     const slotId = e.detail.slotId as string
-    if (diyStore.slotFillings[slotId]) {
-      wx.showActionSheet({
-        itemList: ['清空此槽位', '选择其他宝石替换', '与其他槽位交换'],
-        success: res => {
-          if (res.tapIndex === 0) {
-            diyStore.clearSlot(slotId)
-            this._syncSlotState()
-            this._renderSlots()
-            diyStore.saveToCache()
-          } else if (res.tapIndex === 1) {
-            diyStore.setActiveSlot(slotId)
-            this._syncSlotState()
-            this._renderSlots()
-          } else if (res.tapIndex === 2) {
-            this._swapSourceSlotId = slotId
-            wx.showToast({ title: '请点击要交换的槽位', icon: 'none', duration: 2000 })
-          }
-        }
-      })
-      return
-    }
-    /** 空槽位：交换模式优先 */
-    if (this._swapSourceSlotId) {
+
+    /** 交换模式优先：已选交换源后，点任意目标槽执行交换 */
+    if (this._swapSourceSlotId && this._swapSourceSlotId !== slotId) {
       diyStore.swapSlots(this._swapSourceSlotId, slotId)
       this._swapSourceSlotId = ''
       this._syncSlotState()
@@ -823,9 +849,36 @@ Page({
       diyStore.saveToCache()
       return
     }
+    this._swapSourceSlotId = ''
+
+    /** 点任意槽位先选中它（高亮 + 后续填素材落到此槽），确保"选哪个位置换哪个位置" */
     diyStore.setActiveSlot(slotId)
     this._syncSlotState()
     this._renderSlots()
+
+    /** 空槽位：选中即可，直接去点素材卡填入，无需菜单 */
+    if (!diyStore.slotFillings[slotId]) {
+      return
+    }
+
+    /** 已填槽位：弹操作菜单，首项"更换此位置宝石"即引导去下方选新宝石替换该槽 */
+    wx.showActionSheet({
+      itemList: ['更换此位置宝石', '清空此槽位', '与其他槽位交换'],
+      success: res => {
+        if (res.tapIndex === 0) {
+          /** 该槽已是激活槽，提示用户去下方素材区点选新宝石即替换本位置 */
+          wx.showToast({ title: '已选中，请在下方选择新宝石', icon: 'none', duration: 2000 })
+        } else if (res.tapIndex === 1) {
+          diyStore.clearSlot(slotId)
+          this._syncSlotState()
+          this._renderSlots()
+          diyStore.saveToCache()
+        } else if (res.tapIndex === 2) {
+          this._swapSourceSlotId = slotId
+          wx.showToast({ title: '请点击要交换的槽位', icon: 'none', duration: 2000 })
+        }
+      }
+    })
   },
 
   /**

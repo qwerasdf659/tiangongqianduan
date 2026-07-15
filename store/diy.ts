@@ -113,6 +113,8 @@ interface DraftCache {
     price_asset_code: string
     shape: string
     group_code: string
+    /** 素材图（脱敏媒体对象，缓存必存：否则恢复后无图退化为纯色球） */
+    image_media?: API.SafeMediaObject | null
   }[]
   /** 镶嵌模式: 槽位填充 */
   slotFillings?: Record<
@@ -127,6 +129,8 @@ interface DraftCache {
       price_asset_code: string
       shape: string
       group_code: string
+      /** 素材图（脱敏媒体对象，缓存必存：否则恢复后无图退化为纯色球） */
+      image_media?: API.SafeMediaObject | null
     }
   >
   /** 最后编辑时间戳 */
@@ -136,7 +140,7 @@ interface DraftCache {
 }
 
 /** 缓存版本号（修改缓存结构时递增） */
-const CACHE_VERSION = 6
+const CACHE_VERSION = 7
 /** 缓存有效期: 7天 */
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000
 /** 撤销栈最大深度 */
@@ -687,14 +691,23 @@ export const diyStore = observable({
       return false
     }
 
+    /* 目标槽此前是否为空：空槽填入后才自动前进到下一个空槽（连续填装体验）；
+       替换已填槽（用户明确选中某已填槽再换）则保持选中该槽，不跳走 */
+    const wasEmpty = !this.slotFillings[targetSlotId]
+
     this._pushUndo()
     this.slotFillings = { ...this.slotFillings, [targetSlotId]: bead }
 
-    /* 自动移到下一个空槽位 */
-    const nextEmpty = slots.find(
-      (s: API.DiySlotDefinition) => s.slot_id !== targetSlotId && !this.slotFillings[s.slot_id]
-    )
-    this.activeSlotId = nextEmpty ? nextEmpty.slot_id : targetSlotId
+    if (wasEmpty) {
+      /* 空槽填入：自动移到下一个空槽位，填满后停留在当前槽（无空槽可去） */
+      const nextEmpty = slots.find(
+        (s: API.DiySlotDefinition) => s.slot_id !== targetSlotId && !this.slotFillings[s.slot_id]
+      )
+      this.activeSlotId = nextEmpty ? nextEmpty.slot_id : targetSlotId
+    } else {
+      /* 替换已填槽：保持选中该槽，方便用户连续对同一槽比对不同宝石 */
+      this.activeSlotId = targetSlotId
+    }
 
     return true
   }),
@@ -761,7 +774,9 @@ export const diyStore = observable({
         price: b.price,
         price_asset_code: b.price_asset_code,
         shape: b.shape,
-        group_code: b.group_code
+        group_code: b.group_code,
+        /** 素材图必存：恢复后 shape-renderer 据此画真实珠子图，缺失则退化为纯色球 */
+        image_media: b.image_media || null
       }))
     } else {
       const fillings: DraftCache['slotFillings'] = {}
@@ -776,7 +791,9 @@ export const diyStore = observable({
           price: bead.price,
           price_asset_code: bead.price_asset_code,
           shape: bead.shape,
-          group_code: bead.group_code
+          group_code: bead.group_code,
+          /** 素材图必存：恢复后 shape-renderer 据此画真实宝石图，缺失则退化为纯色球 */
+          image_media: bead.image_media || null
         }
       }
       cache.slotFillings = fillings
@@ -825,6 +842,8 @@ export const diyStore = observable({
               shape: b.shape,
               price: b.price,
               price_asset_code: b.price_asset_code || diyAssetCodes.STAR_STONE,
+              /** 恢复素材图（缓存已存），据此画真实珠子图；旧缓存无此字段则为 null */
+              image_media: b.image_media || null,
               stock: -1,
               is_stackable: 1,
               sort_order: 0,
@@ -844,6 +863,8 @@ export const diyStore = observable({
             shape: b.shape,
             price: b.price,
             price_asset_code: b.price_asset_code || diyAssetCodes.STAR_STONE,
+            /** 恢复素材图（缓存已存），据此画真实宝石图；旧缓存无此字段则为 null */
+            image_media: b.image_media || null,
             stock: -1,
             is_stackable: 1,
             sort_order: 0,
