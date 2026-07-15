@@ -2,7 +2,8 @@
  * DIY 款式模板选择页（自由定制饰品的第一步）
  *
  * 用户操作流程: 分类Tab（手链/项链/戒指/吊坠）→ 选具体款式 → 带 templateId 进入设计台(diy-lite)
- * 后端API: GET /api/v4/diy/templates?category_id=xxx
+ * 后端API: GET /api/v4/diy/templates（对接文档 3.3-①: 无查询参数，
+ *          仅返回 published+启用 模板；前端按返回的 category_id 本地分组筛选）
  *
  * 分类体系（后端 categories 表，parent=190 DIY饰品）:
  *   191 = 手链 / 192 = 项链 / 193 = 戒指 / 194 = 吊坠
@@ -136,6 +137,9 @@ Page({
     errorMessage: ''
   },
 
+  /** 后端返回的全量模板缓存（对接文档 3.3-①：一次拉全量，分类切换本地过滤，不重复请求） */
+  _allTemplates: [] as any[],
+
   onLoad() {
     this._refreshDemoCards()
     this.loadTemplates()
@@ -149,34 +153,48 @@ Page({
     })
   },
 
-  /** 加载模板列表（调用后端真实API） */
+  /**
+   * 加载模板列表（调用后端真实API）
+   * GET /templates 无查询参数（对接文档 3.3-①），返回全量已发布模板；
+   * 分类筛选由前端按 category_id 本地完成（_filterTemplates）
+   */
   async loadTemplates() {
     this.setData({ loading: true, hasError: false })
     try {
-      const categoryId = this.data.activeCategoryId || undefined
-      const res = await API.getDiyTemplates(categoryId)
+      const res = await API.getDiyTemplates()
       if (!res || !res.data) {
         this.setData({ loading: false, hasError: true, errorMessage: '获取款式列表失败' })
         return
       }
-      const list = (res.data || []).map((t: any) => ({
+      this._allTemplates = (res.data || []).map((t: any) => ({
         ...t,
         category_name: CATEGORY_NAME_MAP[t.category_id] || ''
       }))
-      this.setData({ templates: list, loading: false })
+      this._filterTemplates()
+      this.setData({ loading: false })
     } catch (_err) {
       this.setData({ loading: false, hasError: true, errorMessage: '网络异常，请稍后重试' })
     }
   },
 
-  /** 切换分类Tab */
+  /** 按当前分类本地过滤模板列表（activeCategoryId=0 表示全部） */
+  _filterTemplates() {
+    const id = this.data.activeCategoryId
+    const filtered =
+      id === 0 ? this._allTemplates : this._allTemplates.filter((t: any) => t.category_id === id)
+    this.setData({ templates: filtered })
+  },
+
+  /** 切换分类Tab（本地过滤，不重复请求后端） */
   onCategoryChange(e: WechatMiniprogram.TouchEvent) {
     const categoryId = Number(e.currentTarget.dataset.categoryId)
     if (categoryId === this.data.activeCategoryId) {
       return
     }
-    this.setData({ activeCategoryId: categoryId }, () => this._refreshDemoCards())
-    this.loadTemplates()
+    this.setData({ activeCategoryId: categoryId }, () => {
+      this._refreshDemoCards()
+      this._filterTemplates()
+    })
   },
 
   /** 选择模板 → 进入手串设计台（diy-lite，按模板 layout.shape 自动切换串珠/镶嵌模式） */

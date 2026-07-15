@@ -90,6 +90,19 @@
   padding: var(--tg-spacing-md);
 }
 
+/* ===== 分页加载态（触底加载中 / 到底提示） ===== */
+.load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--tg-spacing-lg) 0;
+}
+
+.load-more-end {
+  font-size: var(--td-font-size-s, 24rpx);
+  color: var(--tg-text-placeholder);
+}
+
 /* ===== 作品卡片 ===== */
 .work-card {
   background: var(--tg-card-bg);

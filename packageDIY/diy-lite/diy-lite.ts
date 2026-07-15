@@ -81,14 +81,20 @@ const MATERIAL_TYPE_LABELS: Record<string, string> = {
 /** 背景选项（纯 UI 常量，前端自主决定） */
 const BG_OPTIONS = ['#F4F2EC', '#EAF0F0', '#F6EAF0', '#EEECF6']
 
-/** 颜色分组 → 中文名映射（UI常量，与 diy-design 保持一致） */
-const GROUP_NAME_MAP: Record<string, string> = {
-  red: '红色系',
-  orange: '橙色系',
-  yellow: '黄色系',
-  green: '绿色系',
-  blue: '蓝色系',
-  purple: '紫色系'
+/**
+ * 本地演示分组 → 中文名兜底映射（仅本地演示模式用，与 bead-data.ts 的 white/pink/purple/yellow 一致）。
+ * 后端真实链路的分组名以 GET /material-groups 下发的 display_name 为权威（见 _groupNameMap），
+ * 此表只在本地演示（无后端）时兜底，不参与后端数据渲染。
+ */
+const LOCAL_GROUP_NAME_MAP: Record<string, string> = {
+  white: '白水晶系',
+  pink: '粉晶系',
+  purple: '紫水晶系',
+  yellow: '黄水晶系',
+  red: '红水晶系',
+  orange: '橙水晶系',
+  green: '绿水晶系',
+  blue: '蓝水晶系'
 }
 
 /** 本地草稿 key 前缀（按模板隔离，与 diyStore 的 DIY_DRAFT_ 前缀区分避免结构冲突） */
@@ -324,6 +330,11 @@ Page({
 
   /** 当前模板（后端 diy_templates 完整数据） */
   _template: null as any,
+  /**
+   * 分组 group_code → 中文名映射（后端 /material-groups 下发的 display_name，拍板 1/16）:
+   * 后端链路以此为权威；本地演示模式为空，回退 LOCAL_GROUP_NAME_MAP。
+   */
+  _groupNameMap: {} as Record<string, string>,
   /** 全量珠子视图模型（后端 beads 映射而来） */
   _allBeads: [] as any[],
   /** 当前尺码标识（如 "S"/"M"/"L"，对应 sizing_rules.size_options[].label；自定义手围为 "custom"） */
@@ -568,10 +579,27 @@ Page({
    */
   async _loadBeads(templateId: number): Promise<boolean> {
     try {
-      const beadsRes = await API.getDiyTemplateBeads(templateId)
+      /**
+       * 素材与分组并行拉取（三端落地方案 拍板 1/16）:
+       * 分组名从后端 /material-groups 的 display_name 取（DIY 自有字典），不做本地映射。
+       * 分组接口异常不阻断（左侧分类回退用 group_code 原值），素材接口失败才走本地演示兜底。
+       */
+      const [beadsRes, groupsRes] = await Promise.all([
+        API.getDiyTemplateBeads(templateId),
+        API.getDiyMaterialGroups()
+      ])
       if (!beadsRes.success || !beadsRes.data) {
         this._enterLocalMode(beadsRes.message || '珠子素材加载失败')
         return false
+      }
+      /** 建立 group_code → display_name 权威映射（后端字典下发） */
+      this._groupNameMap = {}
+      if (groupsRes.success && Array.isArray(groupsRes.data)) {
+        groupsRes.data.forEach((g: API.DiyMaterialGroup) => {
+          if (g.display_name) {
+            this._groupNameMap[g.group_code] = g.display_name
+          }
+        })
       }
       /** 过滤未启用素材后映射为视图模型 */
       this._allBeads = beadsRes.data
@@ -587,6 +615,14 @@ Page({
       this._enterLocalMode('珠子素材加载失败')
       return false
     }
+  },
+
+  /**
+   * 分组 group_code → 中文名：后端 /material-groups 下发的 display_name 优先（权威），
+   * 本地演示模式（无后端字典）回退 LOCAL_GROUP_NAME_MAP，再退原始 group_code。
+   */
+  _groupLabel(groupCode: string): string {
+    return this._groupNameMap[groupCode] || LOCAL_GROUP_NAME_MAP[groupCode] || groupCode
   },
 
   /**
@@ -903,7 +939,7 @@ Page({
       id: b.material_code,
       name: b.display_name,
       category: b.group_code,
-      categoryLabel: GROUP_NAME_MAP[b.group_code] || b.group_code,
+      categoryLabel: this._groupLabel(b.group_code),
       diameter: b.diameter,
       sizeText: isSpecial ? `${b.size_width_mm}mmx${b.size_length_mm}mm` : `${b.diameter}mm`,
       price: b.price,
@@ -1898,24 +1934,31 @@ Page({
   // ===== 保存草稿 / 完成设计（生产闭环，对齐 diy-design） =====
 
   /** 构造保存作品请求体（串珠/镶嵌两种 design_data，material_code 对齐后端 diy_materials 表） */
-  _buildWorkData(): any {
-    const workData: any = {
+  _buildWorkData(): API.DiyWorkCreateRequest {
+    const workData: API.DiyWorkCreateRequest = {
       diy_template_id: this.data.templateId,
       work_name: `我的${this.data.templateName}`,
       design_data: { mode: 'beading' }
     }
+    /**
+     * 草稿更新契约（对接文档 3.3-⑨）：已保存过的作品携带 diy_work_id = 更新该草稿，
+     * 不传 = 新建草稿。避免重复点击"保存草稿"在后端落多条重复草稿。
+     */
+    if (this._currentWorkId) {
+      workData.diy_work_id = this._currentWorkId
+    }
     if (this.data.isSlotMode) {
-      /** 镶嵌模式：记录每个槽位填入的 material_code（对齐 diy-design.onSubmit） */
+      /** 镶嵌模式：以 slot_id 为 key 记录每槽填充的 material_code，空槽不放 key（对接文档 4.5） */
       const fillings: Record<string, { material_code: string }> = {}
       for (const [slotId, bead] of Object.entries(diyStore.slotFillings)) {
         fillings[slotId] = { material_code: (bead as any).material_code }
       }
       workData.design_data = { mode: 'slots', fillings }
     } else {
+      /** 串珠模式：position = 绳上排列顺序（对接文档 4.5 契约字段，数组顺序即排列顺序） */
       const beads = this.data.selectedBeads.map((b: any, i: number) => ({
-        slot_index: i,
-        material_code: b.material_code,
-        diameter: b.diameter
+        position: i,
+        material_code: b.material_code
       }))
       workData.design_data = { mode: 'beading', beads }
       /**

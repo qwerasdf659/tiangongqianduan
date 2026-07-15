@@ -136,6 +136,19 @@
   align-items: center;
   position: relative;
   overflow: hidden;
+  /* hero 卡片入场：淡入 + 上移（玩法级视觉创意，允许自由写 keyframes） */
+  animation: hero-enter 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+
+@keyframes hero-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(24rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 装饰光斑（Skyline 不支持伪元素，用真实节点；纯装饰不响应触摸） */
@@ -219,6 +232,19 @@
   margin-bottom: 24rpx;
   position: relative;
   z-index: 1;
+  /* 奖章弹跳入场：缩放回弹，紧随 hero 卡片淡入之后（玩法级视觉创意） */
+  animation: badge-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* 等级奖章材质渐变（badge-v1~v9 与阶梯 medal-v1~v9 同一套材质体系） */
@@ -366,6 +392,8 @@
   height: 100%;
   border-radius: 6rpx;
   background: linear-gradient(90deg, #d4b98c 0%, #c5a572 100%);
+  /* 填充动画：width 由 0 过渡到后端权威数字换算的百分比（JS 侧 nextTick 触发） */
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 升级提示（后端 next_level 差值字段："再消费 X 元升{下一级名}"） */
@@ -426,6 +454,28 @@
 .ladder-item {
   display: flex;
   align-items: stretch;
+}
+
+/* 阶梯逐项入场：淡入 + 左移，animation-delay 由 WXML 按序号递增（玩法级视觉创意） */
+.ladder-enter {
+  animation: ladder-item-enter 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+}
+
+@keyframes ladder-item-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(32rpx);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 按压反馈（hover-class）：行卡片轻微下陷 + 底色加深，提示可点击 */
+.ladder-item-hover .ladder-row-card {
+  background: rgba(197, 165, 114, 0.08);
+  transform: scale(0.985);
 }
 
 /* 时间轴左轨：奖章 + 连接线 */
@@ -531,13 +581,24 @@
   padding-bottom: 20rpx;
 }
 
-/* 每档一张行卡片：当前档高亮底色 */
+/* 每档一张行卡片：当前档高亮底色；transition 服务按压反馈的缩放/底色过渡 */
 .ladder-row-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16rpx 20rpx;
   border-radius: var(--td-radius-default, 12rpx);
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* 行尾图标组：达成勾选 + 可点击箭头 */
+.ladder-trailing {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
 }
 
 .ladder-current .ladder-row-card {
@@ -665,4 +726,116 @@
 .threshold-hint-text {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
+}
+
+/* ============================================================
+ * 等级详情弹窗（点击阶梯档位弹出）
+ * 内容均为后端已下发字段：奖章材质/等级名/门槛/倍率/达成状态
+ * t-popup 蒙层为独立渲染层，需在弹窗容器上重新声明 Token 变量
+ * ============================================================ */
+.level-detail-modal {
+  @include tg-tokens;
+  width: 560rpx;
+  background: var(--tg-color-white);
+  border-radius: var(--td-radius-large);
+  padding: 56rpx 40rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.level-detail-close {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 弹窗奖章：复用 medal-v1~v9 材质渐变，尺寸放大 */
+.level-detail-medal {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tg-color-border);
+  margin-bottom: 24rpx;
+  /* 弹窗奖章弹跳入场（玩法级视觉创意） */
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.level-detail-name {
+  font-size: var(--tg-font-size-headline);
+  font-weight: var(--tg-font-weight-bold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-normal);
+  margin-bottom: 16rpx;
+}
+
+/* 达成状态标签：当前档/已达成/未解锁 三态配色 */
+.level-detail-status {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  padding: 6rpx 24rpx;
+  border-radius: 24rpx;
+  margin-bottom: 28rpx;
+}
+
+.status-current {
+  color: var(--td-brand-color);
+  background: rgba(160, 114, 74, 0.12);
+}
+
+.status-reached {
+  color: #b8860b;
+  background: rgba(184, 134, 11, 0.1);
+}
+
+.status-locked {
+  color: var(--tg-text-tertiary);
+  background: var(--tg-color-bg-grey);
+}
+
+.level-detail-rows {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.level-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  background: var(--tg-color-bg-grey);
+  border-radius: var(--td-radius-default, 12rpx);
+}
+
+.level-detail-label {
+  font-size: var(--tg-font-size-caption);
+  color: var(--tg-text-secondary);
+}
+
+.level-detail-value {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+}
+
+/* 倍率值：品牌金强调（营销激励信息） */
+.level-detail-multiplier {
+  color: #b8860b;
+}
+
+.level-detail-hint {
+  font-size: var(--tg-font-size-small);
+  color: var(--tg-text-tertiary);
+  margin-top: 24rpx;
 }

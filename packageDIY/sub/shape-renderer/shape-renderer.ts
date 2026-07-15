@@ -664,15 +664,15 @@ Component({
       }
     },
 
-    /** 占位戒指: 环形指圈（evenodd 挖空）+ 斜向金属光带 + 顶部四爪戒托 */
+    /** 占位戒指: 环形指圈（evenodd 挖空）+ 斜向金属光带 + 顶部四爪戒托（_ox/_oy 保留签名对称，绘制按中心坐标定位无需偏移量） */
     _drawFallbackRing(
       ctx: any,
       cxBg: number,
       cyBg: number,
       drawW: number,
       drawH: number,
-      ox: number,
-      oy: number
+      _ox: number,
+      _oy: number
     ) {
       const ringCy = cyBg + drawH * 0.08
       const outerRx = drawW * 0.36

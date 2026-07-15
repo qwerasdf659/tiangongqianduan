@@ -258,9 +258,11 @@ class APIClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'x-platform': 'wechat_mp',
-      // 设备会话标识：仅认证请求携带（"同设备重登自动替换旧会话"只对已登录会话有意义）；
-      // 公开接口遵循《个人信息保护法》第6条最小必要原则，不携带设备标识
-      ...(effectiveNeedAuth ? { 'X-Device-Id': getDeviceId() } : {}),
+      /**
+       * 设备会话标识（对接文档 3.1/5.5）：所有请求携带持久化设备 UUID，
+       * 后端按 (user_id, device_id) 做会话隔离；与全项目会话体系对齐（管理端 localStorage 同方案）
+       */
+      'X-Device-Id': getDeviceId(),
       ...customHeaders
     }
 
@@ -376,8 +378,8 @@ class APIClient {
     const fullUrl: string = `${this.config.fullUrl}${url}`
     const headers: Record<string, string> = {
       'x-platform': 'wechat_mp',
-      // 设备会话标识：仅认证请求携带（与 request 一致，遵循最小必要原则）
-      ...(needAuth ? { 'X-Device-Id': getDeviceId() } : {}),
+      /** 设备会话标识（对接文档 3.1/5.5）：与 request 一致，所有请求携带持久化设备 UUID */
+      'X-Device-Id': getDeviceId(),
       ...customHeaders
     }
 

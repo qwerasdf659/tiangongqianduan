@@ -1,54 +1,44 @@
 /**
  * DIY饰品设计引擎API模块
  *
- * 后端路由: /api/v4/diy/
- * 后端服务: DIYService.js (1345行)
- * 后端表: diy_templates(7条) + diy_works(0条) + diy_materials(61条)
+ * 后端路由: /api/v4/diy/（对接文档《DIY饰品定制-微信小程序前端对接文档.md》第三章）
+ * 后端服务: DiyServiceFacade → TemplateService / WorkService / MaterialService / QRCodeService
+ * 后端表: diy_templates（模板） + diy_materials（素材） + diy_works（用户作品）
  *
- * 接口清单（用户端13个 + 海报1个）:
+ * 接口清单（用户端 13 个端点 + 作品小程序码）:
  *   模板: GET templates / GET templates/:id / GET templates/:id/estimate（手围算珠）
  *   材料: GET templates/:id/payment-assets / GET templates/:id/beads / GET material-groups
  *   作品: GET works / GET works/:id / POST works / DELETE works/:id
  *   流程: POST works/:id/confirm / POST works/:id/complete / POST works/:id/cancel
- *   海报: GET works/:id/qrcode（⚠️ 需后端实现）
+ *   分享: GET works/:id/qrcode（作品小程序码）
  *
  * 所有接口调用后端真实API，不使用Mock数据
- * 字段名使用后端蛇形命名，前端不做映射
+ * 字段名使用后端蛇形命名，前端不做映射层（对接文档 5.2）
  *
  * @file 天工平台 - DIY饰品设计API模块
- * @version 3.0.0
+ * @version 4.0.0
  * @since 2026-04-03
  */
 
 const { apiClient } = require('./client')
 const { generateIdempotencyKey } = require('../util')
 
-/** DIY 小程序码接口未开通时的前端提示文案（避免生成伪二维码或静默降级为真实码） */
-const DIY_QRCODE_UNAVAILABLE_MESSAGE =
-  '后端暂未开通 DIY 小程序码接口，请让后端提供 GET /api/v4/diy/works/:id/qrcode'
-
 // ========== 模板相关 ==========
 
 /**
  * 获取已发布的款式模板列表
- * GET /api/v4/diy/templates?category_id=xxx
+ * GET /api/v4/diy/templates
  *
- * 后端逻辑: DiyTemplate.findAll({ where: { status: 'published', is_enabled: 1 } })
- * 支持按 category_id 筛选（手链191/项链192/戒指193/吊坠194/耳饰291/手机链包挂292/108佛珠293，
- * 291~293 为 seeder 实际落库 ID，对接文档 13.1-F）
+ * 对接文档 3.3-①: 无查询参数。后端仅返回 status='published' 且 is_enabled=true 的模板，
+ * 按 sort_order 升序；前端按返回的 category_id 自行分组/筛选展示（不向后端传分类参数）。
  *
  * 媒体字段（preview_media/base_image_media）经后端 toSafeJSON 收敛为 5 字段最小集
- * { media_id, width, height, public_url, thumbnails:{w375,w750,w1080} }（对接文档 13.1-D）
+ * { media_id, width, height, public_url, thumbnails:{w375,w750,w1080} }
  *
- * @param categoryId - 可选，分类ID用于筛选（对应categories表的DIY子分类）
- * @returns 模板列表（含layout/bead_rules/sizing_rules/capacity_rules等完整配置）
+ * @returns 模板对象数组（含layout/bead_rules/sizing_rules/capacity_rules等完整配置）
  */
-async function getDiyTemplates(categoryId?: number): Promise<API.ApiResponse<API.DiyTemplate[]>> {
-  let url = '/diy/templates'
-  if (categoryId) {
-    url += `?category_id=${categoryId}`
-  }
-  return apiClient.request(url, { method: 'GET', needAuth: false })
+async function getDiyTemplates(): Promise<API.ApiResponse<API.DiyTemplate[]>> {
+  return apiClient.request('/diy/templates', { method: 'GET', needAuth: false })
 }
 
 /**
@@ -173,20 +163,15 @@ async function getDiyTemplateBeads(
 }
 
 /**
- * 获取所有材料分组列表
+ * 获取所有材料分组列表（分组 Tab 数据源）
  * GET /api/v4/diy/material-groups
  *
- * 后端路由: routes/v4/diy.js 第81行
- * 服务层: DIYService.getMaterialGroups()
- * 数据库: diy_materials 表（21条材料），通过 group_code 字段 GROUP BY 聚合
- * 无独立 diy_material_groups 表
+ * 后端逻辑（三端落地方案 拍板 16 / F.7-④）: diy_materials 按 group_code 聚合 count，
+ * 再经 DisplayNameService 从 system_dictionaries(dict_type='diy_material_group')
+ * 下发 display_name + color_hex（DIY 自有字典，不 join asset_group_defs）。
  *
- * 返回: [{ group_code, count, sample_name }]
- * 6个颜色分组: red(红3)/orange(橙2)/yellow(黄8)/green(绿3)/blue(蓝2)/purple(紫3)
- *
- * ⚠️ 后端已确认: sample_name 字段已通过 MIN(display_name) 聚合返回
- *    后端返回 data 直接是数组 [{ group_code, count, sample_name }]，非 { groups: [...] }
- *    前端 diy-design.ts 从珠子数据自行聚合生成 sample_name 作为备用方案
+ * 返回: [{ group_code, count, display_name, color_hex }]（公开接口，无需登录）
+ * 小程序分组 Tab 直接消费 display_name / color_hex，不做本地 label 映射。
  */
 async function getDiyMaterialGroups(): Promise<API.ApiResponse<API.DiyMaterialGroup[]>> {
   return apiClient.request('/diy/material-groups', { method: 'GET', needAuth: false })
@@ -195,14 +180,47 @@ async function getDiyMaterialGroups(): Promise<API.ApiResponse<API.DiyMaterialGr
 // ========== 作品相关 ==========
 
 /**
- * 获取当前用户的作品列表
+ * 获取当前用户的作品列表（需登录）
  * GET /api/v4/diy/works
  *
- * 后端逻辑: DiyWork.findAll({ where: { account_id } })
- * 返回所有状态的作品（draft/frozen/completed/cancelled）
+ * 三端落地方案 F.7-⑦（后端真实代码实测契约）:
+ *   Query（可选）: page / page_size（默认 20） / status（draft/frozen/completed/cancelled）；
+ *   响应 data 为 { rows, count }（rows=当前页作品数组，count=符合条件总数）。
+ * ⚠️ 后端默认每页 20 条，作品多的用户必须分页翻页拉全（page 自增，累计 rows 达 count 即到底）。
+ * 作品挂在 account_id 上，后端由登录态 user_id 自动换算，前端无需关心 account_id。
+ *
+ * @param params - 可选参数（page 页码 1 起 / page_size 每页条数 / status 状态 / template_id / keyword）
  */
-async function getDiyWorks(): Promise<API.ApiResponse<API.DiyWork[]>> {
-  return apiClient.request('/diy/works', { method: 'GET' })
+async function getDiyWorks(params?: {
+  page?: number
+  page_size?: number
+  status?: string
+  template_id?: number
+  keyword?: string
+}): Promise<API.ApiResponse<API.DiyWorksListResult>> {
+  let url = '/diy/works'
+  if (params) {
+    const queryParts: string[] = []
+    if (params.page) {
+      queryParts.push(`page=${params.page}`)
+    }
+    if (params.page_size) {
+      queryParts.push(`page_size=${params.page_size}`)
+    }
+    if (params.status) {
+      queryParts.push(`status=${encodeURIComponent(params.status)}`)
+    }
+    if (params.template_id) {
+      queryParts.push(`template_id=${params.template_id}`)
+    }
+    if (params.keyword) {
+      queryParts.push(`keyword=${encodeURIComponent(params.keyword)}`)
+    }
+    if (queryParts.length > 0) {
+      url += `?${queryParts.join('&')}`
+    }
+  }
+  return apiClient.request(url, { method: 'GET' })
 }
 
 /**
@@ -224,15 +242,16 @@ async function getDiyWorkById(workId: number): Promise<API.ApiResponse<API.DiyWo
 }
 
 /**
- * 保存设计草稿（创建或更新）
+ * 保存作品（创建 / 更新草稿）
  * POST /api/v4/diy/works
  *
- * 后端逻辑: 校验模板+材料合法性，计算 total_cost
- * 返回: { diy_work_id, work_code, status: 'draft' }
+ * 对接文档 3.3-⑨: 请求体不传 diy_work_id = 新建草稿；传了 = 更新该草稿。
+ * 保存阶段后端只校验所用 material_code 存在且启用（不计价、不冻结），
+ * total_cost 由后端在 confirm 阶段计算，saveWork 不接受前端传入的 total_cost。
  *
- * 幂等机制: 通过请求头 Idempotency-Key 保证
+ * 幂等机制: 通过请求头 Idempotency-Key 保证（HTTP 标准实践，幂等键属请求元数据放 Header）
  *
- * @param workData - 作品数据（含模板ID、设计数据、材料消耗）
+ * @param workData - 作品数据（diy_template_id / work_name / design_data / 可选 diy_work_id、preview_media_id）
  */
 async function saveDiyWork(
   workData: API.DiyWorkCreateRequest
@@ -261,12 +280,11 @@ async function deleteDiyWork(workId: number): Promise<API.ApiResponse<void>> {
 // ========== 海报/分享 ==========
 
 /**
- * 获取作品小程序码图片URL（海报生成用）
+ * 获取作品小程序码图片URL（海报/分享用，需登录）
  * GET /api/v4/diy/works/:id/qrcode
  *
- * 后端逻辑（对接文档 13.1-C，已实现）: 作者校验 → Sealos 确定性路径缓存命中检查 →
- *   未命中调微信 wxacode.getUnlimited（scene=diy_work_id={id}，page=packageDIY/diy-lite/diy-lite）
- *   → 上传 Sealos 回 URL。仅 frozen/completed 作品可生成。
+ * 对接文档 3.3-⑭: 首次调用生成微信小程序码并缓存到对象存储返回 URL，后续直接返回缓存 URL；
+ * scene 参数格式为 diy_work_id={id}，他人扫码进入该作品。仅 frozen/completed 作品可生成。
  *
  * 返回: { qrcode_url: string }
  *
@@ -277,22 +295,7 @@ async function deleteDiyWork(workId: number): Promise<API.ApiResponse<void>> {
  * @param workId - 作品主键 diy_work_id
  */
 async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcode_url: string }>> {
-  try {
-    return await apiClient.request(`/diy/works/${workId}/qrcode`, { method: 'GET' })
-  } catch (error: any) {
-    const normalizedError = error || {}
-    if (
-      normalizedError.code === 'NOT_FOUND' ||
-      normalizedError.statusCode === 404 ||
-      normalizedError.code === 'BAD_REQUEST'
-    ) {
-      const unavailableError: any = new Error(DIY_QRCODE_UNAVAILABLE_MESSAGE)
-      unavailableError.code = 'DIY_QRCODE_API_UNAVAILABLE'
-      unavailableError.statusCode = normalizedError.statusCode || 404
-      throw unavailableError
-    }
-    throw error
-  }
+  return apiClient.request(`/diy/works/${workId}/qrcode`, { method: 'GET' })
 }
 
 // ========== 结算流程（三步状态机: draft → frozen → completed/cancelled） ==========
@@ -301,14 +304,14 @@ async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcod
  * 确认设计 — 冻结材料（draft → frozen）
  * POST /api/v4/diy/works/:id/confirm
  *
- * 后端逻辑:
- *   0. 冻结前设计约束硬校验 _validateDesignConstraints（颗数兜底 + 长度校验，拍板 Q4，§11.4）
- *   1. 根据 design_data 查 diy_materials 当前价格计算 total_price
- *   2. 校验 payments 总额覆盖 total_price
- *   3. 事务内逐项 BalanceService.freeze → 更新状态为 frozen
- *   4. 生成 total_cost 快照保存到 diy_works
+ * 后端流程（对接文档 3.3-⑪）:
+ *   1. 从 design_data 提取逐颗 material_code → 查真实单价按币种汇总应付（Math.ceil 向上取整）
+ *   2. 校验颗数/成品长度硬约束（串珠模式）→ 校验 payments 每币种实付 ≥ 应付
+ *   3. 逐项冻结资产 → 写 total_cost 快照（price_snapshot 定价快照 + payments 实冻明细）
  *
- * 返回: { diy_work_id, status: 'frozen', frozen_at }
+ * 返回: 冻结后的完整作品对象（status='frozen'，含 total_cost）
+ * payments 约束（对接文档 5.3）: asset_code 仅限 star_stone / 源晶体系，禁止 points/budget_points；
+ * amount 必须为正数，金额以后端返回为准（前端只做预估展示）。
  *
  * 业务错误码（HTTP 400，错误码在响应顶层 code 字段，data 内带毫米/颗数明细，§16.3-5）:
  *   DIY_BEAD_COUNT_OUT_OF_RANGE — 颗数超出 capacity_rules 范围，data: { bead_count, min_beads, max_beads }
@@ -323,7 +326,7 @@ async function getDiyWorkQrcode(workId: number): Promise<API.ApiResponse<{ qrcod
 async function confirmDiyWork(
   workId: number,
   payments: API.DiyTotalCostItem[]
-): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
+): Promise<API.ApiResponse<API.DiyWork>> {
   return apiClient.request(`/diy/works/${workId}/confirm`, {
     method: 'POST',
     data: { payments },
@@ -335,20 +338,20 @@ async function confirmDiyWork(
  * 完成设计 — 从冻结扣减 + 铸造物品（frozen → completed）
  * POST /api/v4/diy/works/:id/complete
  *
- * 后端逻辑:
- *   1. BalanceService.settleFromFrozen — 从冻结余额扣减
- *   2. ItemService.mintItem — 铸造 items 实例（item_type='diy_product'）
- *   3. 写 item_ledger 双录流水
+ * 后端流程（对接文档 3.3-⑫）:
+ *   1. 从冻结余额扣减 → 铸造 items 物品实例（写 item_ledger 双录）→ 回填 item_id
+ *   2. 写 exchange_records（含地址快照，打通实物发货）
  *
- * 返回: { diy_work_id, status: 'completed', item_id, completed_at }
+ * 返回: 完成后的完整作品对象（status='completed'，含 item_id / completed_at）
  *
  * @param workId - 作品主键 diy_work_id
- * @param addressId - 可选，收货地址ID，传入后后端快照收货地址到 exchange_records
+ * @param addressId - 可选，收货地址ID（user_addresses 表）；传入后后端生成 address_snapshot，
+ *                    不传则订单地址为空，可由管理员后台补录（或后续引导用户补填）
  */
 async function completeDiyWork(
   workId: number,
   addressId?: number
-): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
+): Promise<API.ApiResponse<API.DiyWork>> {
   const requestData: Record<string, any> = {}
   if (addressId) {
     requestData.address_id = addressId
@@ -363,14 +366,14 @@ async function completeDiyWork(
  * 取消设计 — 解冻材料（frozen → cancelled）
  * POST /api/v4/diy/works/:id/cancel
  *
- * 后端逻辑: 事务内逐项 BalanceService.unfreeze → 更新状态为 cancelled
- * 超时保护: frozen 状态超过24小时自动 cancel
+ * 对接文档 3.3-⑬: 无请求体。仅 frozen 状态可取消（其他状态返回 409），
+ * 后端事务内逐项解冻已冻结资产，作品变 cancelled（终态，只读）。
  *
- * 返回: { diy_work_id, status: 'cancelled' }
+ * 返回: 取消后的完整作品对象（status='cancelled'）
  *
  * @param workId - 作品主键 diy_work_id
  */
-async function cancelDiyWork(workId: number): Promise<API.ApiResponse<API.DiyWorkStatusResponse>> {
+async function cancelDiyWork(workId: number): Promise<API.ApiResponse<API.DiyWork>> {
   return apiClient.request(`/diy/works/${workId}/cancel`, { method: 'POST' })
 }
 

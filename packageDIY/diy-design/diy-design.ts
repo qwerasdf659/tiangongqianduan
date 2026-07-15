@@ -27,16 +27,6 @@ const { API, Utils } = require('../../utils/index')
 const { checkAuth } = Utils
 const { diyStore } = require('../../store/diy')
 
-/** 颜色分组 → 中文名映射（UI常量，用于分组Tab展示） */
-const GROUP_NAME_MAP: Record<string, string> = {
-  red: '红色系',
-  orange: '橙色系',
-  yellow: '黄色系',
-  green: '绿色系',
-  blue: '蓝色系',
-  purple: '紫色系'
-}
-
 Page({
   data: {
     /** 是否加载中 */
@@ -70,8 +60,8 @@ Page({
     totalSlotCount: 0,
     activeSlotLabel: '',
 
-    /* 素材选择 */
-    materialGroups: [] as { group_code: string; display_name: string }[],
+    /* 素材选择（分组 Tab 名称/色值取自后端字典，见 _loadBeads） */
+    materialGroups: [] as { group_code: string; display_name: string; color_hex: string }[],
     activeGroupCode: '',
     filteredBeads: [] as any[],
     searchKeyword: '',
@@ -211,27 +201,20 @@ Page({
   async _loadBeads(templateId: number) {
     this.setData({ beadLoadError: false })
     try {
-      const beadsRes = await API.getDiyTemplateBeads(templateId)
+      /**
+       * 素材与分组并行拉取（三端落地方案 拍板 1/16）:
+       * 分组 Tab 改从后端 GET /material-groups 动态取（含 display_name/color_hex 字典下发），
+       * 不再从珠子数据自聚合、也不做本地 label 映射（删除硬编码 GROUP_NAME_MAP）。
+       */
+      const [beadsRes, groupsRes] = await Promise.all([
+        API.getDiyTemplateBeads(templateId),
+        API.getDiyMaterialGroups()
+      ])
       if (beadsRes.success && beadsRes.data) {
         diyStore.setAllBeads(beadsRes.data)
-        /* 从珠子数据中提取实际的分组列表（统计每组数量和示例名称） */
-        const groupMap = new Map<string, { count: number; sampleName: string }>()
-        beadsRes.data.forEach((b: API.DiyBead) => {
-          const existing = groupMap.get(b.group_code)
-          if (existing) {
-            existing.count += 1
-          } else {
-            groupMap.set(b.group_code, { count: 1, sampleName: b.display_name })
-          }
-        })
-        /** 对齐后端 GET /api/v4/diy/material-groups 返回格式 */
-        const apiGroups: API.DiyMaterialGroup[] = Array.from(groupMap.entries()).map(
-          ([code, info]) => ({
-            group_code: code,
-            count: String(info.count),
-            sample_name: info.sampleName
-          })
-        )
+        /** 分组以后端 /material-groups 为权威；异常时退化为空数组（Tab 仅剩"全部"） */
+        const apiGroups: API.DiyMaterialGroup[] =
+          groupsRes.success && Array.isArray(groupsRes.data) ? groupsRes.data : []
         diyStore.setMaterialGroups(apiGroups)
       } else {
         this.setData({ beadLoadError: true })
@@ -331,9 +314,11 @@ Page({
     const updates: Record<string, any> = {
       templateName: template.display_name,
       isSlotMode,
+      /** 分组 Tab 名称/色值直接取后端字典下发值，不做本地映射（拍板 16） */
       materialGroups: diyStore.availableGroups.map((g: API.DiyMaterialGroup) => ({
         group_code: g.group_code,
-        display_name: GROUP_NAME_MAP[g.group_code] || g.group_code
+        display_name: g.display_name || g.group_code,
+        color_hex: g.color_hex || ''
       })),
       activeGroupCode: diyStore.activeGroupCode,
       canUndo: diyStore.canUndo,
@@ -672,6 +657,53 @@ Page({
   },
 
   /**
+   * 构造保存作品请求体（串珠/镶嵌两种 design_data，对接文档 3.3-⑨/4.5）:
+   *   saveWork 不传 total_cost（由后端 confirm 阶段计算）；
+   *   design_data 只记录素材选择（material_code），不记录支付信息；
+   *   已保存过的作品携带 diy_work_id = 更新该草稿，避免重复保存落多条草稿
+   */
+  _buildWorkData(): API.DiyWorkCreateRequest {
+    const template = diyStore.currentTemplate!
+    const workData: API.DiyWorkCreateRequest = {
+      diy_template_id: template.diy_template_id,
+      work_name: `我的${template.display_name}`,
+      design_data: { mode: 'beading' }
+    }
+    if (this._currentWorkId) {
+      workData.diy_work_id = this._currentWorkId
+    }
+    if (diyStore.isSlotMode) {
+      /* 镶嵌模式: 以 slot_id 为 key 记录每槽填充的 material_code，空槽不放 key */
+      const fillings: Record<string, { material_code: string }> = {}
+      for (const [slotId, bead] of Object.entries(diyStore.slotFillings)) {
+        const beadObj = bead as API.DiyBead
+        fillings[slotId] = { material_code: beadObj.material_code }
+      }
+      workData.design_data = { mode: 'slots', fillings }
+    } else {
+      /* 串珠模式: position = 绳上排列顺序（对接文档 4.5 契约字段，数组顺序即排列顺序） */
+      const beads = diyStore.selectedBeads.map((b: API.DiyBead, i: number) => {
+        return { position: i, material_code: b.material_code }
+      })
+      workData.design_data = { mode: 'beading', beads }
+      /**
+       * 手围档位契约（§11.4/§16.3-4）: size: { label, wrist_size_mm } 是后端 confirm 长度硬校验依据；
+       * 项链品类档位无 wrist_size_mm 时按佩戴长度口径填 target_length_mm（后端双字段命中）。
+       * 档位未配置毫米数据时不携带 size，后端跳过长度校验、仅颗数兜底
+       */
+      const selectedOption = diyStore.currentTemplate!.sizing_rules?.size_options?.find(
+        (o: API.DiySizeOption) => o.label === diyStore.selectedSizeLabel
+      )
+      const wristSizeMm =
+        Number(selectedOption?.wrist_size_mm) || Number(selectedOption?.target_length_mm) || 0
+      if (selectedOption && wristSizeMm > 0) {
+        workData.design_data.size = { label: selectedOption.label, wrist_size_mm: wristSizeMm }
+      }
+    }
+    return workData
+  },
+
+  /**
    * 完成设计 → 保存草稿 → 跳转结果页
    * 后端API: POST /api/v4/diy/works
    */
@@ -686,45 +718,7 @@ Page({
     wx.showLoading({ title: '保存中...' })
     try {
       const template = diyStore.currentTemplate!
-      /**
-       * 保存草稿请求体
-       * 文档决策 F9: saveWork 不传 total_cost，由 confirmDesign 时后端服务端计算
-       * design_data 只记录珠子选择（material_code），不记录支付信息
-       */
-      const workData: API.DiyWorkCreateRequest = {
-        diy_template_id: template.diy_template_id,
-        work_name: `我的${template.display_name}`,
-        design_data: { mode: 'beading' }
-      }
-      if (diyStore.isSlotMode) {
-        /* 镶嵌模式: 记录每个槽位填入的珠子 material_code */
-        const fillings: Record<string, { material_code: string }> = {}
-        for (const [slotId, bead] of Object.entries(diyStore.slotFillings)) {
-          const beadObj = bead as API.DiyBead
-          fillings[slotId] = { material_code: beadObj.material_code }
-        }
-        workData.design_data = { mode: 'slots', fillings }
-      } else {
-        /* 串珠模式: 记录每颗珠子的 material_code + 位置 + 直径 */
-        const beads = diyStore.selectedBeads.map((b: API.DiyBead, i: number) => {
-          return { slot_index: i, material_code: b.material_code, diameter: b.diameter }
-        })
-        workData.design_data = { mode: 'beading', beads }
-        /**
-         * 手围档位契约（§11.4/§16.3-4）: size: { label, wrist_size_mm } 是后端 confirm 长度硬校验依据；
-         * 项链品类档位无 wrist_size_mm 时按佩戴长度口径填 target_length_mm（后端双字段命中）。
-         * 档位未配置毫米数据时不携带 size，后端跳过长度校验、仅颗数兜底
-         */
-        const selectedOption = template.sizing_rules?.size_options?.find(
-          (o: API.DiySizeOption) => o.label === diyStore.selectedSizeLabel
-        )
-        const wristSizeMm =
-          Number(selectedOption?.wrist_size_mm) || Number(selectedOption?.target_length_mm) || 0
-        if (selectedOption && wristSizeMm > 0) {
-          workData.design_data.size = { label: selectedOption.label, wrist_size_mm: wristSizeMm }
-        }
-      }
-      const saveRes = await API.saveDiyWork(workData)
+      const saveRes = await API.saveDiyWork(this._buildWorkData())
       wx.hideLoading()
       if (saveRes.success && saveRes.data) {
         const workId = saveRes.data.diy_work_id
@@ -747,6 +741,7 @@ Page({
   /**
    * 保存草稿（不跳转结果页，仅保存当前设计状态）
    * 后端API: POST /api/v4/diy/works
+   * 请求体与完成设计共用 _buildWorkData（携带完整 design_data 与可选 diy_work_id 更新契约）
    */
   async onSaveDraft() {
     if (!checkAuth({ redirect: false })) {
@@ -759,13 +754,7 @@ Page({
     }
     wx.showLoading({ title: '保存中...' })
     try {
-      const template = diyStore.currentTemplate!
-      const workData: API.DiyWorkCreateRequest = {
-        diy_template_id: template.diy_template_id,
-        work_name: `我的${template.display_name}`,
-        design_data: { mode: 'beading' }
-      }
-      const saveRes = await API.saveDiyWork(workData)
+      const saveRes = await API.saveDiyWork(this._buildWorkData())
       wx.hideLoading()
       if (saveRes.success && saveRes.data) {
         this._currentWorkId = saveRes.data.diy_work_id

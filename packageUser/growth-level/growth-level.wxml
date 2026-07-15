@@ -51,8 +51,9 @@
             wx:key="levelKey"
           ></view>
         </view>
+        <!-- 累计积分：displayPoints 为数字滚动动画中间帧，最终值恒等于后端 history_total_points -->
         <view class="current-points">
-          <text class="current-points-num">{{historyTotalPoints}}</text>
+          <text class="current-points-num">{{displayPoints}}</text>
           <text class="current-points-unit">累计积分</text>
         </view>
         <!-- 当前等级积分加成倍率（后端 current_earn_multiplier，营销激励公开信息） -->
@@ -60,9 +61,9 @@
           <t-icon name="upload" size="26rpx" color="#B8860B" />
           <text class="current-multiplier-text">{{currentMultiplierText}}</text>
         </view>
-        <!-- 升级进度条（仅 UI 可视化，数字文案以后端 next_level 差值为准） -->
+        <!-- 升级进度条（仅 UI 可视化，数字文案以后端 next_level 差值为准；progressFillPercent 为填充动画中间值，最终等于 progressPercent） -->
         <view class="progress-track" wx:if="{{progressPercent >= 0}}">
-          <view class="progress-fill" style="width: {{progressPercent}}%"></view>
+          <view class="progress-fill" style="width: {{progressFillPercent}}%"></view>
         </view>
         <!-- 升级提示（后端 next_level 差值字段，顶档不下发则不展示） -->
         <view class="next-level-hint" wx:if="{{nextLevelText}}">
@@ -83,10 +84,16 @@
           <text class="section-subtitle">共 {{levels.length}} 级</text>
         </view>
         <view class="ladder-list">
+          <!-- 逐项入场动画（animation-delay 按序号递增）+ 点击弹出该档等级详情 -->
           <view
-            class="ladder-item {{item.isCurrent ? 'ladder-current' : ''}} {{item.isReached ? 'ladder-reached' : ''}}"
+            class="ladder-item ladder-enter {{item.isCurrent ? 'ladder-current' : ''}} {{item.isReached ? 'ladder-reached' : ''}}"
+            style="animation-delay: {{index * 60}}ms"
             wx:for="{{levels}}"
             wx:key="levelKey"
+            data-index="{{index}}"
+            hover-class="ladder-item-hover"
+            hover-stay-time="120"
+            bindtap="onLadderItemTap"
           >
             <view class="ladder-rail">
               <view
@@ -119,12 +126,16 @@
                     >
                   </view>
                 </view>
-                <t-icon
-                  wx:if="{{item.isReached && !item.isCurrent}}"
-                  name="check-circle-filled"
-                  size="32rpx"
-                  color="#C5A572"
-                />
+                <view class="ladder-trailing">
+                  <t-icon
+                    wx:if="{{item.isReached && !item.isCurrent}}"
+                    name="check-circle-filled"
+                    size="32rpx"
+                    color="#C5A572"
+                  />
+                  <!-- 右侧箭头：提示该行可点击查看等级详情 -->
+                  <t-icon name="chevron-right" size="32rpx" color="var(--tg-text-tertiary)" />
+                </view>
               </view>
             </view>
           </view>
@@ -175,4 +186,56 @@
     <!-- 全屏维护遮罩（503 SYSTEM_MAINTENANCE 时激活） -->
     <maintenance-overlay />
   </scroll-view>
+
+  <!-- 等级详情弹窗（内容均为后端已下发字段的展示加工：奖章材质/等级名/门槛/倍率/达成状态） -->
+  <t-popup
+    visible="{{levelDetailVisible}}"
+    placement="center"
+    bind:visible-change="onLevelDetailVisibleChange"
+  >
+    <view class="level-detail-modal" wx:if="{{levelDetail}}">
+      <view class="level-detail-close" bindtap="onLevelDetailClose">
+        <t-icon name="close" size="36rpx" color="var(--tg-text-tertiary)" />
+      </view>
+      <!-- 该档奖章（medal-v1~v9 与阶梯同一套材质体系，未达档位锁定置灰） -->
+      <view
+        class="level-detail-medal medal-{{levelDetail.levelKey}} {{levelDetail.isReached ? '' : 'medal-locked'}}"
+      >
+        <t-icon
+          wx:if="{{levelDetail.isReached}}"
+          name="user-vip-filled"
+          size="56rpx"
+          color="#FFFFFF"
+        />
+        <t-icon wx:else name="lock-on-filled" size="48rpx" color="#BBBBBB" />
+      </view>
+      <text class="level-detail-name">{{levelDetail.levelName}}</text>
+      <!-- 达成状态标签（isCurrent/isReached 由后端 current_level_key 与 levels[] 顺序派生） -->
+      <view
+        class="level-detail-status {{levelDetail.isCurrent ? 'status-current' : levelDetail.isReached ? 'status-reached' : 'status-locked'}}"
+      >
+        <text wx:if="{{levelDetail.isCurrent}}">当前等级</text>
+        <text wx:elif="{{levelDetail.isReached}}">已达成</text>
+        <text wx:else>未解锁</text>
+      </view>
+      <view class="level-detail-rows">
+        <!-- 门槛（后端 min_history_points；阈值未定稿时 thresholdText 为空不展示该行） -->
+        <view class="level-detail-row" wx:if="{{levelDetail.thresholdText}}">
+          <text class="level-detail-label">升级门槛</text>
+          <text class="level-detail-value">{{levelDetail.thresholdText}}</text>
+        </view>
+        <!-- 积分加成倍率（后端 earn_multiplier，营销激励公开信息） -->
+        <view class="level-detail-row" wx:if="{{levelDetail.multiplierText}}">
+          <text class="level-detail-label">积分加成</text>
+          <text class="level-detail-value level-detail-multiplier"
+            >{{levelDetail.multiplierText}}</text
+          >
+        </view>
+      </view>
+      <!-- 阈值未定稿时的占位说明（与页面底部占位提示同一业务口径） -->
+      <text class="level-detail-hint" wx:if="{{!thresholdsConfirmed}}"
+        >积分门槛正在确认中，敬请期待</text
+      >
+    </view>
+  </t-popup>
 </view>

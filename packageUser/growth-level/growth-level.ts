@@ -22,8 +22,14 @@
  * 占位保护: thresholds_confirmed=false 时后端将 min_history_points 下发为 null，
  *   前端只显示等级名、不显示"需达 Y 积分"的具体门槛数字，避免用占位值误导用户。
  *
+ * UI 交互（5.4.0 丰富，全部为纯展示层动画，不产生任何前端自算业务数字）:
+ *   - 累计积分数字滚动动画（从 0 滚动到后端 history_total_points，最终值即后端权威数字）
+ *   - 升级进度条填充动画（CSS width 过渡，条宽仍由后端权威数字换算）
+ *   - 等级阶梯逐项入场动画 + 按压反馈 + 轻触感震动
+ *   - 点击阶梯任意档位弹出等级详情弹窗（展示该档奖章/门槛/倍率/达成状态，均为后端已下发字段）
+ *
  * @file packageUser/growth-level/growth-level.ts
- * @version 5.3.0
+ * @version 5.4.0
  * @since 2026-06-10
  */
 
@@ -69,12 +75,31 @@ Page({
      * 阈值未定稿（thresholds_confirmed=false）或顶档时为 -1 不展示。
      */
     progressPercent: -1,
+    /**
+     * 进度条动画填充宽度（仅 UI 动画中间值）:
+     * 首帧渲染为 0，下一拍 setData 为 progressPercent，配合 CSS transition 产生填充动画。
+     * 最终值恒等于 progressPercent（后端权威数字换算），不产生任何新数字。
+     */
+    progressFillPercent: 0,
+    /**
+     * 累计积分滚动显示值（仅 UI 动画中间值）:
+     * 数字滚动动画期间的过渡帧，动画结束恒等于后端 historyTotalPoints，
+     * 页面最终展示的仍是后端权威数字，前端不自算业务数据。
+     */
+    displayPoints: 0,
+    /** 等级详情弹窗显隐 */
+    levelDetailVisible: false,
+    /** 等级详情弹窗数据（levels[] 中被点击的一项，字段均为后端已下发数据的展示加工） */
+    levelDetail: null as any,
     /** MobX 绑定字段 */
     isLoggedIn: false
   },
 
   /** MobX Store 绑定实例（onUnload 时销毁） */
   userBindings: null as any,
+
+  /** 积分数字滚动动画定时器（onUnload 时清理，防止页面销毁后 setData） */
+  pointsTimer: 0 as any,
 
   onLoad() {
     growthLog.info('成长等级页面加载')
@@ -91,6 +116,11 @@ Page({
   onUnload() {
     if (this.userBindings) {
       this.userBindings.destroyStoreBindings()
+    }
+    /** 清理数字滚动动画定时器，避免页面销毁后继续 setData */
+    if (this.pointsTimer) {
+      clearInterval(this.pointsTimer)
+      this.pointsTimer = 0
     }
   },
 
@@ -190,19 +220,28 @@ Page({
         const currentMultiplierText =
           typeof currentMultiplier === 'number' ? `积分加成 ${currentMultiplier.toFixed(2)} 倍` : ''
 
+        const historyTotalPoints = apiData.history_total_points || 0
+
         this.setData({
           currentLevelKey,
           currentLevelName: apiData.current_level_name || '',
           currentMultiplierText,
-          historyTotalPoints: apiData.history_total_points || 0,
+          historyTotalPoints,
           thresholdsConfirmed,
           levels: processedLevels,
           nextLevelText,
           currentLevelIndex,
           isTopLevel,
           progressPercent,
+          /** 动画起点：进度条从 0 开始填充、数字从 0 开始滚动（最终值均为后端权威数字） */
+          progressFillPercent: 0,
+          displayPoints: 0,
           loadStatus: 'success'
         })
+
+        /** 纯展示层入场动画：数字滚动 + 进度条填充（不改变任何业务数字） */
+        this.animatePointsCount(historyTotalPoints)
+        this.animateProgressFill(progressPercent)
 
         growthLog.info('成长等级加载成功:', currentLevelKey)
       } else {
@@ -213,6 +252,91 @@ Page({
       this.setData({ loadStatus: 'error' })
       showToast(error.message || '加载失败，请重试')
     }
+  },
+
+  /**
+   * 累计积分数字滚动动画（纯 UI 展示动画）:
+   * 从 0 按 easeOut 缓动滚动到后端权威值 targetPoints，动画结束后 displayPoints
+   * 恒等于后端 history_total_points，不产生任何前端自算的业务数字。
+   * @param targetPoints 后端下发的累计积分（history_total_points）
+   */
+  animatePointsCount(targetPoints: number) {
+    if (this.pointsTimer) {
+      clearInterval(this.pointsTimer)
+      this.pointsTimer = 0
+    }
+
+    /** 积分为 0 时无需动画，直接落定 */
+    if (!targetPoints || targetPoints <= 0) {
+      this.setData({ displayPoints: targetPoints || 0 })
+      return
+    }
+
+    /** UI 常量：动画总时长 800ms、每帧 16ms（约 60fps 的 setData 节流为 50 帧） */
+    const DURATION_MS = 800
+    const FRAME_MS = 16
+    const totalFrames = Math.ceil(DURATION_MS / FRAME_MS)
+    let frame = 0
+
+    this.pointsTimer = setInterval(() => {
+      frame += 1
+      /** easeOutCubic 缓动：前快后慢，数字滚动更自然 */
+      const progress = 1 - Math.pow(1 - frame / totalFrames, 3)
+      const value = Math.round(targetPoints * progress)
+
+      if (frame >= totalFrames) {
+        clearInterval(this.pointsTimer)
+        this.pointsTimer = 0
+        /** 最终帧强制落定为后端权威数字，杜绝任何舍入偏差 */
+        this.setData({ displayPoints: targetPoints })
+      } else {
+        this.setData({ displayPoints: value })
+      }
+    }, FRAME_MS)
+  },
+
+  /**
+   * 进度条填充动画（纯 UI 展示动画）:
+   * 渲染完成后下一拍将填充宽度 setData 为后端换算的 progressPercent，
+   * 配合 CSS transition 产生从 0 到目标宽度的填充效果。
+   * @param targetPercent 后端权威数字换算的进度百分比（-1 表示不展示进度条）
+   */
+  animateProgressFill(targetPercent: number) {
+    if (targetPercent < 0) {
+      return
+    }
+    /** 等首帧（width:0）渲染上屏后再更新宽度，CSS transition 才会触发 */
+    wx.nextTick(() => {
+      this.setData({ progressFillPercent: targetPercent })
+    })
+  },
+
+  /**
+   * 点击等级阶梯任意档位 → 弹出等级详情弹窗
+   * 弹窗内容（奖章/等级名/门槛/倍率/达成状态）均为后端已下发字段的展示加工，无新增数据。
+   */
+  onLadderItemTap(event: WechatMiniprogram.TouchEvent) {
+    const index = event.currentTarget.dataset.index
+    const level = this.data.levels[index]
+    if (!level) {
+      return
+    }
+    /** 轻触感震动反馈（真机生效，开发者工具无感） */
+    wx.vibrateShort({ type: 'light' })
+    this.setData({
+      levelDetail: level,
+      levelDetailVisible: true
+    })
+  },
+
+  /** 关闭等级详情弹窗 */
+  onLevelDetailClose() {
+    this.setData({ levelDetailVisible: false })
+  },
+
+  /** 弹窗显隐变化回调（t-popup 蒙层点击等触发） */
+  onLevelDetailVisibleChange(event: WechatMiniprogram.CustomEvent) {
+    this.setData({ levelDetailVisible: event.detail.visible })
   },
 
   /** 重试加载 */

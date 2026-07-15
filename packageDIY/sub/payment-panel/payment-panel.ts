@@ -16,27 +16,11 @@
  */
 
 const { API } = require('../../../utils/index')
-
 /**
- * 资产代码 → 中文名称映射（UI展示用）
- * 后端 material_asset_types.display_name 是权威来源
- * 此处仅作为后端数据加载前的降级展示
+ * 资产代码 → 中文名称映射（UI展示用，与 diyStore/diy-works 共用同一数据源，避免口径漂移）
+ * 后端 material_asset_types.display_name 是权威来源，此处仅作为余额数据加载前的降级展示
  */
-const ASSET_NAME_FALLBACK: Record<string, string> = {
-  star_stone: '星石',
-  red_core_shard: '红源晶碎片',
-  red_core_gem: '红源晶',
-  orange_core_shard: '橙源晶碎片',
-  orange_core_gem: '橙源晶',
-  yellow_core_shard: '黄源晶碎片',
-  yellow_core_gem: '黄源晶',
-  green_core_shard: '绿源晶碎片',
-  green_core_gem: '绿源晶',
-  blue_core_shard: '蓝源晶碎片',
-  blue_core_gem: '蓝源晶',
-  purple_core_shard: '紫源晶碎片',
-  purple_core_gem: '紫源晶'
-}
+const { ASSET_DISPLAY_NAME } = require('../../../store/diy')
 
 Component({
   properties: {
@@ -124,10 +108,10 @@ Component({
         /** 从余额列表中查找对应资产 */
         const balance = (balances as any[]).find((b: any) => b.asset_code === item.asset_code)
         const availableAmount = balance ? balance.available_amount : 0
-        /** 优先使用后端返回的 display_name，降级使用本地映射 */
+        /** 优先使用后端返回的 display_name，降级使用共享本地映射 */
         const assetName = balance
           ? balance.display_name
-          : ASSET_NAME_FALLBACK[item.asset_code] || item.asset_code
+          : ASSET_DISPLAY_NAME[item.asset_code] || item.asset_code
         const sufficient = availableAmount >= item.amount
 
         return {

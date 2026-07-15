@@ -2559,17 +2559,21 @@ declare namespace API {
   }
 
   /**
-   * 材料分组（后端 asset_group_defs 表）
-   * 后端API: GET /api/v4/diy/material-groups
-   * 6个颜色分组 + 3个系统分组
+   * 材料分组（后端 GET /api/v4/diy/material-groups，拍板 16 增强后）
+   *
+   * 数据来源: diy_materials 按 group_code 聚合 + system_dictionaries(dict_type='diy_material_group')
+   * 下发中文名与色值（DIY 自有字典，与资产 asset_group_defs 解耦）。
+   * 小程序分组 Tab 直接消费 display_name / color_hex，不做本地映射（三端落地方案 F.4）。
    */
   interface DiyMaterialGroup {
-    /** 分组唯一标识（如 "red"、"blue"） */
+    /** 分组唯一标识（如 "white"、"blue"，DIY 自有分组自由字符串） */
     group_code: string
-    /** 该分组下的素材数量 */
-    count: string
-    /** 该分组下的示例素材名称 */
-    sample_name: string
+    /** 该分组下启用素材数量 */
+    count: number
+    /** 分组中文展示名（后端字典下发，如 "白水晶系"；字典缺行时降级为裸 group_code） */
+    display_name: string
+    /** 分组主题色值（后端字典下发，如 "#F5F5F5"；无则为 null） */
+    color_hex: string | null
   }
 
   /**
@@ -2666,8 +2670,12 @@ declare namespace API {
     work_name: string
     /** 设计数据（串珠: { mode:'beading', beads:[...] }，镶嵌: { mode:'slots', fillings:{...} }） */
     design_data: DiyDesignData
-    /** 总消耗（[{ asset_code, amount }]） */
-    total_cost: DiyTotalCostItem[]
+    /**
+     * 消耗明细（对接文档 4.7：confirm 冻结后由后端写入的快照对象，draft 阶段为 null）:
+     *   price_snapshot — 逐颗定价快照（非作者读取脱敏版时被后端移除）
+     *   payments — 实际冻结/扣减的支付明细（按 asset_code 汇总）
+     */
+    total_cost: DiyWorkTotalCost | null
     /** 预览图媒体ID */
     preview_media_id?: number
     /** 铸造的物品实例ID（completed后才有值） */
@@ -2701,18 +2709,41 @@ declare namespace API {
      * 不带 wrist_size_mm 时后端跳过长度硬校验、仅颗数兜底
      */
     size?: { label: string; wrist_size_mm: number }
-    /** 串珠模式: 珠子列表（material_code 对齐后端 diy_materials 表主键） */
-    beads?: { slot_index: number; material_code: string; diameter?: number }[]
-    /** 镶嵌模式: 槽位填充数据（material_code 对齐后端 diy_materials 表主键） */
+    /**
+     * 串珠模式: 珠子列表（对接文档 4.5 契约字段）:
+     * position — 绳上排列顺序（0 起）；material_code — 素材业务编码（后端 diy_materials 表）
+     */
+    beads?: { position: number; material_code: string }[]
+    /** 镶嵌模式: 槽位填充数据（key=slot_id，material_code 对齐后端 diy_materials 表） */
     fillings?: Record<string, { material_code: string }>
   }
 
-  /** 材料消耗明细项（后端 total_cost JSON 数组元素） */
+  /** 支付/消耗明细项（confirm 请求 payments 数组元素 / total_cost.payments 元素） */
   interface DiyTotalCostItem {
-    /** 资产代码（如 "star_stone"、"red_core_shard"） */
+    /** 资产代码（仅限星石 star_stone / 源晶体系，禁止 points/budget_points，对接文档 5.3） */
     asset_code: string
-    /** 消耗数量 */
+    /** 消耗数量（正整数，应付按币种汇总后端 Math.ceil 向上取整） */
     amount: number
+  }
+
+  /** 逐颗定价快照项（confirm 后 total_cost.price_snapshot 元素，仅作者可见） */
+  interface DiyPriceSnapshotItem {
+    /** 素材业务编码 */
+    material_code: string
+    /** 冻结时刻的单颗价格（整数定价） */
+    price: number
+    /** 定价货币资产代码 */
+    price_asset_code: string
+  }
+
+  /**
+   * 作品消耗明细（对接文档 4.7，confirm 冻结时由后端计算写入）
+   */
+  interface DiyWorkTotalCost {
+    /** 逐颗定价快照（非作者读取脱敏版时后端移除该字段） */
+    price_snapshot?: DiyPriceSnapshotItem[]
+    /** 实冻/实扣支付明细（按 asset_code 汇总） */
+    payments: DiyTotalCostItem[]
   }
 
   /**
@@ -2741,21 +2772,24 @@ declare namespace API {
   }
 
   /**
-   * 保存设计草稿请求（POST /api/v4/diy/works）
-   * 后端校验模板+材料合法性，由 confirmDesign 时服务端计算 total_cost
+   * 保存作品请求（POST /api/v4/diy/works，对接文档 3.3-⑨）
+   * 后端校验模板+材料合法性（不计价、不冻结）；total_cost 由后端在 confirm 阶段计算，
+   * saveWork 不接受前端传入的 total_cost
    */
   interface DiyWorkCreateRequest {
+    /** 作品主键（不传=新建草稿；传了=更新该草稿） */
+    diy_work_id?: number
     /** 模板主键 */
     diy_template_id: number
     /** 作品名称 */
     work_name: string
-    /** 设计数据（只记录珠子选择，不记录支付方式） */
+    /** 设计数据（只记录素材选择，不记录支付方式） */
     design_data: DiyDesignData
-    /** 材料消耗明细（前端传空数组，由后端 confirmDesign 时计算） */
-    total_cost?: DiyTotalCostItem[]
+    /** 预览图媒体ID（可选） */
+    preview_media_id?: number
   }
 
-  /** 保存设计草稿响应 */
+  /** 保存作品响应（后端返回作品对象，此处列出前端消费的最小字段集） */
   interface DiyWorkCreateResponse {
     /** 作品主键 */
     diy_work_id: number
@@ -2765,17 +2799,11 @@ declare namespace API {
     status: DiyWorkStatus
   }
 
-  /** 作品状态变更响应（confirm/complete/cancel共用） */
-  interface DiyWorkStatusResponse {
-    /** 作品主键 */
-    diy_work_id: number
-    /** 新状态 */
-    status: DiyWorkStatus
-    /** 冻结时间（confirm时返回） */
-    frozen_at?: string
-    /** 完成时间（complete时返回） */
-    completed_at?: string
-    /** 铸造的物品实例ID（complete时返回） */
-    item_id?: number
+  /** 我的作品列表响应（GET /api/v4/diy/works，对接文档 3.3-⑦：{ rows, count }） */
+  interface DiyWorksListResult {
+    /** 当前页作品数组 */
+    rows: DiyWork[]
+    /** 符合筛选条件的作品总数 */
+    count: number
   }
 }

@@ -404,7 +404,8 @@ Page({
     /**
      * costBreakdown 通过 URL 参数 JSON 编码传入
      * 格式: [{ asset_code, amount, bead_count }]
-     * 来源: diy-design.ts onSubmit → diyStore.costBreakdown
+     * 来源: 设计台 onSubmit 时的费用分组明细（按 price_asset_code 汇总，仅作预估展示，
+     * 最终应付以 confirm 后端返回为准，对接文档 5.1）
      */
     let costBreakdown: any[] = []
     if (options.costBreakdown) {
@@ -414,14 +415,17 @@ Page({
         /* 解析失败使用空数组，支付面板会从后端重新计算 */
       }
     }
+    /** 作品状态: URL 参数为初始值（从作品列表进入时携带），最终以 _fetchWorkData 后端返回为准 */
+    const initialStatus = options.workStatus || 'draft'
     this.setData({
       workId,
       totalPrice: Number(options.totalPrice || 0),
       templateName: decodeURIComponent(options.templateName || ''),
       templateId: Number(options.templateId || 0),
+      workStatus: initialStatus,
       costBreakdown
     })
-    /* 异步获取作品完整数据（含模板+设计数据，用于海报饰品渲染） */
+    /* 异步获取作品完整数据（含模板+设计数据+权威状态，用于海报渲染与按钮可用性） */
     if (workId) {
       this._fetchWorkData(workId)
     }
@@ -430,17 +434,31 @@ Page({
   /**
    * 获取作品完整数据（含关联模板和设计数据）
    * 后端API: GET /api/v4/diy/works/:id
-   * 用于海报中渲染饰品图 + 提取材料标签
+   * 用于海报渲染饰品图 + 同步权威状态/应付金额（对接文档 5.6 状态机按钮可用性）
    */
   async _fetchWorkData(workId: number) {
     try {
       const res = await API.getDiyWorkById(workId)
       if (res.success && res.data) {
         this.data._workData = res.data
+        const patch: Record<string, any> = {}
         /* 如果 templateId 未通过 URL 传入，从作品数据中获取 */
         if (!this.data.templateId && res.data.diy_template_id) {
-          this.setData({ templateId: res.data.diy_template_id })
+          patch.templateId = res.data.diy_template_id
         }
+        /** 作品状态以后端为权威（对接文档 5.6），覆盖 URL 初始值 */
+        if (res.data.status) {
+          patch.workStatus = res.data.status
+        }
+        /** confirm 后 total_cost.payments 为实冻明细，金额展示以后端返回为准（对接文档 5.1） */
+        const payments = res.data.total_cost?.payments || []
+        if (payments.length > 0) {
+          patch.totalPrice = payments.reduce(
+            (sum: number, p: API.DiyTotalCostItem) => sum + p.amount,
+            0
+          )
+        }
+        this.setData(patch)
       }
     } catch (_err) {
       /* 获取失败不阻塞页面，海报渲染时降级为纯文字 */
@@ -486,7 +504,25 @@ Page({
       const res = await API.confirmDiyWork(this.data.workId, payments)
       wx.hideLoading()
       if (res.success && res.data) {
-        this.setData({ workStatus: res.data.status, processing: false })
+        /**
+         * 后端返回冻结后的完整作品对象（对接文档 3.3-⑪）:
+         * 状态与实冻金额均以后端为权威——totalPrice 刷新为 total_cost.payments 合计
+         * （应付按币种 Math.ceil 向上取整，可能与前端预估不同，对接文档 5.1/5.3）
+         */
+        this.data._workData = res.data
+        const frozenPayments = res.data.total_cost?.payments || []
+        this.setData({
+          workStatus: res.data.status,
+          processing: false,
+          ...(frozenPayments.length > 0
+            ? {
+                totalPrice: frozenPayments.reduce(
+                  (sum: number, p: API.DiyTotalCostItem) => sum + p.amount,
+                  0
+                )
+              }
+            : {})
+        })
         wx.showToast({ title: '材料已冻结', icon: 'success' })
       } else {
         this.setData({ processing: false })
@@ -566,16 +602,48 @@ Page({
 
   /**
    * 完成设计 — 从冻结扣减 + 铸造物品（frozen → completed）
-   * 后端API: POST /api/v4/diy/works/:id/complete
+   * 后端API: POST /api/v4/diy/works/:id/complete（对接文档 3.3-⑫）
+   *
+   * 收货地址（可选）: 传 address_id 后端查 user_addresses 生成 address_snapshot 打通发货；
+   * 不传则订单地址为空，可由管理员后台补录。用户可选择"填写地址完成"或"暂不填写直接完成"。
    */
-  async onCompleteDesign() {
+  onCompleteDesign() {
     if (this.data.processing || this.data.workStatus !== 'frozen') {
       return
     }
+    wx.showActionSheet({
+      itemList: ['选择收货地址并完成', '暂不填写地址，直接完成'],
+      success: sheetRes => {
+        if (sheetRes.tapIndex === 0) {
+          /** 跳地址页选择模式（复用 packageUser/addresses，与实物兑换同一套 eventChannel 回传） */
+          wx.navigateTo({
+            url: '/packageUser/addresses/addresses?select=1',
+            events: {
+              selectAddress: (payload: { address: API.UserAddress }) => {
+                if (payload && payload.address) {
+                  this._confirmComplete(payload.address.address_id)
+                }
+              }
+            }
+          })
+        } else if (sheetRes.tapIndex === 1) {
+          this._confirmComplete()
+        }
+      }
+    })
+  },
+
+  /**
+   * 二次确认后执行完成设计（扣减冻结资产 + 铸造物品实例）
+   * @param addressId - 可选收货地址ID（user_addresses.address_id），由地址选择流程传入
+   */
+  _confirmComplete(addressId?: number) {
     this.setData({ processing: true })
     wx.showModal({
       title: '完成设计',
-      content: '确认后将从冻结余额中扣除材料并铸造饰品，此操作不可撤销。',
+      content: addressId
+        ? '确认后将从冻结余额中扣除材料并铸造饰品（含所选收货地址），此操作不可撤销。'
+        : '确认后将从冻结余额中扣除材料并铸造饰品，此操作不可撤销。',
       confirmText: '完成',
       cancelText: '取消',
       success: async modalRes => {
@@ -585,9 +653,11 @@ Page({
         }
         wx.showLoading({ title: '铸造中...' })
         try {
-          const res = await API.completeDiyWork(this.data.workId)
+          const res = await API.completeDiyWork(this.data.workId, addressId)
           wx.hideLoading()
           if (res.success && res.data) {
+            /** 后端返回完成后的完整作品对象（status='completed'，含 item_id/completed_at） */
+            this.data._workData = res.data
             this.setData({ workStatus: res.data.status, processing: false })
             wx.showToast({ title: '饰品铸造成功', icon: 'success' })
           } else {
@@ -686,8 +756,8 @@ Page({
    *   中间 900px: 饰品渲染图(500px) + 作品名称 + 材料标签 + 总价，背景色 #F8F6F3
    *   底部 314px: 小程序码(200x200) + "扫码查看我的设计" + 用户昵称
    *
-   * 注意: 小程序码需要后端提供 GET /api/v4/diy/works/:id/qrcode 接口
-   *       该接口尚未实现，海报中小程序码区域暂显示占位提示
+   * 小程序码: GET /api/v4/diy/works/:id/qrcode（后端已实现，对接文档 3.3-⑭）；
+   * 提审前按 DIY_QRCODE_ENABLED=false 隐藏入口，海报画降级占位（拍板⑦）
    */
   async onSavePoster() {
     if (this.data.posterGenerating) {
@@ -885,13 +955,11 @@ Page({
             }
           }
         } catch (qrcodeError: any) {
-          /* 小程序码获取失败不阻塞海报生成，明确区分提审前禁用/接口未开通/普通下载失败 */
+          /* 小程序码获取失败不阻塞海报生成，明确区分提审前禁用/接口异常 */
           if (qrcodeError?.code === 'DIY_QRCODE_DISABLED_BEFORE_REVIEW') {
             log.info('小程序码入口提审前隐藏（拍板⑦），海报使用占位提示')
-          } else if (qrcodeError?.code === 'DIY_QRCODE_API_UNAVAILABLE') {
-            wx.showToast({ title: '小程序码接口未开通', icon: 'none' })
           } else {
-            log.warn('海报小程序码获取失败，使用占位提示')
+            log.warn('海报小程序码获取失败，使用占位提示:', qrcodeError?.message || qrcodeError)
           }
         }
         /* 小程序码获取失败时的降级占位 */
