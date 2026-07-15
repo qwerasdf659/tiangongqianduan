@@ -396,6 +396,15 @@
             show-menu-by-longpress="{{true}}"
           />
 
+          <!-- 消费加成活动条（后端 GET /api/v4/user/consumption-bonus，方案C §十；无生效活动时隐藏） -->
+          <view class="bonus-activity-bar" wx:if="{{bonusActivityActive}}">
+            <t-icon name="gift-filled" size="32rpx" color="#B8860B" />
+            <view class="bonus-activity-texts">
+              <text class="bonus-activity-name">{{bonusActivityName}}</text>
+              <text class="bonus-activity-rate">{{bonusActivityRateText}}</text>
+            </view>
+          </view>
+
           <!-- 提示文字 -->
           <view class="qrcode-enlarged-tips">
             <text class="enlarged-tip">长按保存二维码</text>

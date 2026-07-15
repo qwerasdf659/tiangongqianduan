@@ -55,6 +55,11 @@
           <text class="current-points-num">{{historyTotalPoints}}</text>
           <text class="current-points-unit">累计积分</text>
         </view>
+        <!-- 当前等级积分加成倍率（后端 current_earn_multiplier，营销激励公开信息） -->
+        <view class="current-multiplier" wx:if="{{currentMultiplierText}}">
+          <t-icon name="upload" size="26rpx" color="#B8860B" />
+          <text class="current-multiplier-text">{{currentMultiplierText}}</text>
+        </view>
         <!-- 升级进度条（仅 UI 可视化，数字文案以后端 next_level 差值为准） -->
         <view class="progress-track" wx:if="{{progressPercent >= 0}}">
           <view class="progress-fill" style="width: {{progressPercent}}%"></view>
@@ -104,9 +109,15 @@
                     <text class="ladder-name">{{item.levelName}}</text>
                     <text class="ladder-current-tag" wx:if="{{item.isCurrent}}">当前等级</text>
                   </view>
-                  <text class="ladder-threshold" wx:if="{{item.thresholdText}}"
-                    >{{item.thresholdText}}</text
-                  >
+                  <view class="ladder-meta-row">
+                    <text class="ladder-threshold" wx:if="{{item.thresholdText}}"
+                      >{{item.thresholdText}}</text
+                    >
+                    <!-- 该档积分加成倍率（后端 earn_multiplier，营销激励公开信息） -->
+                    <text class="ladder-multiplier" wx:if="{{item.multiplierText}}"
+                      >{{item.multiplierText}}</text
+                    >
+                  </view>
                 </view>
                 <t-icon
                   wx:if="{{item.isReached && !item.isCurrent}}"

@@ -12,11 +12,25 @@
   background: rgba(0, 0, 0, 0);
   z-index: 9999;
   pointer-events: none;
-  transition: background 0.3s ease;
+  /*
+   * 未显示时整棵弹窗子树 visibility: hidden（含 position:fixed 的白色 .login-popup-container）。
+   * 原因：Skyline 渲染下，隐藏态 fixed 容器高度尚未完成布局测量，靠 transform: translateY(100%)
+   * 隐藏时百分比基准（自身高度）会算偏小/为 0，容器无法完全移出屏幕，白色底盖住页面内容。
+   * visibility 保证：无论 transform 是否被正确计算，未显示态都不可见（WebView/Skyline 双端安全）。
+   * visibility 延迟 0.35s（= 容器下滑动画时长）切换，避免关闭动画被立即截断。
+   */
+  visibility: hidden;
+  transition:
+    background 0.3s ease,
+    visibility 0s linear 0.35s;
 
   &.show {
     background: rgba(0, 0, 0, 0.45);
     pointer-events: auto;
+    visibility: visible;
+    transition:
+      background 0.3s ease,
+      visibility 0s linear 0s;
   }
 }
 

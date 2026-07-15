@@ -51,7 +51,7 @@ module.exports = {
   /** 背包+B2C兑换+竞价: getUserInventory / getBackpackStats / getExchangeProducts / exchangeProduct / getBidProducts / placeBid 等 */
   ...backpackModule,
 
-  /** 消费积分系统（用户端+商家端）: getUserQRCode / submitConsumption / createRedemptionOrder 等 */
+  /** 消费积分系统（用户端+商家端）: getUserQRCode / getConsumptionBonusActivity / submitConsumption / createRedemptionOrder 等 */
   ...shopModule,
 
   /** 系统通用+客服+活动: getPlacementConfig / getAdDelivery / reportInteractionLog / createChatSession / getCsAgentSessions / getCsAgentMessages / sendCsAgentMessage / getCsAgentMe / markCsAgentSessionRead / uploadChatImage / uploadChatFile / getActivities / getDictionaryTypes / getDictionaryByType 等 */

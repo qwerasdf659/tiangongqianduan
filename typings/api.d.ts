@@ -1269,6 +1269,30 @@ declare namespace API {
     usage?: string
   }
 
+  /**
+   * 消费加成活动展示信息（GET /api/v4/user/consumption-bonus 的 data.activity）
+   * 方案C §10.3/§10.5：脱敏后仅营销展示字段，前端零映射直读。
+   * ⚠️ 后端不下发 priority/max_bonus_rate/store_ids/merchant_ids/rule_name 等内部配置字段。
+   */
+  interface ConsumptionBonusActivity {
+    /** 活动展示名（直接展示，如"双11消费多送50%积分"） */
+    display_name: string
+    /** 加成率（0.5=多送50%积分，可 ×100 转百分比展示） */
+    bonus_rate: number
+    /** 生效开始（北京时间 ISO，null=不限） */
+    start_at: string | null
+    /** 生效结束（北京时间 ISO，null=不限） */
+    end_at: string | null
+  }
+
+  /** 消费加成活动查询响应（GET /api/v4/user/consumption-bonus 的 data） */
+  interface ConsumptionBonusData {
+    /** 是否有生效活动（false 时前端不展示活动条） */
+    active: boolean
+    /** 生效活动展示信息；无生效活动时为 null */
+    activity: ConsumptionBonusActivity | null
+  }
+
   // ===== 客服系统 =====
 
   /** 客服会话（对齐后端 GET /api/v4/system/chat/sessions 返回格式） */

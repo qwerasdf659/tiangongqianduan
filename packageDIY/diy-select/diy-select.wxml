@@ -1,6 +1,7 @@
 <custom-navbar title="DIY 设计" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 <view class="diy-select-page">
-  <scroll-view type="list" scroll-y class="page-scroll-view">
+  <!-- Skyline 下不可用 type="list"（列表虚拟化会裁剪末项卡片内多行文本），静态卡片用普通滚动容器 -->
+  <scroll-view scroll-y class="page-scroll-view">
     <!-- 页面标题区域 -->
     <view class="page-title-section">
       <text class="page-main-title">开始您的饰品设计之旅</text>

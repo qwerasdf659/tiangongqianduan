@@ -111,6 +111,16 @@ Page({
     qrCountdownText: '5:00',
     qrExpiresAt: 0,
 
+    /* ===== 消费加成活动（后端 GET /api/v4/user/consumption-bonus，方案C §十 C 端展示） =====
+       用户消费码为动态身份码、不绑定门店，故展示全平台生效活动（不传 store_id/merchant_id）。
+       出示付款码时告知"当前消费多送 X% 积分"，激励消费；命中全自动，用户无需选活动。 */
+    /** 是否有生效的消费加成活动（后端 active=true 时展示活动条） */
+    bonusActivityActive: false,
+    /** 活动展示名（后端 display_name，如"双11消费多送50%积分"，直接展示） */
+    bonusActivityName: '',
+    /** 加成百分比文案（bonus_rate×100，如"多送 50% 积分"） */
+    bonusActivityRateText: '',
+
     /* ===== 仓库/背包未读物品数（后端 GET /api/v4/backpack/stats 的 unviewed_items，首页角标=未读提醒） ===== */
     inventoryUnviewedCount: 0,
 
@@ -328,6 +338,9 @@ Page({
 
       /* 加载当前页面活动列表（任务27） */
       this._loadCampaigns()
+
+      /* 加载当前生效的消费加成活动（方案C §十，付款码区展示"消费多送X%"） */
+      this._loadConsumptionBonusActivity()
     } else {
       log.info('[lottery] onShow 距上次刷新过近，跳过活动/公告/角标刷新（节流削峰）')
     }
@@ -1337,6 +1350,37 @@ Page({
       }
     } catch (badgeError) {
       log.warn('[lottery] 角标计数刷新失败（不影响主流程）:', badgeError)
+    }
+  },
+
+  /**
+   * 加载当前生效的消费加成活动（方案C §十 C 端展示）
+   * 数据源: GET /api/v4/user/consumption-bonus（不传 store_id/merchant_id 查全平台活动）
+   *
+   * 用户消费码为动态身份码、出示前不绑定具体门店，故展示全平台生效活动。
+   * bonus_rate（0.5）→ 百分比文案（"多送 50% 积分"）；无生效活动（active=false）时隐藏活动条。
+   * 展示信息为后端脱敏下发，前端只做展示、不做人群/门店判定（命中全自动，§10.1/§10.6）。
+   */
+  async _loadConsumptionBonusActivity() {
+    try {
+      const bonusResult = await API.getConsumptionBonusActivity()
+      if (bonusResult?.success && bonusResult.data?.active && bonusResult.data.activity) {
+        const activity = bonusResult.data.activity
+        /* bonus_rate=0.5 → "50"，去掉多余小数（0.5→50、0.05→5、0.155→15.5） */
+        const ratePercent = Math.round(activity.bonus_rate * 100 * 10) / 10
+        this.setData({
+          bonusActivityActive: true,
+          bonusActivityName: activity.display_name || '',
+          bonusActivityRateText: `多送 ${ratePercent}% 积分`
+        })
+      } else {
+        /* 无生效活动：隐藏活动条（不展示，§10.3） */
+        this.setData({ bonusActivityActive: false })
+      }
+    } catch (bonusError) {
+      /* 活动展示为非关键信息，加载失败静默隐藏，不影响付款码主功能 */
+      log.warn('[lottery] 消费加成活动加载失败（不影响主流程）:', bonusError)
+      this.setData({ bonusActivityActive: false })
     }
   },
 

@@ -122,34 +122,65 @@
   display: block;
 }
 
-/* 放大二维码提示文字 - 增强视觉效果 */
+/* 消费加成活动条（方案C §十 C 端展示："消费多送X%积分"，殿堂金配色强调营销激励） */
+.bonus-activity-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  width: 100%;
+  padding: 20rpx 28rpx;
+  background: rgba(184, 134, 11, 0.1);
+  border: 1rpx solid rgba(184, 134, 11, 0.25);
+  border-radius: 20rpx;
+}
+
+.bonus-activity-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.bonus-activity-name {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-semibold);
+  color: var(--tg-text-primary);
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+.bonus-activity-rate {
+  font-size: var(--tg-font-size-small);
+  font-weight: var(--tg-font-weight-medium);
+  color: #b8860b;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
+/* 放大二维码提示文字 - 淡金黄渐变（浅底，配深金褐字保证可读性） */
 .qrcode-enlarged-tips {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
   padding: 24rpx 32rpx;
-  background: var(--tg-gradient-primary-start);
+  /* 淡金黄渐变 #fbe9c0 → #f3d78a，柔和不刺眼 */
+  background: linear-gradient(135deg, #fbe9c0, #f3d78a);
   border-radius: 20rpx;
   width: 100%;
+  /* 阴影用暖金色系，协调统一 */
   box-shadow:
-    0 8rpx 24rpx rgba(91, 122, 94, 0.3),
-    inset 0 1rpx 0 rgba(255, 255, 255, 0.2);
-  /* 增强阴影和内高光 */
-  border: 1rpx solid rgba(255, 255, 255, 0.2);
-  /* 半透明边框 */
+    0 8rpx 24rpx rgba(212, 175, 55, 0.25),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.5);
+  border: 1rpx solid rgba(212, 175, 55, 0.3);
 }
 
 .enlarged-tip {
   font-size: var(--td-font-size-base);
-  /* 绋嶅井澧炲ぇ瀛楀彿 */
-  color: var(--tg-color-white);
-  font-weight: var(--tg-font-weight-regular);
+  /* 淡金底改用深金褐字，保证浅底上的对比度与可读性 */
+  color: #8a6d1f;
+  font-weight: var(--tg-font-weight-medium);
   text-align: center;
-  text-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.3);
-  /* 增强文字阴影 */
   letter-spacing: var(--tg-letter-spacing-tight);
-  /* 澧炲姞瀛楅棿璺濓紝鏇翠紭闆?*/
 }
 
 /* 响应式：小屏幕优化?*/

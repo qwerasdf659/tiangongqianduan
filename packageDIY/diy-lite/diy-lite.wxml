@@ -5,7 +5,7 @@
   数据来源：后端 /api/v4/diy/（模板/珠子/作品），前端不写死业务数据
 -->
 <view class="diy-lite-page">
-  <custom-navbar title="自由定制饰品" />
+  <custom-navbar title="自由定制饰品" bgColor="#ffffff" textColor="#000000" showBack="{{true}}" />
 
   <!-- 加载态 -->
   <view wx:if="{{loading}}" class="load-state">

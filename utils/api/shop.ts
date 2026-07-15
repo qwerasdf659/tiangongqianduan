@@ -38,6 +38,43 @@ async function getUserQRCode() {
   })
 }
 
+/**
+ * 获取当前生效的消费加成活动（C 端展示）- GET /api/v4/user/consumption-bonus
+ *
+ * 用途（方案C §十）：门店页/扫码页展示"本店当前有什么消费加成活动"（如"双11消费多送50%积分"），
+ * 用于激励消费。用户无需选择活动——消费时后端按门店/商家/时间自动匹配，此接口仅告知展示。
+ *
+ * 查询参数（store_id / merchant_id 至少传一个查该门店/商家生效活动；都不传则查全平台活动）:
+ *   - store_id    门店ID（可选）
+ *   - merchant_id 商家ID（可选）
+ *
+ * 响应 data（脱敏，前端零映射直读，§10.3/§10.5）:
+ *   active   boolean          是否有生效活动（false 时前端不展示活动条）
+ *   activity {                有生效活动时的展示信息；无则为 null
+ *     display_name string     活动展示名（直接展示，如"双11消费多送50%积分"）
+ *     bonus_rate   number     加成率（0.5=多送50%，可 ×100 转百分比展示）
+ *     start_at     string|null 生效开始（北京时间 ISO，null=不限）
+ *     end_at       string|null 生效结束（北京时间 ISO，null=不限）
+ *   }
+ *
+ * ⚠️ 数据边界（§10.5 安全红线）：本接口只下发 display_name/bonus_rate/start_at/end_at 营销展示字段；
+ *   priority/max_bonus_rate/store_ids/merchant_ids/rule_name 等内部配置字段后端不下发，前端不应尝试获取。
+ *
+ * @param params 可选门店/商家过滤（都不传查全平台活动）
+ */
+async function getConsumptionBonusActivity(
+  params: { store_id?: number; merchant_id?: number } = {}
+) {
+  const qs = buildQueryString({ store_id: params.store_id, merchant_id: params.merchant_id })
+  const url = qs ? `/user/consumption-bonus?${qs}` : '/user/consumption-bonus'
+  return apiClient.request(url, {
+    method: 'GET',
+    needAuth: true,
+    showLoading: false,
+    showError: false
+  })
+}
+
 /** 获取当前用户的消费记录 - GET /api/v4/shop/consumption/me */
 async function getMyConsumptionRecords(
   params: { page?: number; page_size?: number; status?: string | null } = {}
@@ -521,6 +558,7 @@ async function setStaffRedemptionStatsPermission(
 
 module.exports = {
   getUserQRCode,
+  getConsumptionBonusActivity,
   getMyConsumptionRecords,
   getConsumptionDetail,
   getMyStores,

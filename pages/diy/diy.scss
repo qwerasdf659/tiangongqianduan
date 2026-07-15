@@ -1,8 +1,8 @@
 /* Skyline 页面级滚动容器 — flex:1 + min-height:0 获得高度约束，scroll-view 自行管理滚动 */
+/* 底部避让统一由 .diy-select-page 的 padding-bottom 承担，此处不再重复加 padding（避免叠加出过厚留白） */
 .page-scroll-view {
   flex: 1;
   min-height: 0;
-  padding-bottom: calc(100rpx + env(safe-area-inset-bottom, 0px));
 }
 
 @import '../../styles/mixins.scss';
@@ -24,7 +24,8 @@ page {
   min-height: 0;
   background: var(--tg-page-bg);
   padding: 0 var(--tg-spacing-md);
-  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
+  /* 底部仅需避开 tabBar（高 120rpx）+ 安全区，再留一点呼吸间距即可，避免过厚留白 */
+  padding-bottom: calc(120rpx + var(--tg-spacing-md) + env(safe-area-inset-bottom));
 }
 
 /* 🎨 沉浸式顶部横幅 — 图片延伸到状态栏后面 */

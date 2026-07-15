@@ -3,7 +3,12 @@
   直接在 tabBar 页面内展示设计入口，底部 tab 始终可见
 -->
 <view class="diy-select-page">
-  <scroll-view type="list" scroll-y class="page-scroll-view">
+  <!--
+    Skyline 渲染下此处不可用 type="list"（列表虚拟化）：
+    页面仅少量静态卡片而非长列表，虚拟化会导致末项（设计广场卡片）内部多行文本被裁剪不渲染。
+    改用普通 scroll-y 滚动容器，全部子节点一次性完整渲染。
+  -->
+  <scroll-view scroll-y class="page-scroll-view">
     <!-- 🎨 顶部沉浸式横幅区域（运营可配，后端 ad-delivery?slot_type=top_banner&position=diy） -->
     <view class="immersive-top-banner">
       <!-- 运营轮播多图 -->

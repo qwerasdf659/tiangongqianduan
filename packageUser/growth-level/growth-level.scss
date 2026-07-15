@@ -330,6 +330,26 @@
   margin-top: 4rpx;
 }
 
+/* 当前等级积分加成倍率徽章（后端 current_earn_multiplier，殿堂金配色强调营销激励） */
+.current-multiplier {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 20rpx;
+  padding: 8rpx 24rpx;
+  background: rgba(184, 134, 11, 0.12);
+  border-radius: 32rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.current-multiplier-text {
+  font-size: var(--tg-font-size-caption);
+  font-weight: var(--tg-font-weight-semibold);
+  color: #b8860b;
+  letter-spacing: var(--tg-letter-spacing-tight);
+}
+
 /* 升级进度条（仅 UI 可视化：条宽来自后端权威数字换算，不展示前端自算数字） */
 .progress-track {
   width: 100%;
@@ -559,11 +579,28 @@
   margin-left: 12rpx;
 }
 
+/* 门槛 + 倍率同行展示（倍率为 2026-07-12 新增营销信息） */
+.ladder-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 6rpx;
+}
+
 .ladder-threshold {
   font-size: var(--td-font-size-s);
   color: var(--tg-text-tertiary);
-  margin-top: 6rpx;
-  display: block;
+}
+
+/* 该档积分加成倍率标签（后端 earn_multiplier，品牌金强调） */
+.ladder-multiplier {
+  font-size: var(--tg-font-size-mini);
+  font-weight: var(--tg-font-weight-medium);
+  color: #a08b6e;
+  background: rgba(197, 165, 114, 0.12);
+  padding: 2rpx 14rpx;
+  border-radius: 16rpx;
 }
 
 /* ============================================================

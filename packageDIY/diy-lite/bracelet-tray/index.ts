@@ -525,8 +525,12 @@ Component({
 
     /**
      * 计算绳圈半径与 mm→px 比例（_layout 与用户缩放共用）：
-     * 基础比例 = 恰好不溢出画布的适配值；再乘用户缩放系数 _userScale（＋/－按钮与双指捏合），
-     * 上限收在"恰好填满画布"，下限由 _setUserScale 的 0.4 保证；拍照导出不受用户缩放影响。
+     * 基础比例 fitBase = 恰好不溢出画布的适配值（含默认留白系数 DEFAULT_FIT_RATIO）；
+     * 再乘用户缩放系数 _userScale（＋/－按钮与双指捏合），最终缩放的上下限统一由
+     * _setUserScale 收在 0.4~2.5。
+     * ⚠️ 此处不再对 fit 施加 avail/outer 封顶——旧封顶会把"放大超过填满画布"压回，
+     *    导致初始已填满画布时 ＋ 按钮完全无效（放大方向被锁死）。放大允许超出可视区，
+     *    上限交给 _setUserScale 的 2.5 兜底；拍照导出不受用户缩放影响。
      */
     _recomputeScale() {
       const beads = (this._trayBeads || []) as TrayBead[]
@@ -542,9 +546,15 @@ Component({
       const margin = this._photoMode ? 2 : 8
       const avail = Math.min(centerX, centerY) - margin
       const outer = ringBase + (maxLongMm * basePxPerMm) / 2
-      const fitBase = outer > avail ? avail / outer : 1
+      /**
+       * 基础适配：不溢出画布的最大比例，再乘默认留白系数（普通模式 0.8 留出上下留白，
+       * 拍照模式 1 填满不留白）。用户缩放在此基础上叠加。
+       */
+      const fitToCanvas = outer > avail ? avail / outer : 1
+      const defaultRatio = this._photoMode ? 1 : 0.8
+      const fitBase = fitToCanvas * defaultRatio
       const userScale = this._photoMode ? 1 : this._userScale || 1
-      const fit = Math.min(fitBase * userScale, avail / outer)
+      const fit = fitBase * userScale
       this._ringRadius = ringBase * fit
       this._pixelPerMm = basePxPerMm * fit
     },

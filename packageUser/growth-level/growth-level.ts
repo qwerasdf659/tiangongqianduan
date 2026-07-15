@@ -4,18 +4,23 @@
  * 业务语义: 用户查看自己的成长等级（9 档 v1~v9，铜卡~荣耀殿堂）、累计积分与等级阶梯进度。
  * 成长等级由累计历史积分（history_total_points）单一派生，等级终身有效只增不减（拍板⑦）。
  *
- * 后端API（对接文档 §十一-M2）:
- * - GET /api/v4/user/growth-level — 当前成长等级 + 等级阶梯 + next_level 差值（已脱敏，倍数/权重永不下发）
+ * 后端API（对接文档《小程序成长等级页对接说明-给前端》2026-07-12）:
+ * - GET /api/v4/user/growth-level — 当前成长等级 + 等级阶梯 + next_level 差值 + 积分加成倍率
  *
  * 字段以后端为准（直接使用后端 snake_case 字段，不做映射）:
- *   current_level_key / current_level_name / history_total_points / thresholds_confirmed /
- *   levels[]{ level_key, level_name, min_history_points } /
+ *   current_level_key / current_level_name / current_earn_multiplier / history_total_points /
+ *   thresholds_confirmed /
+ *   levels[]{ level_key, level_name, min_history_points, earn_multiplier } /
  *   next_level{ level_key, level_name, points_needed }（顶档为 null）
  *
- * 占位保护（拍板点⑨）: thresholds_confirmed=false 时后端将 min_history_points 下发为 null，
- *   前端只显示等级名、不显示"需达 Y 积分"的具体门槛数字，避免用占位值误导用户。
+ * 积分加成倍率（earn_multiplier / current_earn_multiplier，2026-07-12 新增）:
+ *   属营销激励信息（同淘宝/京东/有赞会员倍率），业务确认对用户公开以增强升级动力。
+ *   earn_multiplier=1 表示 1.0 倍（无加成），展示统一 toFixed(2) 格式化（1.00/1.05/1.50）。
+ *   ⚠️ 数据边界：本接口只下发成长等级积分倍率这类营销信息；抽奖中奖概率、分层权重等
+ *   属商业机密，后端不下发、前端也不展示（对接文档 §六）。
  *
- * 禁止在小程序侧自算等级或要求下发倍数（发放倍数公示文案由运营配置，不是接口字段）。
+ * 占位保护: thresholds_confirmed=false 时后端将 min_history_points 下发为 null，
+ *   前端只显示等级名、不显示"需达 Y 积分"的具体门槛数字，避免用占位值误导用户。
  *
  * @file packageUser/growth-level/growth-level.ts
  * @version 5.3.0
@@ -37,6 +42,11 @@ Page({
     currentLevelKey: '',
     /** 当前等级中文名（后端 current_level_name） */
     currentLevelName: '',
+    /**
+     * 当前等级积分加成倍率展示文案（后端 current_earn_multiplier，2026-07-12 新增）:
+     * 已 toFixed(2) 格式化的"积分加成 X.XX 倍"文案；后端未下发有效倍率时为空不展示。
+     */
+    currentMultiplierText: '',
     /** 累计历史积分（后端 history_total_points） */
     historyTotalPoints: 0,
     /** 阈值是否已定稿（后端 thresholds_confirmed，false=占位阶段不显示门槛数字） */
@@ -122,6 +132,14 @@ Page({
               level.min_history_points !== null &&
               level.min_history_points !== undefined
                 ? `累计 ${level.min_history_points} 积分`
+                : '',
+            /**
+             * 积分加成倍率文案（后端 earn_multiplier，2026-07-12 新增）:
+             * 数值型倍率 toFixed(2) 格式化为"积分 ×X.XX"；后端未下发有效数字时留空不展示。
+             */
+            multiplierText:
+              typeof level.earn_multiplier === 'number'
+                ? `积分 ×${level.earn_multiplier.toFixed(2)}`
                 : ''
           }
         })
@@ -164,9 +182,18 @@ Page({
           }
         }
 
+        /**
+         * 当前等级积分加成倍率文案（后端 current_earn_multiplier，2026-07-12 新增）:
+         * toFixed(2) 统一两位小数展示"积分加成 X.XX 倍"；后端未下发有效数字时留空不展示。
+         */
+        const currentMultiplier = apiData.current_earn_multiplier
+        const currentMultiplierText =
+          typeof currentMultiplier === 'number' ? `积分加成 ${currentMultiplier.toFixed(2)} 倍` : ''
+
         this.setData({
           currentLevelKey,
           currentLevelName: apiData.current_level_name || '',
+          currentMultiplierText,
           historyTotalPoints: apiData.history_total_points || 0,
           thresholdsConfirmed,
           levels: processedLevels,

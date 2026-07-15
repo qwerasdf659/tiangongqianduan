@@ -199,22 +199,23 @@ async function logout() {
 }
 
 /**
- * 获取当前用户成长等级（脱敏，需登录）- GET /api/v4/user/growth-level
+ * 获取当前用户成长等级（需登录）- GET /api/v4/user/growth-level
  *
  * 会员成长等级（9 档 v1~v9，铜卡~荣耀殿堂）由累计积分 history_total_points 实时派生。
- * 倍数/权重等运营策略字段永不下发（商业机密，禁止在小程序侧自算等级或要求下发倍数）。
  *
- * 响应 data 字段（snake_case 原名，前端不做映射层，对接文档 §十一-M2）:
- *   current_level_key      当前等级 key（如 v9）
- *   current_level_name     当前等级中文名（如 荣耀殿堂）
- *   history_total_points   累计积分（成长等级单一派生源）
- *   thresholds_confirmed   阈值是否已定稿（false=占位阶段）
- *   levels[]               等级阶梯（升序）: { level_key, level_name, min_history_points }
- *   next_level             距下一级差值: { level_key, level_name, points_needed }，顶档 v9 为 null
- *                          → 渲染"再消费 X 元升{下一级名}"（1 元≈1 积分）
+ * 响应 data 字段（snake_case 原名，前端不做映射层，对接文档《小程序成长等级页对接说明》2026-07-12）:
+ *   current_level_key        当前等级 key（如 v9）
+ *   current_level_name       当前等级中文名（如 荣耀殿堂）
+ *   current_earn_multiplier  当前等级积分加成倍率（2026-07-12 新增，如 1.5，营销激励公开信息）
+ *   history_total_points     累计积分（成长等级单一派生源）
+ *   thresholds_confirmed     阈值是否已定稿（false=占位阶段）
+ *   levels[]                 等级阶梯（升序）: { level_key, level_name, min_history_points, earn_multiplier }
+ *   next_level               距下一级差值: { level_key, level_name, points_needed }，顶档 v9 为 null
+ *                            → 渲染"再消费 X 元升{下一级名}"（1 元≈1 积分）
  *
- * ⚠️ 占位保护（拍板点⑨）：thresholds_confirmed=false 时，后端将每个
+ * ⚠️ 占位保护：thresholds_confirmed=false 时，后端将每个
  *    min_history_points 下发为 null，前端只显示等级名、不显示"需达 Y 积分"。
+ * ⚠️ 数据边界：本接口只下发成长等级积分倍率这类营销信息；抽奖概率、分层权重等商业机密不下发。
  */
 async function getUserGrowthLevel() {
   return apiClient.request('/user/growth-level', {
