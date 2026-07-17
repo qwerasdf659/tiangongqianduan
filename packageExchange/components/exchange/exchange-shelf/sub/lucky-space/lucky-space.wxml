@@ -163,7 +163,7 @@
           class="card-image-area-image"
           wx:if="{{item._hasImage}}"
           src="{{item.image}}"
-          mode="aspectFill"
+          mode="{{viewMode === 'list' ? 'aspectFill' : 'widthFix'}}"
           lazy-load="{{true}}"
           data-index="{{index}}"
           binderror="onImageError"
@@ -227,9 +227,8 @@
         </view>
         <text
           class="stock-text {{item.stock > 50 ? 'stock-high' : (item.stock > 10 ? 'stock-medium' : (item.stock > 0 ? 'stock-low' : 'stock-out'))}}"
+          >{{item.stock > 0 ? ('库存 ' + item.stock) : '已售罄'}}</text
         >
-          {{item.stock > 0 ? ('库存 ' + item.stock) : '已售罄'}}
-        </text>
 
         <!-- CTA 按钮（等级门槛未满足时置灰"等级未达"，点卡片仍可进详情看门槛，对接文档 §十一-M4） -->
         <view class="cta-btn {{item.stock <= 0 || item._levelLocked ? 'btn-disabled' : ''}}">

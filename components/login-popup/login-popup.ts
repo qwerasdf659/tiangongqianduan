@@ -324,24 +324,39 @@ Component({
 
       this.setData({ loggingType: 'wechat', loginCompleted: false })
 
+      /**
+       * 超时兜底：15s 未完成则复位"登录中"，同时清 loginCompleted 防残留吞回调；
+       * _loginTimedOut 标记超时已触发，避免超时后回调与 finally 重复处理。
+       */
+      this._loginTimedOut = false
       const loginTimeout = setTimeout(() => {
         if (!this.data.loginCompleted) {
-          this.setData({ loggingType: '' })
+          this._loginTimedOut = true
+          this.setData({ loggingType: '', loginCompleted: false })
           Wechat.showToast('登录超时，请重试')
         }
       }, 15000)
 
+      /** 统一收尾：清超时定时器 + 兜底复位 loggingType（未进成功态时），杜绝标志卡死 */
+      const finalizeLogin = () => {
+        clearTimeout(loginTimeout)
+        if (!this.data.loginCompleted && this.data.loggingType) {
+          this.setData({ loggingType: '' })
+        }
+      }
+
       wx.login({
         success: res => {
           if (!res.code) {
-            clearTimeout(loginTimeout)
-            this.handleLoginFailure('登录凭证获取失败')
+            finalizeLogin()
+            if (!this._loginTimedOut) {
+              this.handleLoginFailure('登录凭证获取失败')
+            }
             return
           }
           API.wxCodeLogin(res.code, phoneCode)
             .then((result: any) => {
-              clearTimeout(loginTimeout)
-              if (this.data.loginCompleted) {
+              if (this._loginTimedOut || this.data.loginCompleted) {
                 return
               }
               if (result && result.success === true) {
@@ -351,17 +366,21 @@ Component({
               }
             })
             .catch((error: any) => {
-              clearTimeout(loginTimeout)
-              if (this.data.loginCompleted) {
+              if (this._loginTimedOut || this.data.loginCompleted) {
                 return
               }
               log.error('微信一键登录失败:', error)
               this.handleLoginFailure('登录失败，请重试')
             })
+            .finally(() => {
+              finalizeLogin()
+            })
         },
         fail: () => {
-          clearTimeout(loginTimeout)
-          this.handleLoginFailure('登录失败')
+          finalizeLogin()
+          if (!this._loginTimedOut) {
+            this.handleLoginFailure('登录失败')
+          }
         }
       })
     },
@@ -391,17 +410,23 @@ Component({
 
       this.setData({ loggingType: 'sms', loginCompleted: false })
 
+      /**
+       * 超时兜底：15s 未完成则复位"登录中"状态，允许用户重试。
+       * 同时清 loginCompleted，避免超时后残留 true 把随后到达的成功回调用 if(loginCompleted) 吞掉。
+       * _loginTimedOut 标记超时已触发，供后续 finally 判断是否已提示过超时。
+       */
+      this._loginTimedOut = false
       const loginTimeout = setTimeout(() => {
         if (!this.data.loginCompleted) {
-          this.setData({ loggingType: '' })
+          this._loginTimedOut = true
+          this.setData({ loggingType: '', loginCompleted: false })
           Wechat.showToast('登录超时，请重试')
         }
       }, 15000)
 
       API.userLogin(mobile, verificationCode)
         .then((result: any) => {
-          clearTimeout(loginTimeout)
-          if (this.data.loginCompleted) {
+          if (this._loginTimedOut || this.data.loginCompleted) {
             return
           }
           if (result && result.success === true) {
@@ -411,8 +436,7 @@ Component({
           }
         })
         .catch((error: any) => {
-          clearTimeout(loginTimeout)
-          if (this.data.loginCompleted) {
+          if (this._loginTimedOut || this.data.loginCompleted) {
             return
           }
           log.error('验证码登录失败:', error)
@@ -423,6 +447,16 @@ Component({
             this.handleLoginFailure('验证码错误，请重新输入')
           } else {
             this.handleLoginFailure(error?.message || '登录失败，请重试')
+          }
+        })
+        .finally(() => {
+          clearTimeout(loginTimeout)
+          /**
+           * 最终兜底：无论成功/失败/异常/早退，只要不是已进入成功态（loginCompleted=true），
+           * 都强制复位 loggingType，杜绝"登录中"标志卡死导致按钮点不动、须退出多次才恢复。
+           */
+          if (!this.data.loginCompleted && this.data.loggingType) {
+            this.setData({ loggingType: '' })
           }
         })
     },

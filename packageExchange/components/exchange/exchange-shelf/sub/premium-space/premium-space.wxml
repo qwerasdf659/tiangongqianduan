@@ -151,7 +151,7 @@
           class="card-image-area-image"
           wx:if="{{item._hasImage}}"
           src="{{item.image}}"
-          mode="aspectFill"
+          mode="{{viewMode === 'list' || (effects.fullbleed && item._hasImage) ? 'aspectFill' : 'widthFix'}}"
           lazy-load="{{true}}"
           data-index="{{index}}"
           binderror="onImageError"

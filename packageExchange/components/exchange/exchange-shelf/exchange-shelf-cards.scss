@@ -45,9 +45,12 @@
   background: linear-gradient(135deg, #c5a572, #a08b6e);
 }
 
-/* 图片区域 */
+/* 图片区域 — 网格视图高度跟随图片真实比例自适应（widthFix）：
+ * 完整显示不裁切、且上下无留白（图多高区就多高），两列卡片高度按各自图比例参差（瀑布流观感）。
+ * 固定尺寸的场景（list-mode 缩略图 / fullbleed 全图叠字）在各自规则里覆盖。 */
 .unified-card .card-image-area {
-  height: 280rpx;
+  width: 100%;
+  height: auto;
   position: relative;
   overflow: hidden;
   background: var(--tg-exchange-card-image-bg, var(--tg-color-bg-panel));
@@ -55,7 +58,8 @@
 
 .unified-card .card-image-area .card-image-area-image {
   width: 100%;
-  height: 100%;
+  /* widthFix 模式下高度由图片真实比例决定，不写死 height（写死会回到留白/裁切） */
+  display: block;
 }
 
 /* 标签角标 */
@@ -252,9 +256,12 @@
 }
 
 .unified-card .stock-text {
+  display: block;
   font-size: var(--tg-font-size-mini);
   padding: 0 2rpx;
   font-weight: var(--tg-font-weight-regular);
+  /* 紧凑行高，消除文本节点换行空白撑出的多余高度（进度条与库存文字间距过大） */
+  line-height: 1.2;
 }
 .stock-text.stock-high {
   color: var(--tg-color-success);
@@ -341,6 +348,10 @@
   height: 180rpx;
   flex-shrink: 0;
   border-radius: 16rpx;
+}
+/* 列表视图缩略图为固定 180×180 方框，图片需铺满该框（aspectFill 已裁切填满） */
+.unified-card.list-mode .card-image-area .card-image-area-image {
+  height: 100%;
 }
 .unified-card.list-mode .card-body {
   flex: 1;
@@ -451,6 +462,10 @@
   inset: 0;
   height: 100%;
   z-index: 0;
+}
+/* 全图叠字模式：图片需铺满整卡（aspectFill 裁切填满），故图片高度撑满图区 */
+.unified-card.fullbleed-mode .card-image-area .card-image-area-image {
+  height: 100%;
 }
 .unified-card.fullbleed-mode .card-image-area::after {
   content: '';

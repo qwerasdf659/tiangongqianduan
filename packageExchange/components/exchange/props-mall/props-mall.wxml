@@ -103,7 +103,7 @@
           class="card-image-area-image"
           wx:if="{{item._hasImage}}"
           src="{{item.image}}"
-          mode="aspectFill"
+          mode="{{viewMode === 'list' ? 'aspectFill' : 'widthFix'}}"
           lazy-load="{{true}}"
           data-index="{{index}}"
           binderror="onImageError"
